@@ -4,9 +4,9 @@ Src = source/Server.cpp main.cpp
 
 Headers = include/Server.hpp
 
-Name = server
+Name = webserv
 
-Rm = rm -rf
+Rm = rm -f
 
 Obj = $(Src:.cpp=.o)
 
