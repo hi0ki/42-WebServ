@@ -13,7 +13,7 @@ Server::Server(int domain, int type, int protocol, int port ,
     addr.sin_family = domain;
     addr.sin_addr.s_addr = htonl(ip_add); // (host to network long).
     addr.sin_port = htons(port); // change it to bytes with htons bcs maching dont read the decimal
-    
+
     //////////////////////////// remove it / search about it
     int opt = 1;
     setsockopt(connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
@@ -51,9 +51,41 @@ Server::Server(int domain, int type, int protocol, int port ,
             close(connection);
             return ;
         }
+
         std::cout << "Client connected" << std::endl;
-        send(client_fd, "Hello from server!\n", 20, 0);
-        // std::cout << client_addr.sin_addr.s_addr << std::endl;
+
+        // recv function
+        char buffer[3000];
+        size_t size = recv(client_fd, buffer, 3000, MSG_PEEK);
+        if (size == -1)
+            std::cout << "recv err\n";
+        std::cout << "----- Recv ------" << std::endl;
+            std::cout << buffer ;
+        std::cout << "-----------" << std::endl;
+
+
+        // send function
+        std::string html = 
+            "<!DOCTYPE html>"
+            "<html>"
+            "<head>"
+            "<style>"
+            "h1 {color:blue;}"
+            "</style>"
+            "<title>My Test Page</title>"
+            "</head>"
+            "<body><h1>Hello from my server!</h1></body>"
+            "</html>";
+
+        std::string response =
+            "HTTP/1.1 200 OK\r\n"
+            "Content-Type: text/html\r\n"
+            "Content-Length: " + std::to_string(html.size()) + "\r\n"
+            "\r\n" + html;
+
+        // std::cout << "aaa \n" << response << std::endl;
+        send(client_fd, response.c_str(), response.size(), 0);
+
         close (client_fd);
     }
     close(connection);
