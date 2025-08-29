@@ -59,12 +59,18 @@ Server::Server(int domain, int type, int protocol, int port ,
                 if (fds[i].fd == connection)
                 {
                     client_fd = accept(connection, NULL, NULL); // socket in ESTABLISHED state for theat specific client
+                    client_pfd.fd = client_fd;
+                    client_pfd.events = POLLIN;
+                    client_pfd.revents = 0;
+                    fds.push_back(client_pfd);
                 }
                 else
                 {
-                    recv(client_fd, buffer, sizeof(buffer), 0);
-                    
+                    recv(fds[i].fd, buffer, sizeof(buffer), 0);
+                    std::cout << buffer << std::endl;                    
+                    close(fds[i].fd);
                 }
+                std::cout << "hna\n";
             }
         }
     }
