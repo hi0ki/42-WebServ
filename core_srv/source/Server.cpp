@@ -1,5 +1,6 @@
 #include "../include/Server.hpp"
- #include <unistd.h>
+
+
 Server::Server(int domain, int type, int protocol, int port , 
                                                         u_long ip_add)
 {
@@ -37,56 +38,35 @@ Server::Server(int domain, int type, int protocol, int port ,
     std::cout << "Server listening on port 8080..." << std::endl;
 
 
+    // poll setup
+    std::vector<pollfd> fds;
+
+    pollfd client_pfd;
+    client_pfd.fd = connection;
+    client_pfd.events = POLLIN;
+    client_pfd.revents = 0;
+    fds.push_back(client_pfd);
+
     // accept
+    int client_fd;
+    char  *buffer;
     while (true)
     {
-
-        // struct sockaddr_in client_addr;
-        // socklen_t client_len = sizeof(client_addr);
-
-        int client_fd = accept(connection, NULL, NULL); // socket in ESTABLISHED state for theat specific client
-        if (client_fd == -1)
+        for (int i = 0; i < fds.size(); i++)
         {
-            std::cerr << "accept err\n";
-            close(connection);
-            return ;
+            if (fds[i].revents & POLLIN)
+            {
+                if (fds[i].fd == connection)
+                {
+                    client_fd = accept(connection, NULL, NULL); // socket in ESTABLISHED state for theat specific client
+                }
+                else
+                {
+                    recv(client_fd, buffer, sizeof(buffer), 0);
+                    
+                }
+            }
         }
-
-        std::cout << "Client connected" << std::endl;
-
-        // recv function
-        char buffer[3000];
-        size_t size = recv(client_fd, buffer, 3000, MSG_PEEK);
-        if (size == -1)
-            std::cout << "recv err\n";
-        std::cout << "----- Recv ------" << std::endl;
-            std::cout << buffer ;
-        std::cout << "-----------" << std::endl;
-
-
-        // send function
-        std::string html = 
-            "<!DOCTYPE html>"
-            "<html>"
-            "<head>"
-            "<style>"
-            "h1 {color:blue;}"
-            "</style>"
-            "<title>My Test Page</title>"
-            "</head>"
-            "<body><h1>Hello from my server!</h1></body>"
-            "</html>";
-
-        std::string response =
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/html\r\n"
-            "Content-Length: " + std::to_string(html.size()) + "\r\n"
-            "\r\n" + html;
-
-        // std::cout << "aaa \n" << response << std::endl;
-        send(client_fd, response.c_str(), response.size(), 0);
-
-        close (client_fd);
     }
     close(connection);
 
