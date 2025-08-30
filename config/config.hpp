@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 15:24:58 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/30 16:04:36 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/08/30 19:35:37 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@
 #include <iostream>
 #include <fstream>
 #include "server.hpp"
+#include <vector>
 
 class config 
 {
@@ -48,5 +49,5 @@ class config
     public:
         config(std::string nameFile);
         void parse_configFile();
-        void set_server(const std::vector<std::string> &tmp);
+        void set_server(std::vector<std::string>::iterator it);
 };

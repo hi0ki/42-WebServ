@@ -6,13 +6,13 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/30 16:32:53 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/08/30 19:41:02 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "config.hpp"
 #include "server.hpp"
-#include <vector>
+
 
 config::config(std::string nameFile) : File(nameFile)
 {
@@ -43,10 +43,13 @@ std::vector<std::string> split(const std::string &str, char c)
     return(result);
 }
 
-void config::set_server(const std::vector<std::string> &tmp)
+void config::set_server(std::vector<std::string>::iterator it)
 {
-    (void)tmp;
+    (void)it;
     std::cout << "-------------server found \n";
+    std::cout << *(it)++ << std::endl;
+    std::cout << *(it)++ << std::endl;
+    std::cout << *(it)++ << std::endl;
 }
 
 void config::parse_configFile()
@@ -79,7 +82,7 @@ void config::parse_configFile()
                     throw std::runtime_error("content invalid");
             }
             else
-                set_server(tmp);
+                set_server(it);
                 
         }
         // check }
