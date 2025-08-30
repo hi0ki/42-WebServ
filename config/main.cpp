@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:53:11 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/30 11:08:06 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/08/30 15:04:31 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,11 @@ int main(int argc, char **argv)
 {
     try
     {
-        (void)argc;
+        if(argc != 2)
+        {
+            std::cout << "invalid parameter\n";
+            return(1);
+        }
         config myconfig(argv[1]);
         myconfig.parse_configFile();
         return (0);

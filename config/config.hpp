@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 15:24:58 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/30 10:32:16 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/08/30 16:04:36 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,4 +48,5 @@ class config
     public:
         config(std::string nameFile);
         void parse_configFile();
+        void set_server(const std::vector<std::string> &tmp);
 };
