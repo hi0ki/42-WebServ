@@ -1,5 +1,5 @@
 #include "../include/Server.hpp"
-
+#include <unistd.h>
 
 Server::Server(int domain, int type, int protocol, int port , 
                                                         u_long ip_add)
@@ -49,9 +49,12 @@ Server::Server(int domain, int type, int protocol, int port ,
 
     // accept
     int client_fd;
-    char  *buffer;
+    int poll_var;
+    char  buffer[5000];
     while (true)
     {
+        // need to split that to functions to make the code clean and readable
+        poll_var = poll(fds.data(), fds.size(), -1);
         for (int i = 0; i < fds.size(); i++)
         {
             if (fds[i].revents & POLLIN)
@@ -67,13 +70,27 @@ Server::Server(int domain, int type, int protocol, int port ,
                 else
                 {
                     recv(fds[i].fd, buffer, sizeof(buffer), 0);
-                    std::cout << buffer << std::endl;                    
-                    close(fds[i].fd);
+                    fds[i].events = POLLOUT;
+                    std::cout << buffer << std::endl; 
+                    std::memset(buffer, 0, 4096);
+
                 }
-                std::cout << "hna\n";
+            }
+            else if (fds[i].revents & POLLOUT)
+            {
+                std::string response =
+                        "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/html\r\n"
+                        "Content-Length: 48\r\n"
+                        "\r\n"
+                        "<html><body><h1>Hello from poll server</h1></body></html>";
+
+                send(fds[i].fd, response.c_str(), response.size(), 0);
+                close(fds[i].fd);
+                fds.erase(fds.begin() + i);
+                i--;
             }
         }
     }
     close(connection);
-
 }
