@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 15:24:58 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/29 16:46:07 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/08/30 10:32:16 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ class config
 {
     private:
         std::ifstream File;
-        server *servs;
+        // server *servs;
     public:
         config(std::string nameFile);
         void parse_configFile();
