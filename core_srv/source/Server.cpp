@@ -54,7 +54,13 @@ Server::Server(int domain, int type, int protocol, int port ,
     while (true)
     {
         // need to split that to functions to make the code clean and readable
-        poll_var = poll(fds.data(), fds.size(), -1);
+        poll_var = poll(fds.data(), fds.size(), 10);
+        if (poll_var == -1)
+        {
+            std::cerr << "poll err\n";
+            close(connection);
+            return ;
+        }
         for (int i = 0; i < fds.size(); i++)
         {
             if (fds[i].revents & POLLIN)
