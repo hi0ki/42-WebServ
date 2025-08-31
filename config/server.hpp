@@ -6,12 +6,13 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/29 16:21:05 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/08/31 20:10:43 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include <iostream>
+#include <vector>
 
 enum locationType {STATIC, CGI, REDIRECT, API};
 struct l_location
@@ -31,13 +32,15 @@ class server
     private:
         std::string IP;
         int  port;
-        std::string servname;
+        std::vector<std::string> servname;
         std::string root;
         std::string index;
-        ErrPage *error_page;
-        l_location *location;
+        std::vector<ErrPage> error_page;
+        std::vector<l_location> location;
     public:
         void pars_errPage();
         void pars_location();
         void pars_serv();
+        void set_IP(std::string ip);
+        void set_port(int  nport);
 };
