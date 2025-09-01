@@ -2,6 +2,17 @@
 #include <unistd.h>
 #include <sstream>
 
+
+/*
+    1 -move the fds vector to the class
+    2 -split the code
+    3 -handel multi servers
+    4 -read the request and store it in vector
+
+    // kifach t3rf client ach mn server mnin ja bach t3rf l path dyal files dyalo -> hit lamdrtich haka rah atjib files ghaltin ola may3rfch mol request ach mn path 3ndo
+
+*/
+
 uint32_t ip_convert(std::string ip)
 {
     unsigned int b1, b2, b3, b4;
