@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 15:24:58 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/31 20:07:48 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/01 16:50:16 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,5 +49,6 @@ class config
     public:
         config(std::string nameFile);
         void parse_configFile();
-        void config::set_server(std::vector<std::string>::iterator it, std::vector<std::string> &conf);
+        void set_server(std::vector<std::string>::iterator &it, std::vector<std::string> &conf);
+        void print_servers();
 };

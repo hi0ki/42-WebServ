@@ -2,9 +2,9 @@ NAME = config
 CPP = c++
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 rm = rm -rf
-HEADERS = config.hpp
+HEADERS = config.hpp server.hpp
 
-SRCS = config.cpp main.cpp
+SRCS = config.cpp server.cpp main.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(NAME)

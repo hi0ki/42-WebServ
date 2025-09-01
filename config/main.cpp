@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:53:11 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/08/30 15:04:31 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/01 16:31:43 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ int main(int argc, char **argv)
         }
         config myconfig(argv[1]);
         myconfig.parse_configFile();
+        myconfig.print_servers();
         return (0);
     }
     catch(const std::exception& e)
