@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/01 17:28:18 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/01 17:40:09 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include <iostream>
 #include <vector>
 
-enum locationType {STATIC, CGI, REDIRECT, API, UPLOAD};
+enum locationType {STATIC, CGI, API, UPLOAD};
 struct l_location
 {
     std::string path;

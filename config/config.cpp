@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/01 17:23:56 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/01 18:15:18 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,18 @@ int err_exist(int err, const std::vector<ErrPage> &error_page)
     }
     return(0);
 }
+
+int check_char_count(const std::string &str, char c)
+{
+    int count = 0;
+    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+    {
+        if (*it == c)
+            count++;
+    }
+    return (count == 1) ? 0 : 1;
+}
+
 void config::set_server(std::vector<std::string>::iterator &it, std::vector<std::string> &conf)
 {
     // (void)it;
@@ -87,15 +99,16 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         {
             if(!serv.get_IP().empty())
                 throw std::runtime_error("listen already exist");
-            if(tmp.size() != 2)
+            if(tmp.size() != 2 || check_char_count(tmp[1], ':'))
                 throw std::runtime_error("----content invalid");
             std::vector<std::string> help;
-            help = split(tmp[1], ':');
+            help = split(tmp[1], ':');// after that check if exist more then one :
             if(help.size() != 2)
                 throw std::runtime_error("listen content invalid");
             serv.set_IP(help[0]);//verify if ip is good??
             if(validnumber(help[1]))
             serv.set_port(atoi(help[1].c_str()));
+            std::cout << serv.get_port();
             help.clear();
         }
         else if(!tmp.empty() && tmp[0] == "server_name")
