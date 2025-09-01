@@ -1,15 +1,20 @@
-#include <iostream>
-#include <vector>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <poll.h>
+#include "core_srv/include/Server.hpp"
+#include "config/config.hpp"
 
-int main()
+int main(int ac, char **av)
 {
-    std::vector<pollfd> fds(1);
-
-    fds[0].fd = 10;
-    std::cout << fds.data() << std::endl;
-
-    int test = poll(fds.data(), fds.size(), 129)
+    try
+    {
+        if (ac == 2)
+        {
+            std::string filenaem(av[1]);
+            config config_obj(filenaem);
+            Server var(config_obj);
+        }
+    }
+    catch (std::exception &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+    return 1;
 }

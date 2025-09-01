@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <poll.h>
 
+#include "../../config/config.hpp"
 
 class Server
 {
@@ -14,6 +15,6 @@ class Server
         int connection;
     public:
         //          for socket fun               //        for sockaddr_in
-        Server(int domain, int type, int protocol, int port , u_long ip_add);
+        Server(config &config);
 
 }; 

@@ -1,8 +1,11 @@
 C++ = c++ -Wall -Wextra -Werror
 
-Src = source/Server.cpp main.cpp
+Src = core_srv/source/Server.cpp main.cpp\
+	config/config.cpp config/server.cpp
 
-Headers = include/Server.hpp
+Headers = core_srv/include/Server.hpp\
+	config/config.hpp config/server.hpp\
+
 
 Name = webserv
 

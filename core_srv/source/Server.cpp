@@ -1,21 +1,33 @@
 #include "../include/Server.hpp"
 #include <unistd.h>
+#include <sstream>
 
-Server::Server(int domain, int type, int protocol, int port , 
-                                                        u_long ip_add)
+uint32_t ip_convert(std::string ip)
+{
+    unsigned int b1, b2, b3, b4;
+    char dot;  // to consume '.'
+
+    std::stringstream ss(ip);
+    ss >> b1 >> dot >> b2 >> dot >> b3 >> dot >> b4;
+
+    uint32_t ipHostOrder = (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
+
+    return (ipHostOrder);
+}
+
+Server::Server(config &config)
 {
     // create socket
-    connection = socket(domain, type, protocol); //  the listening socket.
+    connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
     if (connection == -1)
         std::cerr << "socket err\n";
     
     //define address
     struct sockaddr_in addr;
-    addr.sin_family = domain;
-    addr.sin_addr.s_addr = htonl(ip_add); // (host to network long).
-    addr.sin_port = htons(port); // change it to bytes with htons bcs maching dont read the decimal
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(ip_convert(config.get_servs()[0].get_IP())); // (host to network long).
+    addr.sin_port = htons(config.get_servs()[0].get_port()); // change it to bytes with htons bcs maching dont read the decimal
 
-    //////////////////////////// remove it / search about it
     int opt = 1;
     setsockopt(connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     ////////////////////////////

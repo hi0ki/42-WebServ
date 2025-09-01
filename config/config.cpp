@@ -20,6 +20,8 @@ config::config(std::string nameFile) : File(nameFile)
         throw std::runtime_error("config file invalid : " + nameFile);
     if (!File.is_open())
         throw std::runtime_error("Unable to open the file: " + nameFile);
+    this->parse_configFile();
+    this->print_servers();
 }
 
 std::vector<std::string> split(const std::string &str, char c)
