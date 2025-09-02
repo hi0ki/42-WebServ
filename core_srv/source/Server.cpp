@@ -16,7 +16,7 @@
 uint32_t ip_convert(std::string ip)
 {
     unsigned int b1, b2, b3, b4;
-    char dot;  // to consume '.'
+    char dot;
 
     std::stringstream ss(ip);
     ss >> b1 >> dot >> b2 >> dot >> b3 >> dot >> b4;
@@ -26,46 +26,52 @@ uint32_t ip_convert(std::string ip)
     return (ipHostOrder);
 }
 
-Server::Server(config &config)
+Server::Server(config &config) : myconfig(config)
 {
-    // create socket
-    connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
-    if (connection == -1)
-        std::cerr << "socket err\n";
-    
-    //define address
+    this->server_start();
+    std::cout << "\n-----------Server listening-----------\n" << std::endl;
+    this->start_connection();
+}
+
+void Server::server_start()
+{
+    this->connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
+    if (this->connection == -1)
+        throw std::runtime_error("connection socket err");
+    this->bind_socket();
+    this->listen_socket();
+}
+
+void Server::bind_socket()
+{
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(ip_convert(config.get_servs()[0].get_IP())); // (host to network long).
-    addr.sin_port = htons(config.get_servs()[0].get_port()); // change it to bytes with htons bcs maching dont read the decimal
-
+    addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[0].get_IP())); // (host to network long).
+    addr.sin_port = htons(this->myconfig.get_servs()[0].get_port()); // change it to bytes with htons bcs maching dont read the decimal
+    
     int opt = 1;
-    setsockopt(connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    ////////////////////////////
+    setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    // bind
-    if (bind(connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
+    if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
     {
-        std::cerr << "bind err\n";
         close(this->connection);
-        return ;
+        throw std::runtime_error("bind err");
     }
-
+}
+void Server::listen_socket()
+{
     // listen
-    if (listen(connection, SOMAXCONN) == -1)
+    if (listen(this->connection, SOMAXCONN) == -1)
     {
-        std::cerr << "listen err\n";
-        close(connection);
-        return ;
+        close(this->connection);
+        throw std::runtime_error("listen err");
     }
-    std::cout << "Server listening on port 8080..." << std::endl;
+}
 
-
-    // poll setup
-    std::vector<pollfd> fds;
-
+void Server::start_connection()
+{
     pollfd client_pfd;
-    client_pfd.fd = connection;
+    client_pfd.fd = this->connection;
     client_pfd.events = POLLIN;
     client_pfd.revents = 0;
     fds.push_back(client_pfd);
@@ -80,9 +86,8 @@ Server::Server(config &config)
         poll_var = poll(fds.data(), fds.size(), 10);
         if (poll_var == -1)
         {
-            std::cerr << "poll err\n";
             close(connection);
-            return ;
+            throw std::runtime_error("poll err");
         }
         for (int i = 0; i < fds.size(); i++)
         {
