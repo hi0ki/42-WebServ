@@ -8,6 +8,8 @@
 #include <poll.h>
 
 #include "../../config/config.hpp"
+// #include "ServerConfig.hpp"
+
 
 class Server
 {
@@ -19,7 +21,7 @@ class Server
         //          for socket fun               //        for sockaddr_in
         Server(config &config);
         void server_start();
-            void bind_socket();
+            void bind_socket(int i);
             void listen_socket();
             void start_connection();
 }; 

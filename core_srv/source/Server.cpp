@@ -4,127 +4,141 @@
 
 
 /*
-    1 -move the fds vector to the class
-    2 -split the code
-    3 -handel multi servers
-    4 -read the request and store it in vector
+	1 -move the fds vector to the class
+	2 -split the code
+	3 -handel multi servers
+	4 -read the request and store it in vector
 
-    // kifach t3rf client ach mn server mnin ja bach t3rf l path dyal files dyalo -> hit lamdrtich haka rah atjib files ghaltin ola may3rfch mol request ach mn path 3ndo
+	// kifach t3rf client ach mn server mnin ja bach t3rf l path dyal files dyalo -> hit lamdrtich haka rah atjib files ghaltin ola may3rfch mol request ach mn path 3ndo
+	----------err---------
+	5 -close the servers fd before throwing the exception
 
+
+
+
+	// problem with using multi servers
 */
 
 uint32_t ip_convert(std::string ip)
 {
-    unsigned int b1, b2, b3, b4;
-    char dot;
+	unsigned int b1, b2, b3, b4;
+	char dot;
 
-    std::stringstream ss(ip);
-    ss >> b1 >> dot >> b2 >> dot >> b3 >> dot >> b4;
+	std::stringstream ss(ip);
+	ss >> b1 >> dot >> b2 >> dot >> b3 >> dot >> b4;
 
-    uint32_t ipHostOrder = (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
+	uint32_t ipHostOrder = (b1 << 24) | (b2 << 16) | (b3 << 8) | b4;
 
-    return (ipHostOrder);
+	return (ipHostOrder);
 }
 
 Server::Server(config &config) : myconfig(config)
 {
-    this->server_start();
-    std::cout << "\n-----------Server listening-----------\n" << std::endl;
-    this->start_connection();
+	this->server_start();
+	std::cout << "\n-----------Server listening-----------\n" << std::endl;
+	this->start_connection();
 }
 
 void Server::server_start()
 {
-    this->connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
-    if (this->connection == -1)
-        throw std::runtime_error("connection socket err");
-    this->bind_socket();
-    this->listen_socket();
+	for (int i = 0; i < this->myconfig.get_servs().size(); i++)
+	{
+		this->connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
+		if (this->connection == -1)
+		{
+			// close all the fds;
+			throw std::runtime_error("connection socket err");
+		}
+		this->bind_socket(i);
+		this->listen_socket();
+
+		pollfd pfd;
+		pfd.fd = this->connection;
+		pfd.events = POLLIN;
+		pfd.revents = 0;
+		fds.push_back(pfd);
+		// this->connection = 0;
+		std::cout << "daaaaaaz\n";
+	}
 }
 
-void Server::bind_socket()
+void Server::bind_socket(int i)
 {
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[0].get_IP())); // (host to network long).
-    addr.sin_port = htons(this->myconfig.get_servs()[0].get_port()); // change it to bytes with htons bcs maching dont read the decimal
-    
-    int opt = 1;
-    setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+	struct sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[i].get_IP())); // (host to network long).
+	addr.sin_port = htons(this->myconfig.get_servs()[i].get_port()); // change it to bytes with htons bcs maching dont read the decimal
+	
+	// int opt = 1;
+	// setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
-    {
-        close(this->connection);
-        throw std::runtime_error("bind err");
-    }
+	if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
+	{
+		close(this->connection);
+		throw std::runtime_error("bind err");
+	}
 }
 void Server::listen_socket()
 {
-    // listen
-    if (listen(this->connection, SOMAXCONN) == -1)
-    {
-        close(this->connection);
-        throw std::runtime_error("listen err");
-    }
+	if (listen(this->connection, SOMAXCONN) == -1)
+	{
+		close(this->connection);
+		throw std::runtime_error("listen err");
+	}
 }
 
 void Server::start_connection()
 {
-    pollfd client_pfd;
-    client_pfd.fd = this->connection;
-    client_pfd.events = POLLIN;
-    client_pfd.revents = 0;
-    fds.push_back(client_pfd);
+	pollfd client_pfd;
+	int client_fd;
+	int poll_var;
+	char  buffer[5000];
 
-    // accept
-    int client_fd;
-    int poll_var;
-    char  buffer[5000];
-    while (true)
-    {
-        // need to split that to functions to make the code clean and readable
-        poll_var = poll(fds.data(), fds.size(), 10);
-        if (poll_var == -1)
-        {
-            close(connection);
-            throw std::runtime_error("poll err");
-        }
-        for (int i = 0; i < fds.size(); i++)
-        {
-            if (fds[i].revents & POLLIN)
-            {
-                if (fds[i].fd == connection)
-                {
-                    client_fd = accept(connection, NULL, NULL); // socket in ESTABLISHED state for theat specific client
-                    client_pfd.fd = client_fd;
-                    client_pfd.events = POLLIN;
-                    client_pfd.revents = 0;
-                    fds.push_back(client_pfd);
-                }
-                else
-                {
-                    recv(fds[i].fd, buffer, sizeof(buffer), 0);
-                    fds[i].events = POLLOUT;
-                    std::cout << buffer << std::endl; 
-                    std::memset(buffer, 0, 4096);
+	while (true)
+	{
+		// need to split that to functions to make the code clean and readable
+		poll_var = poll(fds.data(), fds.size(), 10);
+		if (poll_var == -1)
+		{
+			close(connection);
+			throw std::runtime_error("poll err");
+		}
+		for (int i = 0; i < fds.size(); i++)
+		{
+			if (fds[i].revents & POLLIN)
+			{
+				if (fds[i].fd == connection)
+				{
+					client_fd = accept(connection, NULL, NULL); // socket in ESTABLISHED state for theat specific client
+					client_pfd.fd = client_fd;
+					client_pfd.events = POLLIN;
+					client_pfd.revents = 0;
+					fds.push_back(client_pfd);
+				}
+				else
+				{
+					recv(fds[i].fd, buffer, sizeof(buffer), 0);
+					fds[i].events = POLLOUT;
+					std::cout << buffer << std::endl; 
+					std::memset(buffer, 0, 4096);
 
-                }
-            }
-            else if (fds[i].revents & POLLOUT)
-            {
-                std::string response =
-                        "HTTP/1.1 200 OK\r\n"
-                        "Content-Type: text/html\r\n"
-                        "Content-Length: 48\r\n"
-                        "\r\n"
-                        "<html><body><h1>Hello from poll server</h1></body></html>";
+				}
+			}
+			else if (fds[i].revents & POLLOUT)
+			{
+				std::string response =
+						"HTTP/1.1 200 OK\r\n"
+						"Content-Type: text/html\r\n"
+						"Content-Length: 48\r\n"
+						"\r\n"
+						"<html><body><h1>Hello from poll server</h1></body></html>";
 
-                send(fds[i].fd, response.c_str(), response.size(), 0);
-                close(fds[i].fd);
-                fds.erase(fds.begin() + i);
-                i--;
-            }
-        }
-    }
-    close(connection);
+				send(fds[i].fd, response.c_str(), response.size(), 0);
+				close(fds[i].fd);
+				fds.erase(fds.begin() + i);
+				i--;
+			}
+		}
+	}
+	close(connection);
 }
