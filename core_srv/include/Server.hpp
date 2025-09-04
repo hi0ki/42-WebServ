@@ -21,7 +21,7 @@ class Server
         //          for socket fun               //        for sockaddr_in
         Server(config &config);
         void server_start();
-            void bind_socket(int i);
+            void bind_socket(int srv_index);
             void listen_socket();
             void start_connection();
 }; 

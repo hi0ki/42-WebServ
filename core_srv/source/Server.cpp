@@ -5,8 +5,8 @@
 
 /*
 	1 -move the fds vector to the class
-	2 -split the code
-	3 -handel multi servers
+	2 -split the code : ✅
+	3 -handel multi servers : ✅
 	4 -read the request and store it in vector
 
 	// kifach t3rf client ach mn server mnin ja bach t3rf l path dyal files dyalo -> hit lamdrtich haka rah atjib files ghaltin ola may3rfch mol request ach mn path 3ndo
@@ -57,20 +57,30 @@ void Server::server_start()
 		pfd.events = POLLIN;
 		pfd.revents = 0;
 		fds.push_back(pfd);
-		// this->connection = 0;
-		std::cout << "daaaaaaz\n";
 	}
 }
 
-void Server::bind_socket(int i)
+void Server::bind_socket(int srv_index)
 {
+	std::cout << "------------------------biiindiiiing----------------------\n";
+	std::cout << "server index : " << srv_index << std::endl;
+	std::cout << "ip : " << this->myconfig.get_servs()[srv_index].get_IP() << std::endl;
+	std::cout << "port : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
+	std::cout << "connection : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
+	std::cout << "----------------------------------------------\n";
+
+	if (this->myconfig.get_servs()[srv_index].get_port() < 1024 || this->myconfig.get_servs()[srv_index].get_port() > 65535)
+	{
+		std::string err_msg = std::to_string(this->myconfig.get_servs()[srv_index].get_port()) + " : Can't use ports under 1024 or bigger then 65535, your process must have the necessary permissions\n";
+		throw std::runtime_error(err_msg);
+	}
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[i].get_IP())); // (host to network long).
-	addr.sin_port = htons(this->myconfig.get_servs()[i].get_port()); // change it to bytes with htons bcs maching dont read the decimal
+	addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[srv_index].get_IP())); // (host to network long).
+	addr.sin_port = htons(this->myconfig.get_servs()[srv_index].get_port()); // change it to bytes with htons bcs maching dont read the decimal
 	
-	// int opt = 1;
-	// setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+	int opt = 1;
+	setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 	{
@@ -119,7 +129,7 @@ void Server::start_connection()
 				{
 					recv(fds[i].fd, buffer, sizeof(buffer), 0);
 					fds[i].events = POLLOUT;
-					std::cout << buffer << std::endl; 
+					// std::cout << buffer << std::endl; 
 					std::memset(buffer, 0, 4096);
 
 				}

@@ -5,6 +5,6 @@
 
 class ServerConfig
 {
-    private:   
+    private:cv    
     public:
 };
