@@ -51,4 +51,8 @@ class config
         void parse_configFile();
         void set_server(std::vector<std::string>::iterator &it, std::vector<std::string> &conf);
         void print_servers();
+        std::vector<server> get_servs()
+        {
+            return this->servs;
+        }
 };

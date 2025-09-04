@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/01 17:40:09 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/04 13:39:52 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,33 @@
 #include <iostream>
 #include <vector>
 
-enum locationType {STATIC, CGI, API, UPLOAD};
-struct l_location
-{
-    std::string path;
-    locationType type;
-};
+enum LocationType {STATIC, CGI, API, UPLOAD, REDIRECT};
 
 struct ErrPage
 {
     int err;
     std::string red_page;
 };
+
+struct Location {
+    std::string path;              // ex: "/blog" ou "/api"
+    LocationType type;             // type de la location
+    std::string root;              // pour STATIC, CGI, UPLOAD
+    std::string index;             // pour STATIC
+    std::string cgi_handler;       // pour CGI (ex: "/usr/bin/php-cgi")
+    std::string redirect_url;      // pour REDIRECT (ex: "https://monsite.com/new")
+    size_t max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
+};
+
+// struct Location {
+//     std::string path;
+//     LocationType type;
+//     std::string root;
+//     std::string index;
+//     std::string cgi_handler;
+//     std::string redirect_url;
+//     size_t max_upload_size;
+// };
 
 class server
 {
@@ -36,10 +51,10 @@ class server
         std::string root;
         std::string index;
         std::vector<ErrPage> error_page;
-        std::vector<l_location> location;
+        std::vector<Location> location;
     public:
         void pars_errPage();
-        void pars_location();
+        void pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator &end);
         void pars_serv();
         void set_IP(std::string ip);
         void set_port(int  nport);

@@ -6,19 +6,92 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/01 16:43:28 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/04 14:18:34 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server.hpp"
+std::vector<std::string> split(const std::string &str, char c)
+{
+    std::vector<std::string>  result;
+    std::string cont;
+    
+    for(size_t i = 0; i < str.size(); i++)
+    {
+        if(str[i] == '#' || str[i] == ';')
+            break;
+        if(str[i] == c && cont.size())// a verifier cont.size()
+        {
+            result.push_back(cont);
+            cont.clear();
+        }
+        if (str[i] != c)
+            cont += str[i];
+    }
+    if(!cont.empty())
+        result.push_back(cont);
+    return(result);
+}
+
+void check_semicolon(std::string &str)
+{
+    if (str.empty())
+        throw std::runtime_error("Empty string");
+
+    if (str[str.size() - 1] == ';')
+        str.erase(str.size() - 1); // supprime le dernier caractère
+    else
+        throw std::runtime_error("Missing semicolon at the end");
+}
+
 void server::pars_errPage()
 {
     
 }
     
-void server::pars_location()
+void server::pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator &end)
 {
-    
+    std::vector<std::string> spl;
+    Location loc;
+    if (tmp[1] == "/")
+    {
+       loc.path = tmp[1];
+       loc.type = STATIC;;
+       while(it != end && *it != "}")
+       {
+           spl = split(*it, ' ');
+           if(spl.size() != 2)
+               throw std::runtime_error("invalid location");
+           check_semicolon(spl[1]);
+           if(spl[0] == "root")
+               loc.root = spl[1];
+           else if (spl[0] == "index")
+               loc.index = spl[1];
+           else
+               throw std::runtime_error("invalid key in location");
+           if(index.empty())// check if index empty
+               throw std::runtime_error("empty index in location");
+           it++;
+           if(it == end)
+               throw std::runtime_error(" '}' is missing ");
+       }
+    }
+    else if (tmp[1] == "/api")
+    {
+        
+    }
+    else if (tmp[1] == "/upload")
+    {
+        
+    }
+    else if (tmp[1][0] == '/')
+    {
+        
+    }
+    else
+        throw std::runtime_error("path invalid");
+
+    // it++;
 }
     
 void server::pars_serv()

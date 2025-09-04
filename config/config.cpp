@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/01 18:15:18 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/04 14:01:53 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@ config::config(std::string nameFile) : File(nameFile)
         throw std::runtime_error("config file invalid : " + nameFile);
     if (!File.is_open())
         throw std::runtime_error("Unable to open the file: " + nameFile);
+    this->parse_configFile();
+    this->print_servers();
 }
 
 std::vector<std::string> split(const std::string &str, char c)
@@ -34,7 +36,6 @@ std::vector<std::string> split(const std::string &str, char c)
         if(str[i] == c && cont.size())// a verifier cont.size()
         {
             result.push_back(cont);
-            // std::cout << cont << "\n" ;
             cont.clear();
         }
         if (str[i] != c)
@@ -42,7 +43,6 @@ std::vector<std::string> split(const std::string &str, char c)
     }
     if(!cont.empty())
         result.push_back(cont);
-    // std::cout << cont << "\n" ;
     return(result);
 }
 
@@ -84,16 +84,25 @@ int check_char_count(const std::string &str, char c)
     return (count == 1) ? 0 : 1;
 }
 
+void check_semicolon(std::string &str)
+{
+    if (str.empty())
+        throw std::runtime_error("Empty string");
+
+    if (str[str.size() - 1] == ';')
+        str.erase(str.size() - 1); // supprime le dernier caractère
+    else
+        throw std::runtime_error("Missing semicolon at the end");
+}
+
+
 void config::set_server(std::vector<std::string>::iterator &it, std::vector<std::string> &conf)
 {
-    // (void)it;
-    // (void)conf;
-    std::cout << "-------------server found \n";
     std::vector<std::string> tmp;
     server serv;
+    // check semi colon//verify if ligne end with ; && and if exist deleted it in every if 
     while(it != conf.end())
     {
-        std::cout << "--------- "<<  *it << std::endl; 
         tmp = split(*it, ' ');
         if(!tmp.empty() && tmp[0] == "listen")// verify if it already exists
         {
@@ -102,7 +111,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 2 || check_char_count(tmp[1], ':'))
                 throw std::runtime_error("----content invalid");
             std::vector<std::string> help;
-            help = split(tmp[1], ':');// after that check if exist more then one :
+            help = split(tmp[1], ':');// after that check if exist more than one :
             if(help.size() != 2)
                 throw std::runtime_error("listen content invalid");
             serv.set_IP(help[0]);//verify if ip is good??
@@ -148,7 +157,10 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         }
         else if(!tmp.empty() && tmp[0] == "location")
         {
-
+            if(tmp.size() != 3 || tmp[2] != "{")
+                throw std::runtime_error("location invalid");
+            serv.pars_location(++it, tmp, conf.end());
+            //check if it == end and we dont foud }, if end throw exeption
         }
         else if(!tmp.empty() && tmp[0] == "}")
         {
@@ -162,6 +174,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         }
         tmp.clear();
         it++;
+        //check if it == end and we dont foud }
     }
         // verify if listen && root are emtpy, or another things
     if(serv.get_IP().empty() || serv.get_root().empty())
@@ -179,44 +192,31 @@ void config::parse_configFile()
     {
         if(ligne == "\n")
             continue;//je peut la suppr
-        // ligne += "\n";
         conf.push_back(ligne);
     }
-    // for (it = conf.begin(); it != conf.end(); it++)
-    //     std::cout << *it;
     it = conf.begin();
     std::vector<std::string> tmp;
     
     while(it != conf.end())// apres split verif lesligne vide
     {
         tmp = split(*it, ' ');
-        // exit(1);
-        // std::cout << "[ "<< *it << "]\n";
         if(!tmp.empty() && tmp[0] == "server" && tmp[1] == "{")//check server
         {
             if(tmp.size() >= 3)
             {
-                std::cout << "here\n";
                     throw std::runtime_error("##content invalid");
             }
             else
-            {
-                std::cout <<*it << "   --" << std::endl;
                 set_server(++it, conf);   
-            }
         }
         else if (!tmp.empty())
-        {
-            std::cout << *it << std::endl;
             throw std::runtime_error("content invalid");
-        }
-        // check }
         it++;
         tmp.clear();
     }
 }
 
-void config::print_servers()
+void config::print_servers() // print server
 {
     std::vector<server>::iterator it = servs.begin();
     int idx = 1;
