@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/04 14:18:34 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/04 20:15:27 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,26 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
     else if (tmp[1] == "/api")
     {
         
+       loc.path = tmp[1];
+       loc.type = STATIC;;
+       while(it != end && *it != "}")
+       {
+           spl = split(*it, ' ');
+           if(spl.size() != 2)
+               throw std::runtime_error("invalid location");
+           check_semicolon(spl[1]);
+           if(spl[0] == "root")
+               loc.root = spl[1];
+           else if (spl[0] == "index")
+               loc.index = spl[1];
+           else
+               throw std::runtime_error("invalid key in location");
+           if(index.empty())// check if index empty
+               throw std::runtime_error("empty index in location");
+           it++;
+           if(it == end)
+               throw std::runtime_error(" '}' is missing ");
+       }
     }
     else if (tmp[1] == "/upload")
     {
