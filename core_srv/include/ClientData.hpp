@@ -3,8 +3,10 @@
 #include "Server.hpp"
 
 
-class ServerConfig
+
+
+class ClientData
 {
-    private:cv    
+    private:
     public:
 };

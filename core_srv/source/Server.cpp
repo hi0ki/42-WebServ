@@ -4,16 +4,15 @@
 
 
 /*
-	1 -move the fds vector to the class
+	1 -move the fds vector to the class ✅
 	2 -split the code : ✅
-	3 -handel multi servers : ✅
+	3 -handle multi servers : ✅
 	4 -read the request and store it in vector
 
 	// kifach t3rf client ach mn server mnin ja bach t3rf l path dyal files dyalo -> hit lamdrtich haka rah atjib files ghaltin ola may3rfch mol request ach mn path 3ndo
 	----------err---------
 	5 -close the servers fd before throwing the exception
-
-
+	6 -handle errs and the proccess keep working
 
 
 	// problem with using multi servers
@@ -35,7 +34,10 @@ uint32_t ip_convert(std::string ip)
 Server::Server(config &config) : myconfig(config)
 {
 	this->server_start();
-	std::cout << "\n-----------Server listening-----------\n" << std::endl;
+	
+	std::cout << GREEN << "\n---------------------------------------" << std::endl;
+	std::cout << "-----------Servers listening-----------" << std::endl;
+	std::cout << "---------------------------------------\n" << RESET<< std::endl;
 	this->start_connection();
 }
 
@@ -46,17 +48,29 @@ void Server::server_start()
 		this->connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
 		if (this->connection == -1)
 		{
-			// close all the fds;
-			throw std::runtime_error("connection socket err");
+			std::cerr<< "connection socket err" << std::endl;
+			continue ;
 		}
-		this->bind_socket(i);
-		this->listen_socket();
+		try
+		{
+			this->bind_socket(i);
+			this->listen_socket();
 
-		pollfd pfd;
-		pfd.fd = this->connection;
-		pfd.events = POLLIN;
-		pfd.revents = 0;
-		fds.push_back(pfd);
+			// add server fd to the container
+			pollfd pfd;
+			pfd.fd = this->connection;
+			pfd.events = POLLIN | POLLOUT; // give events both signs
+			pfd.revents = 0;	
+			fds.push_back(pfd);
+			
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << RED << "[ " << this->myconfig.get_servs()[i].get_IP() << ":" << 
+				this->myconfig.get_servs()[i].get_port() << " ]" << " : " <<
+				e.what() << RESET << std::endl;
+			close(this->connection);
+		}
 	}
 }
 
@@ -83,18 +97,12 @@ void Server::bind_socket(int srv_index)
 	setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
-	{
-		close(this->connection);
 		throw std::runtime_error("bind err");
-	}
 }
 void Server::listen_socket()
 {
 	if (listen(this->connection, SOMAXCONN) == -1)
-	{
-		close(this->connection);
 		throw std::runtime_error("listen err");
-	}
 }
 
 void Server::start_connection()
@@ -110,7 +118,7 @@ void Server::start_connection()
 		poll_var = poll(fds.data(), fds.size(), 10);
 		if (poll_var == -1)
 		{
-			close(connection);
+			// close all fds
 			throw std::runtime_error("poll err");
 		}
 		for (int i = 0; i < fds.size(); i++)
@@ -129,7 +137,6 @@ void Server::start_connection()
 				{
 					recv(fds[i].fd, buffer, sizeof(buffer), 0);
 					fds[i].events = POLLOUT;
-					// std::cout << buffer << std::endl; 
 					std::memset(buffer, 0, 4096);
 
 				}
