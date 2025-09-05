@@ -10,9 +10,8 @@
 	4 -read the request and store it in vector
 
 	// kifach t3rf client ach mn server mnin ja bach t3rf l path dyal files dyalo -> hit lamdrtich haka rah atjib files ghaltin ola may3rfch mol request ach mn path 3ndo
-	----------err---------
-	5 -close the servers fd before throwing the exception
-	6 -handle errs and the proccess keep working
+	----------err--------- 
+	6 -handle errs and the proccess keep working ✅
 
 
 	// problem with using multi servers
@@ -105,6 +104,18 @@ void Server::listen_socket()
 		throw std::runtime_error("listen err");
 }
 
+bool Server::is_server(int fd)
+{
+	for (int i = 0; i < this->myconfig.get_servs().size(); i++)
+	{
+		std::cout << fd << std::endl;
+		std::cout << fds[i].fd << std::endl;
+		if (fd == this->fds[i].fd)
+			return true;
+	}
+	return false;
+}
+
 void Server::start_connection()
 {
 	pollfd client_pfd;
@@ -125,9 +136,10 @@ void Server::start_connection()
 		{
 			if (fds[i].revents & POLLIN)
 			{
-				if (fds[i].fd == connection)
+				if (is_server(fds[i].fd) == true)
 				{
-					client_fd = accept(connection, NULL, NULL); // socket in ESTABLISHED state for theat specific client
+					std::cout << "server" << std::endl;
+					client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
 					client_pfd.fd = client_fd;
 					client_pfd.events = POLLIN;
 					client_pfd.revents = 0;
@@ -135,10 +147,18 @@ void Server::start_connection()
 				}
 				else
 				{
-					recv(fds[i].fd, buffer, sizeof(buffer), 0);
+					std::cout << "client" << std::endl;
+					std::vector<char> request;
+					char buffer[4096];
+					int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+					if (bytesRead > 0) {
+					// Append bytes from buffer into vector
+						request.insert(request.end(), buffer, buffer + bytesRead);
+					}
+					std::cout << request[0] << std::endl;
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
-
+					request.clear();
 				}
 			}
 			else if (fds[i].revents & POLLOUT)
