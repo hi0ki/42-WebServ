@@ -21,7 +21,7 @@ config::config(std::string nameFile) : File(nameFile)
     if (!File.is_open())
         throw std::runtime_error("Unable to open the file: " + nameFile);
     this->parse_configFile();
-    this->print_servers();
+    // this->print_servers();
 }
 
 std::vector<std::string> split(const std::string &str, char c)
@@ -78,12 +78,12 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
 {
     // (void)it;
     // (void)conf;
-    std::cout << "-------------server found \n";
+    // std::cout << "-------------server found \n";
     std::vector<std::string> tmp;
     server serv;
     while(it != conf.end())
     {
-        std::cout << "--------- "<<  *it << std::endl; 
+        // std::cout << "--------- "<<  *it << std::endl; 
         tmp = split(*it, ' ');
         if(!tmp.empty() && tmp[0] == "listen")// verify if it already exists
         {
@@ -185,12 +185,12 @@ void config::parse_configFile()
         {
             if(tmp.size() >= 3)
             {
-                std::cout << "here\n";
+                // std::cout << "here\n";
                     throw std::runtime_error("##content invalid");
             }
             else
             {
-                std::cout <<*it << "   --" << std::endl;
+                // std::cout <<*it << "   --" << std::endl;
                 set_server(++it, conf);   
             }
         }
