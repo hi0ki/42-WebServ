@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/04 14:01:53 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/05 17:37:12 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,29 +22,7 @@ config::config(std::string nameFile) : File(nameFile)
         throw std::runtime_error("Unable to open the file: " + nameFile);
     this->parse_configFile();
     this->print_servers();
-}
-
-std::vector<std::string> split(const std::string &str, char c)
-{
-    std::vector<std::string>  result;
-    std::string cont;
-    
-    for(size_t i = 0; i < str.size(); i++)
-    {
-        if(str[i] == '#' || str[i] == ';')
-            break;
-        if(str[i] == c && cont.size())// a verifier cont.size()
-        {
-            result.push_back(cont);
-            cont.clear();
-        }
-        if (str[i] != c)
-            cont += str[i];
-    }
-    if(!cont.empty())
-        result.push_back(cont);
-    return(result);
-}
+}  
 
 int validnumber(std::string x)
 {
@@ -82,17 +60,6 @@ int check_char_count(const std::string &str, char c)
             count++;
     }
     return (count == 1) ? 0 : 1;
-}
-
-void check_semicolon(std::string &str)
-{
-    if (str.empty())
-        throw std::runtime_error("Empty string");
-
-    if (str[str.size() - 1] == ';')
-        str.erase(str.size() - 1); // supprime le dernier caractère
-    else
-        throw std::runtime_error("Missing semicolon at the end");
 }
 
 
@@ -160,7 +127,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 3 || tmp[2] != "{")
                 throw std::runtime_error("location invalid");
             serv.pars_location(++it, tmp, conf.end());
-            //check if it == end and we dont foud }, if end throw exeption
+            //check if it == end and we dont foud }, if end throw exeption// if i need it
         }
         else if(!tmp.empty() && tmp[0] == "}")
         {
@@ -174,9 +141,9 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         }
         tmp.clear();
         it++;
-        //check if it == end and we dont foud }
+        if (it == conf.end())
+            throw std::runtime_error(" '}' is missing ");
     }
-        // verify if listen && root are emtpy, or another things
     if(serv.get_IP().empty() || serv.get_root().empty())
         throw std::runtime_error("empty values");
     servs.push_back(serv);
@@ -239,22 +206,25 @@ void config::print_servers() // print server
             ++e_it;
         }
 
-        // // --- Locations ---
-        // std::vector<l_location> locs = it->get_location(); // tu devras écrire get_location()
-        // std::vector<l_location>::iterator l_it = locs.begin();
-        // while (l_it != locs.end())
-        // {
-        //     std::cout << "Location path: " << l_it->path << " | Type: ";
-        //     switch (l_it->type)
-        //     {
-        //         case STATIC:   std::cout << "STATIC"; break;
-        //         case CGI:      std::cout << "CGI"; break;
-        //         case REDIRECT: std::cout << "REDIRECT"; break;
-        //         case API:      std::cout << "API"; break;
-        //     }
-        //     std::cout << "\n";
-        //     ++l_it;
-        // }
+        // --- Locations ---
+        std::vector<Location> locs = it->get_location(); // tu devras écrire get_location()
+        std::vector<Location>::iterator l_it = locs.begin();
+        while (l_it != locs.end())
+        {
+            std::cout << "Location path: " << l_it->path << " | Type: ";
+            switch (l_it->type)
+            {
+                case STATIC:   std::cout << "STATIC"; break;
+                case CGI:      std::cout << "CGI"; break;
+                case REDIRECT: std::cout << "REDIRECT"; break;
+                case API:      std::cout << "API"; break;
+                case UPLOAD:   std::cout << "UPLOAD"; break;
+                case UNDEFINED: std::cout << "UNDEFINED"; break;
+                
+            }
+            std::cout << "\n";
+            ++l_it;
+        }
 
         std::cout << "========================\n";
         ++it;
