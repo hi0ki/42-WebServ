@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/01 17:23:56 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/01 19:25:43 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ std::vector<std::string> split(const std::string &str, char c)
         if(str[i] == c && cont.size())// a verifier cont.size()
         {
             result.push_back(cont);
-            // std::cout << cont << "\n" ;
             cont.clear();
         }
         if (str[i] != c)
@@ -44,7 +43,6 @@ std::vector<std::string> split(const std::string &str, char c)
     }
     if(!cont.empty())
         result.push_back(cont);
-    // std::cout << cont << "\n" ;
     return(result);
 }
 
@@ -76,14 +74,10 @@ int err_exist(int err, const std::vector<ErrPage> &error_page)
 }
 void config::set_server(std::vector<std::string>::iterator &it, std::vector<std::string> &conf)
 {
-    // (void)it;
-    // (void)conf;
-    // std::cout << "-------------server found \n";
     std::vector<std::string> tmp;
     server serv;
     while(it != conf.end())
     {
-        // std::cout << "--------- "<<  *it << std::endl; 
         tmp = split(*it, ' ');
         if(!tmp.empty() && tmp[0] == "listen")// verify if it already exists
         {
@@ -168,44 +162,31 @@ void config::parse_configFile()
     {
         if(ligne == "\n")
             continue;//je peut la suppr
-        // ligne += "\n";
         conf.push_back(ligne);
     }
-    // for (it = conf.begin(); it != conf.end(); it++)
-    //     std::cout << *it;
     it = conf.begin();
     std::vector<std::string> tmp;
     
     while(it != conf.end())// apres split verif lesligne vide
     {
         tmp = split(*it, ' ');
-        // exit(1);
-        // std::cout << "[ "<< *it << "]\n";
         if(!tmp.empty() && tmp[0] == "server" && tmp[1] == "{")//check server
         {
             if(tmp.size() >= 3)
             {
-                // std::cout << "here\n";
                     throw std::runtime_error("##content invalid");
             }
             else
-            {
-                // std::cout <<*it << "   --" << std::endl;
                 set_server(++it, conf);   
-            }
         }
         else if (!tmp.empty())
-        {
-            std::cout << *it << std::endl;
             throw std::runtime_error("content invalid");
-        }
-        // check }
         it++;
         tmp.clear();
     }
 }
 
-void config::print_servers()
+void config::print_servers() // print server
 {
     std::vector<server>::iterator it = servs.begin();
     int idx = 1;
