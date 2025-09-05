@@ -158,7 +158,6 @@ void Server::start_connection()
 					std::cout << request[0] << std::endl;
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
-					request.clear();
 				}
 			}
 			else if (fds[i].revents & POLLOUT)
