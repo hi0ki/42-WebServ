@@ -35,7 +35,7 @@ Server::Server(config &config) : myconfig(config)
 {
 	this->server_start();
 	
-	std::cout << GREEN << "\n---------------------------------------" << std::endl;
+	std::cout << GREEN << "---------------------------------------" << std::endl;
 	std::cout << "-----------Servers listening-----------" << std::endl;
 	std::cout << "---------------------------------------\n" << RESET<< std::endl;
 	this->start_connection();
@@ -81,7 +81,7 @@ void Server::bind_socket(int srv_index)
 	std::cout << "ip : " << this->myconfig.get_servs()[srv_index].get_IP() << std::endl;
 	std::cout << "port : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
 	std::cout << "connection : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
-	std::cout << "----------------------------------------------\n";
+	std::cout << std::endl;
 
 	if (this->myconfig.get_servs()[srv_index].get_port() < 1024 || this->myconfig.get_servs()[srv_index].get_port() > 65535)
 	{
