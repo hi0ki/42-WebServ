@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/05 17:52:10 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/06 22:44:08 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
        while(it != end && *it != "}")
        {
             if((*it).empty())
-                continue;    
+                continue;
             spl = split(*it, ' ');
             if (spl.size() == 1 && spl[0] == "}")
                 break;

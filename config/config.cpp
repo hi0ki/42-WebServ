@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/05 17:37:12 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/06 22:45:00 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
                 throw std::runtime_error("listen already exist");
             if(tmp.size() != 2 || check_char_count(tmp[1], ':'))
                 throw std::runtime_error("----content invalid");
+            check_semicolon(tmp[1]);
             std::vector<std::string> help;
             help = split(tmp[1], ':');// after that check if exist more than one :
             if(help.size() != 2)
@@ -93,6 +94,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
                 throw std::runtime_error("server name already exist");
             if(tmp.size() != 2)
                 throw std::runtime_error("server name content invalid");
+            check_semicolon(tmp[1]);
             serv.set_name(tmp[1]);
         }
         else if(!tmp.empty() && tmp[0] == "root")
@@ -101,6 +103,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
                 throw std::runtime_error("root already exist");
             if(tmp.size() != 2)
                 throw std::runtime_error("root content invalid");
+            check_semicolon(tmp[1]);
             serv.set_root(tmp[1]);
         }
         else if(!tmp.empty() && tmp[0] == "index")
@@ -109,12 +112,14 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
                 throw std::runtime_error("index already exist");
             if(tmp.size() != 2)
                 throw std::runtime_error("index content invalid");
+            check_semicolon(tmp[1]);
             serv.set_index(tmp[1]);
         }
         else if(!tmp.empty() && tmp[0] == "error_page")
         {
             if(tmp.size() != 3)
                 throw std::runtime_error("error page content invalid");
+            check_semicolon(tmp[1]);
             ErrPage errpage;
             errpage.err = atoi(tmp[1].c_str());
             if(err_exist(errpage.err, serv.get_errpage()))
