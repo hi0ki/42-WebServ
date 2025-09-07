@@ -6,14 +6,16 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/05 17:35:18 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/07 14:26:38 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include <iostream>
 #include <vector>
-
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"  
 enum LocationType {UNDEFINED, STATIC, CGI, API, UPLOAD, REDIRECT};
 
 struct ErrPage
