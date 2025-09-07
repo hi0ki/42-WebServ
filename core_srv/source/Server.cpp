@@ -113,8 +113,6 @@ bool Server::is_server(int fd)
 {
 	for (int i = 0; i < this->myconfig.get_servs().size(); i++)
 	{
-		std::cout << fd << std::endl;
-		std::cout << fds[i].fd << std::endl;
 		if (fd == this->fds[i].fd)
 			return true;
 	}
@@ -164,7 +162,7 @@ void Server::start_connection()
 					// Append bytes from buffer into vector
 						request.insert(request.end(), buffer, buffer + bytesRead);
 					}
-					std::cout << request[0] << std::endl;
+					// std::cout << request[0] << std::endl;
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
 				}
