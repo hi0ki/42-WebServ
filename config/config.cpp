@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/01 19:25:43 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/07 13:12:14 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,30 +21,8 @@ config::config(std::string nameFile) : File(nameFile)
     if (!File.is_open())
         throw std::runtime_error("Unable to open the file: " + nameFile);
     this->parse_configFile();
-    // this->print_servers();
-}
-
-std::vector<std::string> split(const std::string &str, char c)
-{
-    std::vector<std::string>  result;
-    std::string cont;
-    
-    for(size_t i = 0; i < str.size(); i++)
-    {
-        if(str[i] == '#' || str[i] == ';')
-            break;
-        if(str[i] == c && cont.size())// a verifier cont.size()
-        {
-            result.push_back(cont);
-            cont.clear();
-        }
-        if (str[i] != c)
-            cont += str[i];
-    }
-    if(!cont.empty())
-        result.push_back(cont);
-    return(result);
-}
+    this->print_servers();
+}  
 
 int validnumber(std::string x)
 {
@@ -72,10 +50,24 @@ int err_exist(int err, const std::vector<ErrPage> &error_page)
     }
     return(0);
 }
+
+int check_char_count(const std::string &str, char c)
+{
+    int count = 0;
+    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+    {
+        if (*it == c)
+            count++;
+    }
+    return (count == 1) ? 0 : 1;
+}
+
+
 void config::set_server(std::vector<std::string>::iterator &it, std::vector<std::string> &conf)
 {
     std::vector<std::string> tmp;
     server serv;
+    // check semi colon//verify if ligne end with ; && and if exist deleted it in every if 
     while(it != conf.end())
     {
         tmp = split(*it, ' ');
@@ -83,15 +75,17 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         {
             if(!serv.get_IP().empty())
                 throw std::runtime_error("listen already exist");
-            if(tmp.size() != 2)
+            if(tmp.size() != 2 || check_char_count(tmp[1], ':'))
                 throw std::runtime_error("----content invalid");
+            check_semicolon(tmp[1]);
             std::vector<std::string> help;
-            help = split(tmp[1], ':');
+            help = split(tmp[1], ':');// after that check if exist more than one :
             if(help.size() != 2)
                 throw std::runtime_error("listen content invalid");
             serv.set_IP(help[0]);//verify if ip is good??
             if(validnumber(help[1]))
             serv.set_port(atoi(help[1].c_str()));
+            std::cout << serv.get_port();
             help.clear();
         }
         else if(!tmp.empty() && tmp[0] == "server_name")
@@ -100,6 +94,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
                 throw std::runtime_error("server name already exist");
             if(tmp.size() != 2)
                 throw std::runtime_error("server name content invalid");
+            check_semicolon(tmp[1]);
             serv.set_name(tmp[1]);
         }
         else if(!tmp.empty() && tmp[0] == "root")
@@ -108,6 +103,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
                 throw std::runtime_error("root already exist");
             if(tmp.size() != 2)
                 throw std::runtime_error("root content invalid");
+            check_semicolon(tmp[1]);
             serv.set_root(tmp[1]);
         }
         else if(!tmp.empty() && tmp[0] == "index")
@@ -116,12 +112,14 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
                 throw std::runtime_error("index already exist");
             if(tmp.size() != 2)
                 throw std::runtime_error("index content invalid");
+            check_semicolon(tmp[1]);
             serv.set_index(tmp[1]);
         }
         else if(!tmp.empty() && tmp[0] == "error_page")
         {
             if(tmp.size() != 3)
                 throw std::runtime_error("error page content invalid");
+            check_semicolon(tmp[1]);
             ErrPage errpage;
             errpage.err = atoi(tmp[1].c_str());
             if(err_exist(errpage.err, serv.get_errpage()))
@@ -131,7 +129,10 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         }
         else if(!tmp.empty() && tmp[0] == "location")
         {
-
+            if(tmp.size() != 3 || tmp[2] != "{")
+                throw std::runtime_error("location invalid");
+            serv.pars_location(++it, tmp, conf.end());
+            //check if it == end and we dont foud }, if end throw exeption// if i need it
         }
         else if(!tmp.empty() && tmp[0] == "}")
         {
@@ -145,8 +146,9 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         }
         tmp.clear();
         it++;
+        if (it == conf.end())
+            throw std::runtime_error(" '}' is missing ");
     }
-        // verify if listen && root are emtpy, or another things
     if(serv.get_IP().empty() || serv.get_root().empty())
         throw std::runtime_error("empty values");
     servs.push_back(serv);
@@ -209,22 +211,25 @@ void config::print_servers() // print server
             ++e_it;
         }
 
-        // // --- Locations ---
-        // std::vector<l_location> locs = it->get_location(); // tu devras écrire get_location()
-        // std::vector<l_location>::iterator l_it = locs.begin();
-        // while (l_it != locs.end())
-        // {
-        //     std::cout << "Location path: " << l_it->path << " | Type: ";
-        //     switch (l_it->type)
-        //     {
-        //         case STATIC:   std::cout << "STATIC"; break;
-        //         case CGI:      std::cout << "CGI"; break;
-        //         case REDIRECT: std::cout << "REDIRECT"; break;
-        //         case API:      std::cout << "API"; break;
-        //     }
-        //     std::cout << "\n";
-        //     ++l_it;
-        // }
+        // --- Locations ---
+        std::vector<Location> locs = it->get_location(); // tu devras écrire get_location()
+        std::vector<Location>::iterator l_it = locs.begin();
+        while (l_it != locs.end())
+        {
+            std::cout << "Location path: " << l_it->path << " | Type: ";
+            switch (l_it->type)
+            {
+                case STATIC:   std::cout << "STATIC"; break;
+                case CGI:      std::cout << "CGI"; break;
+                case REDIRECT: std::cout << "REDIRECT"; break;
+                case API:      std::cout << "API"; break;
+                case UPLOAD:   std::cout << "UPLOAD"; break;
+                case UNDEFINED: std::cout << "UNDEFINED"; break;
+                
+            }
+            std::cout << "\n";
+            ++l_it;
+        }
 
         std::cout << "========================\n";
         ++it;
