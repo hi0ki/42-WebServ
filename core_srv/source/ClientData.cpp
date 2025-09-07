@@ -22,4 +22,4 @@ class ClientData
         
         */
     public:
-}
+};

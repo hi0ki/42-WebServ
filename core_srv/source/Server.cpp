@@ -1,6 +1,7 @@
 #include "../include/Server.hpp"
 #include <unistd.h>
 #include <sstream>
+#include "../../request/request.hpp"
 
 
 /*
@@ -125,6 +126,8 @@ void Server::start_connection()
 	int client_fd;
 	int poll_var;
 	char  buffer[5000];
+	Httprequest req; 
+
 
 	while (true)
 	{
@@ -162,7 +165,8 @@ void Server::start_connection()
 					// Append bytes from buffer into vector
 						request.insert(request.end(), buffer, buffer + bytesRead);
 					}
-					// std::cout << request[0] << std::endl;
+					std::cout << request[0] << std::endl;
+					req.request_pars(request);
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
 				}
