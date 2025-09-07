@@ -15,6 +15,11 @@
 
 
 	// problem with using multi servers
+
+
+	infos:
+		(pay attention to differences between HTTP versions)
+		he virtual host
 */
 
 uint32_t ip_convert(std::string ip)
@@ -136,10 +141,14 @@ void Server::start_connection()
 		{
 			if (fds[i].revents & POLLIN)
 			{
+				// ma3mr client i9dr idox l else ila ma kanch fayt daz mn accept ya3ni fach idoz lmra lwla n3tih lclass
+				// la khdm send machi darori ndir close ila maknch 3tani kill or something like that 
+							// hit aslan la 3awd ja event mn 3ndo o hadchi kay3ni anho aslan m3tih ach mn srv mnin ja o ila kan jdid rah aydkhl l accept hit i kon fd dyal server machi dyal client
 				if (is_server(fds[i].fd) == true)
 				{
 					std::cout << "server" << std::endl;
 					client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
+					// after accept i should create clientdata and give it the data from client like -> wich server + client fd.
 					client_pfd.fd = client_fd;
 					client_pfd.events = POLLIN;
 					client_pfd.revents = 0;
@@ -170,11 +179,11 @@ void Server::start_connection()
 						"<html><body><h1>Hello from poll server</h1></body></html>";
 
 				send(fds[i].fd, response.c_str(), response.size(), 0);
-				close(fds[i].fd);
+				close(fds[i].fd); // mkhsnich nsdo ola nmsho hit t9dr t3awd twslni mn 3ndo request ya3ni la sdito ansd9 m3awd m acceptih ohiya walo
 				fds.erase(fds.begin() + i);
 				i--;
 			}
 		}
 	}
-	close(connection);
+	// close all fds.
 }
