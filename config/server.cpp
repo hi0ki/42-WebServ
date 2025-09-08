@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/07 13:21:19 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/08 14:43:28 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,4 +277,9 @@ std::string server::get_index()
 std::vector<Location> server::get_location() const
 {
     return(location);
+}
+
+bool server::get_autoindexEnabled() const
+{
+    return this->autoindexEnabled;
 }

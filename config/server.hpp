@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/05 17:35:18 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/08 14:43:12 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ class server
         std::string index;
         std::vector<ErrPage> error_page;
         std::vector<Location> location;
+        bool autoindexEnabled;
     public:
         void pars_errPage();
         void pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator end);
@@ -70,6 +71,7 @@ class server
         std::string get_name();
         std::string get_root();
         std::string get_index();
+        bool get_autoindexEnabled();
 };
 void check_semicolon(std::string &str);
 std::vector<std::string> split(const std::string &str, char c);

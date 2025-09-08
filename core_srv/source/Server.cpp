@@ -1,4 +1,6 @@
 #include "../include/Server.hpp"
+#include "../../config/server.hpp"
+
 #include <unistd.h>
 #include <sstream>
 #include "../../request/request.hpp"
@@ -43,7 +45,7 @@ Server::Server(config &config) : myconfig(config)
 	std::cout << GREEN << "---------------------------------------" << std::endl;
 	std::cout << "-----------Servers listening-----------" << std::endl;
 	std::cout << "---------------------------------------\n" << RESET<< std::endl;
-	this->start_connection();
+	this->start_connection(config);
 }
 
 void Server::server_start()
@@ -120,7 +122,7 @@ bool Server::is_server(int fd)
 	return false;
 }
 
-void Server::start_connection()
+void Server::start_connection(config &config)
 {
 	pollfd client_pfd;
 	int client_fd;
@@ -165,8 +167,10 @@ void Server::start_connection()
 					// Append bytes from buffer into vector
 						request.insert(request.end(), buffer, buffer + bytesRead);
 					}
-					std::cout << request[0] << std::endl;
-					req.request_pars(request);
+					// std::cout << request[0] << std::endl;
+					req.request_pars(request, config);
+					// std::vector<server> ser =  config.get_servs();
+					// std::cout <<ser[0].get_root() << std::endl;
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
 				}

@@ -1,14 +1,4 @@
 #include "request.hpp"
-#include "../core_srv/include/Server.hpp"
-#include "../config/server.hpp"
-
-/*POST /submit-form HTTP/1.1
-Host: localhost:8080
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 27
-
-name=Fatima&age=20&city=Rabat
-*/
 
 Httprequest::Httprequest()
 {
@@ -82,8 +72,15 @@ std::string Httprequest::getAbsolutePath() const
     return this->absolutePath;
 }
 
-void check_methods(Httprequest &req)
+void    Httprequest::setStatus(int status_code, std::string status_text)
 {
+    this->status_code = status_code;
+    this->status_text = status_text;
+
+}
+
+// void check_methods(Httprequest &req)
+// {
     // if (req.method == "GET")
     //     std::cout << "GET\n";
     // else if(req.method == "POST")
@@ -95,10 +92,10 @@ void check_methods(Httprequest &req)
     //     req.status_code = 400;
     //     req.status_text = "Bad Request";
     // }
-}
+// }
 
-void check_version(Httprequest &req)
-{
+// void check_version(Httprequest &req)
+// {
     // if (req.version[req.version.size() - 1] != '1' && req.version[req.version.size() - 2] == '1')
     // {
     //     req.status_code = 505;
@@ -111,9 +108,50 @@ void check_version(Httprequest &req)
     //     req.status_text = "Bad Request";
     // }
 
+// }
+
+bool pathExists(const std::string& path, Httprequest &req, char &c) {
+    struct stat info;
+    if (stat(path.c_str(), &info) == 0) {
+        // req.setStatus(200, "OK");
+        if (S_ISDIR(info.st_mode)) 
+            c = 'D';
+        else
+            c = 'F';
+        return true;
+    } 
+    else {
+        req.setStatus(404, "Not Found");
+        return false;
+    }
 }
 
-int Httprequest::request_pars(std::vector<char> &request)
+bool fileExists(const std::string& path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) == 0) 
+        return true;
+    return false;
+}
+
+//Most websites use a default “homepage” inside directories.
+//If the user requests /folder/, they usually want /folder/index.html.
+
+std::string findIndexFile(const std::string& absolutePath) {
+    std::vector<std::string> indexFiles;
+    indexFiles.push_back("index.html");
+    indexFiles.push_back("index.htm");
+    indexFiles.push_back("index.php");
+
+    for (size_t i = 0; i < indexFiles.size(); ++i) 
+    {
+        std::string fullPath = absolutePath + "/" + indexFiles[i];
+        if (fileExists(fullPath)) 
+            return fullPath;
+    }
+    return ""; 
+}
+
+int Httprequest::request_pars(std::vector<char> &request,config &config)
 {
     std::string tmp;
     int a = 0;
@@ -134,26 +172,23 @@ int Httprequest::request_pars(std::vector<char> &request)
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
-    absolutePath = "root" + this->path;//add root from hafssa
+    //check if path and root correct or not check if u should handel this GET /../../etc/passwd HTTP/1.1
+    if (config.get_servs()[0].get_root().back() == '/' && !path.empty() && path.front() == '/')
+        absolutePath = config.get_servs()[0].get_root() + path.substr(1); // remove one slash
+    else
+        absolutePath = config.get_servs()[0].get_root() + this->path;//add root from hafssa
+    char c = '\0';
+    pathExists(absolutePath, *this, c);
+    if (c == 'D')
+    {
+        if (findIndexFile(absolutePath) != "")
+            std::cout << "ok\n";
+        else if (config.get_servs()[0].get_autoindexEnabled() == true)
+        {
+            std::cout << "ok\n";
+        }
+    }
     return 0;
 }
 
-// int main()
-// {
-//     // Httprequest req;
-//     // std::string s ="GET /home HTTP/1.1\r\nHost: example.com\r\nUser-Agent: Mozilla/5.0\r\nAccept: text/html\r\n\r\n";
 
-//     // std::vector<char> r;
-//     // for(int i = 0; s[i]; i++)
-//     //     req.request.push_back(s[i]);
-//     // req.request_pars(req);
-//     std::cout << "["<< req.getMethod() << "]"<<  std::endl;
-//     std::cout << "["<< req.getPath() << "]"<<  std::endl;
-//     std::cout << "["<< req.getVersion() << "]"<<  std::endl;
-//     std::cout << std::endl;
-//     for(std::map<std::string, std::string>::iterator it = req.getHeaders().begin(); it != req.getHeaders().end(); it++)
-//         std::cout << it->first << "  " << it->second << "  ";
-//     return 0;
-//     for(int i = 0; i < req.getBody().size(); i++)
-//         std::cout << req.getBody()[i] ;
-// }
