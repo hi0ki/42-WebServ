@@ -6,7 +6,7 @@
 /*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/08 14:43:12 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/09/08 15:00:32 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ class server
         std::string get_name();
         std::string get_root();
         std::string get_index();
-        bool get_autoindexEnabled();
+        bool get_autoindexEnabled() const;
 };
 void check_semicolon(std::string &str);
 std::vector<std::string> split(const std::string &str, char c);
