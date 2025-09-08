@@ -151,6 +151,31 @@ std::string findIndexFile(const std::string& absolutePath) {
     return ""; 
 }
 
+void resolvePath(config &config, Httprequest &req)
+{
+    std::string dir;
+    dir = req.getPath().substr(0, req.getPath().find('/' , 1));
+    std::vector<Location> loc = config.get_servs()[0].get_location();
+    for(int i = 0; i < loc.size();i++)
+    {
+        if (loc[i].path.find(dir) != -1)
+        {
+            if (loc[i].root != "")
+            {
+                dir = req.getPath().substr(req.getPath().find('/' , 1) + 1);
+                req.setAbsolutePath(loc[i].root + "/" +dir);
+                std::cout << req.getAbsolutePath() << std::endl;
+            }
+            else
+            {
+                dir = req.getPath().substr(req.getPath().find('/' , 1) + 1);
+                req.setAbsolutePath(config.get_servs()[0].get_root() + "/" + dir);
+            }
+        }
+    }
+    req.setAbsolutePath(config.get_servs()[0].get_root() + req.getPath());
+}
+
 int Httprequest::request_pars(std::vector<char> &request,config &config)
 {
     std::string tmp;
@@ -172,15 +197,17 @@ int Httprequest::request_pars(std::vector<char> &request,config &config)
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
+    resolvePath(config, *this);
     //check if path and root correct or not check if u should handel this GET /../../etc/passwd HTTP/1.1
-    if (config.get_servs()[0].get_root().back() == '/' && !path.empty() && path.front() == '/')
-        absolutePath = config.get_servs()[0].get_root() + path.substr(1); // remove one slash
-    else
-        absolutePath = config.get_servs()[0].get_root() + this->path;//add root from hafssa
+    // if (config.get_servs()[0].get_root().back() == '/' && !path.empty() && path.front() == '/')
+    //     absolutePath = config.get_servs()[0].get_root() + path.substr(1); // remove one slash
+    // else
+    //     absolutePath = config.get_servs()[0].get_root() + this->path;//add root from hafssa
     char c = '\0';
     pathExists(absolutePath, *this, c);
     if (c == 'D')
     {
+        // if ()
         if (findIndexFile(absolutePath) != "")
             std::cout << "ok\n";
         else if (config.get_servs()[0].get_autoindexEnabled() == true)
