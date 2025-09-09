@@ -18,6 +18,7 @@
             std::vector<char> body;
             std::map<std::string, std::string> headers;
             std::string absolutePath;
+            std::string fullPath;
 
             // std::string query;
             int status_code;
@@ -47,6 +48,9 @@
             std::string getAbsolutePath() const;
 
             void setStatus(int status_code, std::string status_text);
+
+            void setfullPath(const std::string &fullPath);
+            std::string getfullPath() const;
 
 
     };

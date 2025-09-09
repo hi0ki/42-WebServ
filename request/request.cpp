@@ -79,6 +79,16 @@ void    Httprequest::setStatus(int status_code, std::string status_text)
 
 }
 
+void Httprequest::setfullPath(const std::string &fullPath)
+{
+    this->fullPath = fullPath;
+}
+
+std::string Httprequest::getfullPath() const
+{
+    return (this->fullPath);
+}
+
 // void check_methods(Httprequest &req)
 // {
     // if (req.method == "GET")
@@ -151,29 +161,71 @@ std::string findIndexFile(const std::string& absolutePath) {
     return ""; 
 }
 
-void resolvePath(config &config, Httprequest &req)
+bool resolvePath(config &config, Httprequest &req)
 {
     std::string dir;
+    bool found = false;
+    req.setPath("/api");
     dir = req.getPath().substr(0, req.getPath().find('/' , 1));
+    std::cout << dir << std::endl;
+    // exit(0);
     std::vector<Location> loc = config.get_servs()[0].get_location();
     for(int i = 0; i < loc.size();i++)
     {
         if (loc[i].path.find(dir) != -1)
         {
+            found = true;
             if (loc[i].root != "")
             {
                 dir = req.getPath().substr(req.getPath().find('/' , 1) + 1);
-                req.setAbsolutePath(loc[i].root + "/" +dir);
-                std::cout << req.getAbsolutePath() << std::endl;
+                req.setAbsolutePath(loc[i].root + "/" + dir);
+                return found;
+                // std::cout << req.getAbsolutePath() << std::endl;
             }
             else
             {
                 dir = req.getPath().substr(req.getPath().find('/' , 1) + 1);
                 req.setAbsolutePath(config.get_servs()[0].get_root() + "/" + dir);
+                return found;
             }
         }
     }
     req.setAbsolutePath(config.get_servs()[0].get_root() + req.getPath());
+    return found;
+}
+
+
+bool resolve_index(Httprequest &req, std::vector<Location> &loc, bool found_loc, config &config)
+{
+    if (found_loc == true)
+    {
+        std::string dir = req.getPath().substr(0, req.getPath().find('/' , 1));
+        for(int i = 0; i < loc.size(); i++)
+        {
+            if (loc[i].path.find(dir) != -1)
+            {
+                if (loc[i].index != "")
+                {
+                    if(fileExists(req.getAbsolutePath() + "/" + loc[i].index) == true)
+                    {
+                        req.setfullPath(req.getAbsolutePath() + "/" + loc[i].index);
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
+            }
+        }
+    }
+    if (config.get_servs()[0].get_index() != "")
+    {
+        if(fileExists(req.getAbsolutePath() + "/" + config.get_servs()[0].get_index()) == true)
+        {
+            req.setfullPath(req.getAbsolutePath() + "/" + config.get_servs()[0].get_index());
+            return true;
+        }
+    }
+    return false;
 }
 
 int Httprequest::request_pars(std::vector<char> &request,config &config)
@@ -193,21 +245,24 @@ int Httprequest::request_pars(std::vector<char> &request,config &config)
     version = r.substr(r.find(' ',r.find(' ', 0) + 1) + 1,(r.find('\r', 0) - 1) - r.find(' ',r.find(' ', 0) + 1));
     for(int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
     {
-
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
-    resolvePath(config, *this);
+    bool found_loc = resolvePath(config, *this);
+    std::cout << found_loc << std::endl;
     //check if path and root correct or not check if u should handel this GET /../../etc/passwd HTTP/1.1
     // if (config.get_servs()[0].get_root().back() == '/' && !path.empty() && path.front() == '/')
     //     absolutePath = config.get_servs()[0].get_root() + path.substr(1); // remove one slash
     // else
     //     absolutePath = config.get_servs()[0].get_root() + this->path;//add root from hafssa
     char c = '\0';
-    pathExists(absolutePath, *this, c);
+    if (pathExists(absolutePath, *this, c) == false)
+        std::cout << "nice\n";
+    std::vector<Location> loc = config.get_servs()[0].get_location();
     if (c == 'D')
     {
-        // if ()
+        if (resolve_index(*this, loc, found_loc, config) == true)
+            std::cout << "oky";
         if (findIndexFile(absolutePath) != "")
             std::cout << "ok\n";
         else if (config.get_servs()[0].get_autoindexEnabled() == true)
