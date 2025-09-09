@@ -46,7 +46,7 @@ Server::Server(config &config) : myconfig(config)
 	std::cout << GREEN << "---------------------------------------" << std::endl;
 	std::cout << "-----------Servers listening-----------" << std::endl;
 	std::cout << "---------------------------------------\n" << RESET<< std::endl;
-	this->start_connection(config);
+	this->start_connection();
 }
 
 void Server::server_start()
@@ -123,7 +123,7 @@ bool Server::is_server(int fd)
 	return false;
 }
 
-void Server::start_connection(config &config)
+void Server::start_connection()
 {
 	pollfd client_pfd;
 	int client_fd;
@@ -169,7 +169,7 @@ void Server::start_connection(config &config)
 						request.insert(request.end(), buffer, buffer + bytesRead);
 					}
 					// std::cout << request[0] << std::endl;
-					req.request_pars(request, config);
+					req.request_pars(request, this->myconfig);
 					// std::vector<server> ser =  config.get_servs();
 					// std::cout <<ser[0].get_root() << std::endl;
 					fds[i].events = POLLOUT;
