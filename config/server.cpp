@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/09 10:25:21 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/09 11:25:34 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -299,9 +299,13 @@ std::string server::get_index()
     return(index);
 }
 
-std::string server::get_autoindex()
+int server::get_autoindex()
 {
-    return(autoindex);
+    if(autoindex == "off")
+        return(0);
+    else if(autoindex == "on")
+        return(1);
+    return (-1);    
 }
 
 std::vector<Location> server::get_location() const

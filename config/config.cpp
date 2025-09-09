@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/09 10:24:18 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/09 11:39:26 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         }
         else if(!tmp.empty() && tmp[0] == "autoindex")
         {
-            if(!serv.get_autoindex().empty())
+            if(serv.get_autoindex() != -1)
                 throw std::runtime_error("autoindex already exist");
             if(tmp.size() != 2)
                 throw std::runtime_error("autoindex content invalid");
@@ -191,7 +191,10 @@ void config::parse_configFile()
                     throw std::runtime_error("##content invalid");
                 }
                 else
+                {
                     set_server(++it, conf);   
+                    
+                }       
             }
             else if (!tmp.empty())
                 throw std::runtime_error("content invalid");
