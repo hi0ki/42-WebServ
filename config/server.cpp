@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/07 13:21:19 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/09 10:25:21 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,13 +83,18 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
        loc.type = STATIC;
        while(it != end && *it != "}")
        {
-            if((*it).empty())
-                continue;
             spl = split(*it, ' ');
+            if(spl.empty())
+            {
+                it++;
+                if(it == end)
+                throw std::runtime_error(" '}' is missing ");
+                continue;
+            }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
             if(spl.size() != 2)
-                throw std::runtime_error("invalid location");
+                throw std::runtime_error("----------invalid location");
             check_semicolon(spl[1]);
             if(spl[0] == "root")
                 loc.root = spl[1];
@@ -109,14 +114,19 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
        loc.path = tmp[1];
        loc.type = API;
        while(it != end && *it != "}")
-       {
-            if((*it).empty())
-                continue;    
+       {  
             spl = split(*it, ' ');
+            if(spl.empty())
+            {
+                it++;
+                continue;
+                if(it == end)
+                throw std::runtime_error(" '}' is missing ");
+            }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
             if(spl.size() != 2)
-                throw std::runtime_error("invalid location");
+                throw std::runtime_error("nvalid location");
             check_semicolon(spl[1]);
             if(spl[0] == "root")
                 loc.root = spl[1];
@@ -134,10 +144,15 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
         loc.path = tmp[1];
         loc.type = UPLOAD;
         while(it != end && *it != "}")
-        {
-            if((*it).empty())
-                continue;    
+        { 
             spl = split(*it, ' ');
+            if(spl.empty())
+            {
+                it++;
+                if(it == end)
+                throw std::runtime_error(" '}' is missing ");
+                continue;
+            }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
             if(spl.size() != 2)
@@ -160,9 +175,14 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
     {
         while(it != end && *it != "}")
         {
-            if((*it).empty())
-                continue;
             spl = split(*it, ' ');
+            if(spl.empty())
+            {
+                it++;
+                if(it == end)
+                throw std::runtime_error(" '}' is missing ");
+                continue;
+            }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
             if(spl.size() != 2)
@@ -244,7 +264,12 @@ void server::set_index(std::string nindex)
 {
     index = nindex;
 }
-    
+
+void server::set_autoindex(std::string nautoindex)
+{
+    autoindex = nautoindex;
+}
+  
 void server::set_errpage(ErrPage &errpage)
 {
     error_page.push_back(errpage);
@@ -272,6 +297,11 @@ std::string server::get_root()
 std::string server::get_index()
 {
     return(index);
+}
+
+std::string server::get_autoindex()
+{
+    return(autoindex);
 }
 
 std::vector<Location> server::get_location() const

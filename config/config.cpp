@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/07 14:32:40 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/09 10:24:18 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,15 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             check_semicolon(tmp[1]);
             serv.set_index(tmp[1]);
         }
+        else if(!tmp.empty() && tmp[0] == "autoindex")
+        {
+            if(!serv.get_autoindex().empty())
+                throw std::runtime_error("autoindex already exist");
+            if(tmp.size() != 2)
+                throw std::runtime_error("autoindex content invalid");
+            check_semicolon(tmp[1]);
+            serv.set_autoindex(tmp[1]);
+        }
         else if(!tmp.empty() && tmp[0] == "error_page")
         {
             if(tmp.size() != 3)
@@ -209,7 +218,9 @@ void config::print_servers() // print server
         std::cout << "Server Name: " << it->get_name() << "\n";
         std::cout << "Root: " << it->get_root() << "\n";
         std::cout << "Index: " << it->get_index() << "\n";
+        std::cout << "Autoindex: " << it->get_autoindex() << "\n";
 
+        
         // --- Error Pages ---
         std::vector<ErrPage> errpages = it->get_errpage();
         std::vector<ErrPage>::iterator e_it = errpages.begin();
