@@ -146,7 +146,7 @@ bool fileExists(const std::string& path) {
 //Most websites use a default “homepage” inside directories.
 //If the user requests /folder/, they usually want /folder/index.html.
 
-std::string findIndexFile(const std::string& absolutePath) {
+bool findIndexFile(Httprequest &req) {
     std::vector<std::string> indexFiles;
     indexFiles.push_back("index.html");
     indexFiles.push_back("index.htm");
@@ -154,23 +154,27 @@ std::string findIndexFile(const std::string& absolutePath) {
 
     for (size_t i = 0; i < indexFiles.size(); ++i) 
     {
-        std::string fullPath = absolutePath + "/" + indexFiles[i];
-        if (fileExists(fullPath)) 
-            return fullPath;
+        std::string fullPath = req.getAbsolutePath() + "/" + indexFiles[i];
+        if (fileExists(fullPath))
+        {
+            req.setfullPath(fullPath);
+            return true;
+        } 
     }
-    return ""; 
+    return false; 
 }
 
 bool resolvePath(config &config, Httprequest &req)
 {
     std::string dir;
     bool found = false;
-    req.setPath("/api");
+    req.setPath("/api/html");
+    // config.get_servs()[0].set_root("/Users/felhafid/Desktop/hikii");
+    // std::cout << config.get_servs()[0].get_root() << std::endl;
     dir = req.getPath().substr(0, req.getPath().find('/' , 1));
-    std::cout << dir << std::endl;
-    // exit(0);
+    // std::cout << dir << std::endl;
     std::vector<Location> loc = config.get_servs()[0].get_location();
-    for(int i = 0; i < loc.size();i++)
+    for(int i = 0; i < loc.size(); i++)
     {
         if (loc[i].path.find(dir) != -1)
         {
@@ -178,9 +182,10 @@ bool resolvePath(config &config, Httprequest &req)
             if (loc[i].root != "")
             {
                 dir = req.getPath().substr(req.getPath().find('/' , 1) + 1);
-                req.setAbsolutePath(loc[i].root + "/" + dir);
+                req.setAbsolutePath("/Users/felhafid/Desktop/hikii/api/"  + dir);
+                // std::cout <<"here : " <<req.getAbsolutePath() << std::endl;
+                // req.setAbsolutePath(loc[i].root + "/" + dir);
                 return found;
-                // std::cout << req.getAbsolutePath() << std::endl;
             }
             else
             {
@@ -190,7 +195,9 @@ bool resolvePath(config &config, Httprequest &req)
             }
         }
     }
-    req.setAbsolutePath(config.get_servs()[0].get_root() + req.getPath());
+    // req.setAbsolutePath(config.get_servs()[0].get_root() + req.getPath());
+    req.setAbsolutePath("/Users/felhafid/Desktop/hikii" + req.getPath());
+    // std::cout <<"here : " <<req.getAbsolutePath() << std::endl;
     return found;
 }
 
@@ -213,6 +220,7 @@ bool resolve_index(Httprequest &req, std::vector<Location> &loc, bool found_loc,
                     }
                     return false;
                 }
+                // break ;
                 return false;
             }
         }
@@ -226,6 +234,75 @@ bool resolve_index(Httprequest &req, std::vector<Location> &loc, bool found_loc,
         }
     }
     return false;
+}
+//Connects to IP 127.0.0.1 on port 8080.
+
+//If your web server is running and listening on 8080, connection succeeds.
+
+
+bool isAutoindexEnabled(Httprequest &req, config &config, bool found)
+{
+    if (found == true)
+    {
+        std::string dir = req.getPath().substr(0, req.getPath().find('/' , 1));
+        std::vector<Location> loc = config.get_servs()[0].get_location();
+        for(int i = 0; i < loc.size(); i++)
+        {
+            if (loc[i].path.find(dir) != -1)
+            {
+                if (loc[i].path != "")
+                {
+                    if(fileExists(req.getAbsolutePath() + "/" + loc[i].index) == true)
+                    {
+                        req.setfullPath(req.getAbsolutePath() + "/" + loc[i].index);
+                        return true;
+                    }
+                    return false;
+                }
+                // break ;
+                return false;
+            }
+        }
+    }
+    return true;
+
+}
+#include <dirent.h>
+#include <sstream>
+std::string AutoindexPage(Httprequest &req)
+{
+    DIR *dir;
+    struct dirent *entry;
+    std::string html;
+
+    html = "<html>\n<head><title>Index of " + req.getPath() + "</title></head>\n<body>\n";
+    html += "<h1>Index of " + req.getPath() + "</h1>\n<ul>\n";
+    dir = opendir(req.getAbsolutePath().c_str());
+    if (dir == NULL)
+        return html += "<li>Cannot open directory</li>\n</ul>\n</body>\n</html>\n";
+    while ((entry = readdir(dir)) != NULL) 
+    {
+        if ((std::string)entry->d_name == "." || (std::string)entry->d_name == "..")
+            continue;
+        // std::string full_path = req.getAbsolutePath() + "/" + entry->d_name;
+         struct stat st;
+        // if (stat(full_path.c_str(), &st) != 0)
+        //     continue; 
+        std::string href = req.getPath();
+        if (href.empty() || href[href.size() - 1] != '/')
+            href += '/';
+        href += entry->d_name;
+        if (S_ISDIR(st.st_mode))
+            href += '/';
+        std::string visible = entry->d_name;
+        if (S_ISDIR(st.st_mode))
+            visible += '/';
+        html += "<li><a href=\"" + href +  "\">" + visible + "</a></li>\n";
+    }
+    closedir(dir);
+    html += "</ul>\n</body>\n</body>\n";
+    // std::cout << html << std::endl;
+    return html;
 }
 
 int Httprequest::request_pars(std::vector<char> &request,config &config)
@@ -249,7 +326,7 @@ int Httprequest::request_pars(std::vector<char> &request,config &config)
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
     bool found_loc = resolvePath(config, *this);
-    std::cout << found_loc << std::endl;
+    // std::cout << found_loc << std::endl;
     //check if path and root correct or not check if u should handel this GET /../../etc/passwd HTTP/1.1
     // if (config.get_servs()[0].get_root().back() == '/' && !path.empty() && path.front() == '/')
     //     absolutePath = config.get_servs()[0].get_root() + path.substr(1); // remove one slash
@@ -259,18 +336,20 @@ int Httprequest::request_pars(std::vector<char> &request,config &config)
     if (pathExists(absolutePath, *this, c) == false)
         std::cout << "nice\n";
     std::vector<Location> loc = config.get_servs()[0].get_location();
+    bool t_f = true;
     if (c == 'D')
     {
-        if (resolve_index(*this, loc, found_loc, config) == true)
-            std::cout << "oky";
-        if (findIndexFile(absolutePath) != "")
-            std::cout << "ok\n";
-        else if (config.get_servs()[0].get_autoindex() == true)
+        if (resolve_index(*this, loc, found_loc, config) == false)
+            t_f = findIndexFile(*this);
+        if (t_f == false)
         {
-            std::cout << "ok\n";
+            if(config.get_servs()[0].get_autoindex() == true)
+            {
+                AutoindexPage(*this);
+            }
+            else
+                setStatus(403, "Forbidden");
         }
     }
     return 0;
 }
-
-

@@ -150,7 +150,7 @@ void Server::start_connection()
 							// hit aslan la 3awd ja event mn 3ndo o hadchi kay3ni anho aslan m3tih ach mn srv mnin ja o ila kan jdid rah aydkhl l accept hit i kon fd dyal server machi dyal client
 				if (is_server(fds[i].fd) == true)
 				{
-					std::cout << "server" << std::endl;
+					// std::cout << "server" << std::endl;
 					client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
 					// after accept i should create clientdata and give it the data from client like -> wich server + client fd.
 					client_pfd.fd = client_fd;
@@ -160,7 +160,7 @@ void Server::start_connection()
 				}
 				else
 				{
-					std::cout << "client" << std::endl;
+					// std::cout << "client" << std::endl;
 					std::vector<char> request;
 					char buffer[4096];
 					int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
