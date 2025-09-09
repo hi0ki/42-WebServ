@@ -3,17 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/08 15:00:32 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/09/09 11:23:31 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include <iostream>
 #include <vector>
-
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"  
 enum LocationType {UNDEFINED, STATIC, CGI, API, UPLOAD, REDIRECT};
 
 struct ErrPage
@@ -50,9 +52,9 @@ class server
         std::string servname;
         std::string root;
         std::string index;
+        std::string autoindex;
         std::vector<ErrPage> error_page;
         std::vector<Location> location;
-        bool autoindexEnabled;
     public:
         void pars_errPage();
         void pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator end);
@@ -64,6 +66,7 @@ class server
         void set_name(std::string sname);
         void set_root(std::string nroot);
         void set_index(std::string nindex);
+        void set_autoindex(std::string nindex);
         void set_errpage(ErrPage &errpage);//push_back
         void set_location(Location &loc);
         std::vector<Location> get_location() const;
@@ -71,7 +74,7 @@ class server
         std::string get_name();
         std::string get_root();
         std::string get_index();
-        bool get_autoindexEnabled() const;
+        int get_autoindex();
 };
 void check_semicolon(std::string &str);
 std::vector<std::string> split(const std::string &str, char c);

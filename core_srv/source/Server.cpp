@@ -1,4 +1,4 @@
-#include "../include/Server.hpp"
+ #include "../include/Server.hpp"
 #include "../../config/server.hpp"
 
 #include <unistd.h>
@@ -40,6 +40,7 @@ uint32_t ip_convert(std::string ip)
 
 Server::Server(config &config) : myconfig(config)
 {
+	// std::cout << "daz\n";
 	this->server_start();
 	
 	std::cout << GREEN << "---------------------------------------" << std::endl;

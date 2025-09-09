@@ -265,7 +265,7 @@ int Httprequest::request_pars(std::vector<char> &request,config &config)
             std::cout << "oky";
         if (findIndexFile(absolutePath) != "")
             std::cout << "ok\n";
-        else if (config.get_servs()[0].get_autoindexEnabled() == true)
+        else if (config.get_servs()[0].get_autoindex() == true)
         {
             std::cout << "ok\n";
         }
