@@ -1,9 +1,10 @@
 C++ = c++ -Wall -Wextra -Werror
 
-Src = core_srv/source/Server.cpp main.cpp\
+Src = main.cpp \
+	core_srv/source/Server.cpp core_srv/source/ClientData.cpp\
 	config/config.cpp config/server.cpp
 
-Headers = core_srv/include/Server.hpp\
+Headers = core_srv/include/Server.hpp core_srv/include/ClientData.hpp\
 	config/config.hpp config/server.hpp\
 
 
