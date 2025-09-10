@@ -6,6 +6,8 @@
     #include <string>
     #include <algorithm>
     #include <sys/stat.h>
+    #include <dirent.h>
+    #include <sstream>
 
     #include "../core_srv/include/Server.hpp"
     #include "../config/server.hpp"
@@ -19,6 +21,8 @@
             std::map<std::string, std::string> headers;
             std::string absolutePath;
             std::string fullPath;
+            bool error;
+            std::string redirectLocation;
 
             // std::string query;
             int status_code;
@@ -52,5 +56,10 @@
             void setfullPath(const std::string &fullPath);
             std::string getfullPath() const;
 
+            void setError(const bool &Error);
+            bool getError() const;
+
+            void setRedirectLocation(const std::string &uri);
+            std::string getRedirectLocation() const;
 
     };
