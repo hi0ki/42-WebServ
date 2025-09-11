@@ -60,3 +60,12 @@ void ClientData::clear()
     this->request.clear();
     this->response.clear();
 }
+
+void ClientData::clean_request()
+{
+    this->request.clear();
+}
+void ClientData::clean_response()
+{
+    this->response.clear();
+}

@@ -4,6 +4,7 @@
 
 
 /*
+									try to work in map with i nothe fd
 	1 -move the fds vector to the class : ✅
 	2 -split the code : ✅
 	3 -handle multi servers : ✅
@@ -15,6 +16,8 @@
 
 	7 - check if keep alive or u need to close the client
 	
+	8 - problem = khsni nkhli client bla manms7hom o ib9a khdam server
+
 	8 - init the clientdata class : ✅
 	infos:
 		(pay attention to differences between HTTP versions)
@@ -153,16 +156,16 @@ void Server::start_connection()
 						continue ;
 					}
 					// INIT NEW CLIENT
-					// std::cout << "-------- writing clinet --------" << std::endl;
-					// std::cout << "client fd = " << client_fd << std::endl;
-					// std::cout << "server fd = " << fds[i].fd << std::endl;
-					// std::cout << "server index = " << i << std::endl;
+					std::cout << "-----------------------writing clinet--------------------" << std::endl;
+					std::cout << "client fd = " << client_fd << std::endl;
+					std::cout << "server fd = " << fds[i].fd << std::endl;
+					std::cout << "server index = " << i << std::endl;
 					ClientData new_client;
 					new_client.clear();
 					new_client.set_srv_index(i + 1);
 					this->clients[client_fd] = new_client;
-					// std::cout << "size = " << this->clients.size() << std::endl;
-					// std::cout << "-------- 		end	--------" << std::endl;
+					std::cout << "size = " << this->clients.size() << std::endl;
+					std::cout << "----------------------writing end--------------------------" << std::endl;
 
 					//    INIT  POLLFD
 					client_pfd.fd = client_fd;
@@ -173,6 +176,7 @@ void Server::start_connection()
 				else
 				{
 					std::cout << "client" << std::endl;
+					std::cout << fds[i].fd << " fd";
 					std::vector<char> request = this->clients[fds[i].fd].get_request();
 					char buffer[4096];
 					int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
@@ -180,6 +184,12 @@ void Server::start_connection()
 					// Append bytes from buffer into vector
 						request.insert(request.end(), buffer, buffer + bytesRead);
 					}
+					else if (bytesRead == 0)
+					{
+						std::cerr << RED << "recv problem\n";
+						fds[i].events = POLLOUT;
+						continue ;
+					}	
 					for (int in = 0; in < request.size(); in++)
 					{
 						std::cout << request[in];
@@ -187,24 +197,41 @@ void Server::start_connection()
 					this->clients[fds[i].fd].set_request(request);
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
+					std::cout << "out of client\n";
 				}
 			}
 			else if (fds[i].revents & POLLOUT)
 			{
-				std::string response =
-							"HTTP/1.1 200 OK\r\n"
-							"Content-Type: text/html\r\n"
-							"Content-Length: 48\r\n"
-							"\r\n"
-						"<html><body><h1>Hello from poll server</h1></body></html>";
-
+				std::string response;
+				std::cout << "POLLOUT in\n";
+				if (this->clients[fds[i].fd].get_request()[5]  == 'f')
+				{
+					std::cout << "waaa dkhllllll\n";
+					// Respond with a 200 OK and empty body (no icon)
+					response =
+						"HTTP/1.1 200 OK\r\n"
+						"Content-Type: image/x-icon\r\n"
+						"Content-Length: 0\r\n"
+						"Connection: keep-alive\r\n"
+						"\r\n";
+				}
+				else
+				{
+					response =
+								"HTTP/1.1 200 OK\r\n"
+								"Content-Type: text/html\r\n"
+								"Content-Length: 48\r\n"
+								"\r\n"
+							"<html><body><h1>Hello from poll server</h1></body></html>";
+				}
+				std::cout << "POLLOUT out\n";
 				send(fds[i].fd, response.c_str(), response.size(), 0);
+				fds[i].events = POLLIN;
 				// keep alive problem
-				close(fds[i].fd);
-				close(fds[i].fd);
-				this->clients.erase(fds[i].fd);
-				fds.erase(fds.begin() + i);
-				i--;
+				// close(fds[i].fd);
+				// this->clients.erase(fds[i].fd);
+				// fds.erase(fds.begin() + i);
+				// i--;
 			}
 		}
 	}

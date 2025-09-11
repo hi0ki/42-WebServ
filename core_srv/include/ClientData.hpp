@@ -45,4 +45,6 @@ class ClientData
         bool get_keep_alive() const;
         //      clear
         void clear();
+        void clean_request();
+        void clean_response();
 };
