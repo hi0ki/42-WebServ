@@ -180,6 +180,10 @@ void Server::start_connection()
 					// Append bytes from buffer into vector
 						request.insert(request.end(), buffer, buffer + bytesRead);
 					}
+					for (int in = 0; in < request.size(); in++)
+					{
+						std::cout << request[in];
+					}
 					this->clients[fds[i].fd].set_request(request);
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);

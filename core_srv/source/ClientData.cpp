@@ -11,7 +11,7 @@ ClientData &ClientData::operator=(const ClientData &obj)
     this->srv_index = obj.srv_index;
     this->request = obj.request;
     this->response = obj.response;
-
+    this->keep_alive = false;
     return (*this);
 }
 
@@ -30,6 +30,10 @@ void ClientData::set_response(std::vector<char> resp)
 {
     this->response = resp;
 }
+void ClientData::set_keep_alive(bool kp_alive)
+{
+    this->keep_alive = kp_alive;
+}
 
 //             Getters  
 int ClientData::get_srv_index() const
@@ -44,6 +48,11 @@ std::vector<char> ClientData::get_response() const
 {
     return (response);
 }
+bool ClientData::get_keep_alive() const
+{
+    return (keep_alive);
+}
+
 //              Clear
 void ClientData::clear()
 {
