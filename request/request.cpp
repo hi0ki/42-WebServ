@@ -357,7 +357,7 @@ bool isUriEndsWithSlash(std::string s, Httprequest &req)
 bool handelGET(Httprequest &req, config &config)
 {
     char c = '\0';
-    bool t_f = true;;
+    bool t_f = true;
     if (pathExists(req.getAbsolutePath(), req, c) != true)
     {
         req.setStatus(404, "Not Found");
@@ -375,7 +375,9 @@ bool handelGET(Httprequest &req, config &config)
             if(config.get_servs()[0].get_autoindex() == true)
             {
                 //khesni nzid auto index ela kol location
+                req.setStatus(200, "OK");
                 AutoindexPage(req);
+                return true;
             }
             else
             {
@@ -383,9 +385,9 @@ bool handelGET(Httprequest &req, config &config)
                 return false;
             }
         }
-        req.setStatus(200, "OK");
-  
     }
+    
+
     return true;
 }
 
