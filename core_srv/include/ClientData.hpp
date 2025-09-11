@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Server.hpp"
+#include <iostream>
+#include <vector>
+
 
 class ClientData
 {

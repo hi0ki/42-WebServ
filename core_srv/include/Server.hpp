@@ -2,13 +2,14 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <poll.h>
 
 #include "../../config/config.hpp"
-// #include "ServerConfig.hpp"
+#include "ClientData.hpp"
 
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
@@ -19,6 +20,7 @@ class Server
     private:
         int connection;
         std::vector<pollfd> fds;
+        std::map<int, ClientData> clients;
         config &myconfig;
     public:
         //          for socket fun               //        for sockaddr_in
