@@ -11,6 +11,7 @@ class ClientData
         std::vector<char> request;
         std::vector<char> response;
         bool keep_alive;
+        bool reqst_is_done;
         // time;
         /*
         
@@ -38,11 +39,13 @@ class ClientData
         void set_request(std::vector<char> reqs);
         void set_response(std::vector<char> resp);
         void set_keep_alive(bool kp_alive);
+        void set_reqs_done(bool reqst);
         //      Getters
         int get_srv_index() const;
         std::vector<char> get_request() const;
         std::vector<char> get_response() const;
         bool get_keep_alive() const;
+        bool get_reqs_done() const;
         //      clear
         void clear();
         void clean_request();
