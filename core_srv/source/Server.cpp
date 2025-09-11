@@ -4,22 +4,21 @@
 
 
 /*
-	1 -move the fds vector to the class ✅
+	1 -move the fds vector to the class : ✅
 	2 -split the code : ✅
 	3 -handle multi servers : ✅
-	4 -read the request and store it in vector
+	4 -read the request and store it in vector : ✅
 
 	// kifach t3rf client ach mn server mnin ja bach t3rf l path dyal files dyalo -> hit lamdrtich haka rah atjib files ghaltin ola may3rfch mol request ach mn path 3ndo
 	----------err--------- 
-	6 -handle errs and the proccess keep working ✅
+	6 -handle errs and the proccess keep working : ✅
 
-
-	// problem with using multi servers
-
-
+	7 - check if keep alive or u need to close the client
+	
+	8 - init the clientdata class : ✅
 	infos:
 		(pay attention to differences between HTTP versions)
-		he virtual host
+		the virtual host
 */
 
 uint32_t ip_convert(std::string ip)
@@ -37,6 +36,7 @@ uint32_t ip_convert(std::string ip)
 
 Server::Server(config &config) : myconfig(config)
 {
+	std::cout << ">>>>>>>>>>>>>>>>>>> " << this->clients.size() << std::endl;
 	this->server_start();
 	
 	std::cout << GREEN << "---------------------------------------" << std::endl;
@@ -147,6 +147,24 @@ void Server::start_connection()
 					std::cout << "server" << std::endl;
 					client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
 					// after accept i should create clientdata and give it the data from client like -> wich server + client fd.
+					if (client_fd == -1)
+					{
+						std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl; // replace fds.[i].fd with ip from my config
+						continue ;
+					}
+					// INIT NEW CLIENT
+					// std::cout << "-------- writing clinet --------" << std::endl;
+					// std::cout << "client fd = " << client_fd << std::endl;
+					// std::cout << "server fd = " << fds[i].fd << std::endl;
+					// std::cout << "server index = " << i << std::endl;
+					ClientData new_client;
+					new_client.clear();
+					new_client.set_srv_index(i + 1);
+					this->clients[client_fd] = new_client;
+					// std::cout << "size = " << this->clients.size() << std::endl;
+					// std::cout << "-------- 		end	--------" << std::endl;
+
+					//    INIT  POLLFD
 					client_pfd.fd = client_fd;
 					client_pfd.events = POLLIN;
 					client_pfd.revents = 0;
@@ -155,14 +173,14 @@ void Server::start_connection()
 				else
 				{
 					std::cout << "client" << std::endl;
-					std::vector<char> request;
+					std::vector<char> request = this->clients[fds[i].fd].get_request();
 					char buffer[4096];
 					int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 					if (bytesRead > 0) {
 					// Append bytes from buffer into vector
 						request.insert(request.end(), buffer, buffer + bytesRead);
 					}
-					// std::cout << request[0] << std::endl;
+					this->clients[fds[i].fd].set_request(request);
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
 				}
@@ -177,7 +195,10 @@ void Server::start_connection()
 						"<html><body><h1>Hello from poll server</h1></body></html>";
 
 				send(fds[i].fd, response.c_str(), response.size(), 0);
-				close(fds[i].fd); // mkhsnich nsdo ola nmsho hit t9dr t3awd twslni mn 3ndo request ya3ni la sdito ansd9 m3awd m acceptih ohiya walo
+				// keep alive problem
+				close(fds[i].fd);
+				close(fds[i].fd);
+				this->clients.erase(fds[i].fd);
 				fds.erase(fds.begin() + i);
 				i--;
 			}
