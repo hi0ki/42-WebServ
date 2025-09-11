@@ -1,6 +1,6 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) {}
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) {}
 
 ClientData::ClientData(const ClientData &obj)
 {
@@ -11,7 +11,8 @@ ClientData &ClientData::operator=(const ClientData &obj)
     this->srv_index = obj.srv_index;
     this->request = obj.request;
     this->response = obj.response;
-    this->keep_alive = false;
+    this->keep_alive = obj.keep_alive;
+    this->reqst_is_done = obj.reqst_is_done;
     return (*this);
 }
 
@@ -34,6 +35,10 @@ void ClientData::set_keep_alive(bool kp_alive)
 {
     this->keep_alive = kp_alive;
 }
+void ClientData::set_reqs_done(bool reqst)
+{
+    this->reqst_is_done = reqst;
+}
 
 //             Getters  
 int ClientData::get_srv_index() const
@@ -51,6 +56,10 @@ std::vector<char> ClientData::get_response() const
 bool ClientData::get_keep_alive() const
 {
     return (keep_alive);
+}
+bool ClientData::get_reqs_done() const
+{
+    return (reqst_is_done);
 }
 
 //              Clear
