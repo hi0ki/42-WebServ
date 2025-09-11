@@ -4,6 +4,7 @@
 
 
 /*
+									awl haja gad lmochkil dyal 3 dyal req in same time
 									try to work in map with i nothe fd
 	1 -move the fds vector to the class : ✅
 	2 -split the code : ✅
@@ -176,7 +177,7 @@ void Server::start_connection()
 				else
 				{
 					std::cout << "client" << std::endl;
-					std::cout << fds[i].fd << " fd";
+					std::cout << fds[i].fd << " fd \n";
 					std::vector<char> request = this->clients[fds[i].fd].get_request();
 					char buffer[4096];
 					int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
@@ -186,7 +187,7 @@ void Server::start_connection()
 					}
 					else if (bytesRead == 0)
 					{
-						std::cerr << RED << "recv problem\n";
+						std::cerr << RED << "recv problem\n" << RESET;
 						fds[i].events = POLLOUT;
 						continue ;
 					}	
@@ -195,12 +196,13 @@ void Server::start_connection()
 						std::cout << request[in];
 					}
 					this->clients[fds[i].fd].set_request(request);
+					this->clients[fds[i].fd].set_reqs_done(true);
 					fds[i].events = POLLOUT;
 					std::memset(buffer, 0, 4096);
 					std::cout << "out of client\n";
 				}
 			}
-			else if (fds[i].revents & POLLOUT)
+			else if (fds[i].revents & POLLOUT && this->clients[fds[i].fd].get_reqs_done())
 			{
 				std::string response;
 				std::cout << "POLLOUT in\n";
