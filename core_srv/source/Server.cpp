@@ -192,10 +192,10 @@ void Server::start_connection()
 			else if (fds[i].revents & POLLOUT)
 			{
 				std::string response =
-						"HTTP/1.1 200 OK\r\n"
-						"Content-Type: text/html\r\n"
-						"Content-Length: 48\r\n"
-						"\r\n"
+							"HTTP/1.1 200 OK\r\n"
+							"Content-Type: text/html\r\n"
+							"Content-Length: 48\r\n"
+							"\r\n"
 						"<html><body><h1>Hello from poll server</h1></body></html>";
 
 				send(fds[i].fd, response.c_str(), response.size(), 0);
