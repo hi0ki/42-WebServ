@@ -4,6 +4,7 @@
 
 
 /*
+									search about the browser send multi request in same time and why ? to let the connection alive or what.
 									awl haja gad lmochkil dyal 3 dyal req in same time
 									try to work in map with i nothe fd
 	1 -move the fds vector to the class : ✅
@@ -188,7 +189,7 @@ void Server::start_connection()
 					else if (bytesRead == 0)
 					{
 						std::cerr << RED << "recv problem\n" << RESET;
-						fds[i].events = POLLOUT;
+						// fds[i].events = POLLOUT;
 						continue ;
 					}	
 					for (int in = 0; in < request.size(); in++)
