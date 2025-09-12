@@ -30,4 +30,8 @@ class Server
             void listen_socket();
             void start_connection();
             bool is_server(int fd);
+        
+            void accept_client(int i);
+            void handle_request(int i);
+            void handle_reponse(int i);
 }; 

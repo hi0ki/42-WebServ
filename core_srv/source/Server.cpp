@@ -4,9 +4,9 @@
 
 
 /*
-									search about the browser send multi request in same time and why ? to let the connection alive or what.
-									awl haja gad lmochkil dyal 3 dyal req in same time
-									try to work in map with i nothe fd
+									search about the browser send multi request in same time and why ? to let the connection alive or what. -> they’re browser connection strategy (keep-alive, parallelism, favicon probing)
+									awl haja gad lmochkil dyal 3 dyal req in same time : normal ikon = ✅
+		-try to work in map with i nothe fd : ✅
 	1 -move the fds vector to the class : ✅
 	2 -split the code : ✅
 	3 -handle multi servers : ✅
@@ -18,7 +18,7 @@
 
 	7 - check if keep alive or u need to close the client
 	
-	8 - problem = khsni nkhli client bla manms7hom o ib9a khdam server
+	8 - problem = khsni nkhli client bla manms7hom o ib9a khdam server // la had l3iba saf hydtha
 
 	8 - init the clientdata class : ✅
 	infos:
@@ -78,6 +78,8 @@ void Server::server_start()
 			std::cerr << RED << "[ " << this->myconfig.get_servs()[i].get_IP() << ":" << 
 				this->myconfig.get_servs()[i].get_port() << " ]" << " : " <<
 				e.what() << RESET << std::endl;
+			this->myconfig.get_servs().erase(this->myconfig.get_servs().begin() + i);
+			i--;
 			close(this->connection);
 		}
 	}
@@ -126,15 +128,12 @@ bool Server::is_server(int fd)
 
 void Server::start_connection()
 {
-	pollfd client_pfd;
-	int client_fd;
 	int poll_var;
 	char  buffer[5000];
 
 	while (true)
 	{
-		// need to split that to functions to make the code clean and readable
-		poll_var = poll(fds.data(), fds.size(), 10);
+		poll_var = poll(fds.data(), fds.size(), -1);
 		if (poll_var == -1)
 		{
 			// close all fds
@@ -144,99 +143,114 @@ void Server::start_connection()
 		{
 			if (fds[i].revents & POLLIN)
 			{
-				// ma3mr client i9dr idox l else ila ma kanch fayt daz mn accept ya3ni fach idoz lmra lwla n3tih lclass
-				// la khdm send machi darori ndir close ila maknch 3tani kill or something like that 
-							// hit aslan la 3awd ja event mn 3ndo o hadchi kay3ni anho aslan m3tih ach mn srv mnin ja o ila kan jdid rah aydkhl l accept hit i kon fd dyal server machi dyal client
 				if (is_server(fds[i].fd) == true)
-				{
-					std::cout << "server" << std::endl;
-					client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
-					// after accept i should create clientdata and give it the data from client like -> wich server + client fd.
-					if (client_fd == -1)
-					{
-						std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl; // replace fds.[i].fd with ip from my config
-						continue ;
-					}
-					// INIT NEW CLIENT
-					std::cout << "-----------------------writing clinet--------------------" << std::endl;
-					std::cout << "client fd = " << client_fd << std::endl;
-					std::cout << "server fd = " << fds[i].fd << std::endl;
-					std::cout << "server index = " << i << std::endl;
-					ClientData new_client;
-					new_client.clear();
-					new_client.set_srv_index(i + 1);
-					this->clients[client_fd] = new_client;
-					std::cout << "size = " << this->clients.size() << std::endl;
-					std::cout << "----------------------writing end--------------------------" << std::endl;
-
-					//    INIT  POLLFD
-					client_pfd.fd = client_fd;
-					client_pfd.events = POLLIN;
-					client_pfd.revents = 0;
-					fds.push_back(client_pfd);
-				}
+					this->accept_client(i);
 				else
-				{
-					std::cout << "client" << std::endl;
-					std::cout << fds[i].fd << " fd \n";
-					std::vector<char> request = this->clients[fds[i].fd].get_request();
-					char buffer[4096];
-					int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
-					if (bytesRead > 0) {
-					// Append bytes from buffer into vector
-						request.insert(request.end(), buffer, buffer + bytesRead);
-					}
-					else if (bytesRead == 0)
-					{
-						std::cerr << RED << "recv problem\n" << RESET;
-						// fds[i].events = POLLOUT;
-						continue ;
-					}	
-					for (int in = 0; in < request.size(); in++)
-					{
-						std::cout << request[in];
-					}
-					this->clients[fds[i].fd].set_request(request);
-					this->clients[fds[i].fd].set_reqs_done(true);
-					fds[i].events = POLLOUT;
-					std::memset(buffer, 0, 4096);
-					std::cout << "out of client\n";
-				}
+					this->handle_request(i);
 			}
-			else if (fds[i].revents & POLLOUT && this->clients[fds[i].fd].get_reqs_done())
-			{
-				std::string response;
-				std::cout << "POLLOUT in\n";
-				if (this->clients[fds[i].fd].get_request()[5]  == 'f')
-				{
-					std::cout << "waaa dkhllllll\n";
-					// Respond with a 200 OK and empty body (no icon)
-					response =
-						"HTTP/1.1 200 OK\r\n"
-						"Content-Type: image/x-icon\r\n"
-						"Content-Length: 0\r\n"
-						"Connection: keep-alive\r\n"
-						"\r\n";
-				}
-				else
-				{
-					response =
-								"HTTP/1.1 200 OK\r\n"
-								"Content-Type: text/html\r\n"
-								"Content-Length: 48\r\n"
-								"\r\n"
-							"<html><body><h1>Hello from poll server</h1></body></html>";
-				}
-				std::cout << "POLLOUT out\n";
-				send(fds[i].fd, response.c_str(), response.size(), 0);
-				fds[i].events = POLLIN;
-				// keep alive problem
-				// close(fds[i].fd);
-				// this->clients.erase(fds[i].fd);
-				// fds.erase(fds.begin() + i);
-				// i--;
-			}
+			else if (fds[i].revents & POLLOUT)
+				this->handle_reponse(i);
 		}
 	}
 	// close all fds.
+}
+
+
+void Server::accept_client(int i)
+{
+	int client_fd;
+	pollfd client_pfd;
+	ClientData new_client;
+
+	std::cout << " \n--------------------server-------------------" << std::endl;
+	client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
+	// after accept i should create clientdata and give it the data from client like -> wich server + client fd.
+	if (client_fd == -1)
+	{
+		std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl; // replace fds.[i].fd with ip from my config
+		return ;
+	}
+	// INIT NEW CLIENT
+	std::cout << GREEN << "--------writing clinet-----------" << std::endl;
+	std::cout << "client fd = " << client_fd << std::endl;
+	std::cout << "server fd = " << fds[i].fd << std::endl;
+	std::cout << "server index = " << i << std::endl;
+	new_client.clear();
+	new_client.set_srv_index(i + 1);
+	this->clients[i] = new_client;
+	std::cout << "size = " << this->clients.size() << std::endl;
+	std::cout << "----------writing end-------------" << RESET << std::endl;
+
+	//    INIT  POLLFD
+	client_pfd.fd = client_fd;
+	client_pfd.events = POLLIN;
+	client_pfd.revents = 0;
+	fds.push_back(client_pfd);
+	std::cout << " \n---------------------------------------------" << std::endl;
+}
+
+void Server::handle_request(int i)
+{
+	std::cout << "\n-----------------client----------------" << std::endl;
+	std::cout << fds[i].fd << " fd \n";
+	std::vector<char> request = this->clients[i].get_request();
+	char buffer[4096];
+	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+	if (bytesRead > 0) {
+		request.insert(request.end(), buffer, buffer + bytesRead);
+	}
+	else if (bytesRead == 0)
+	{
+		// khli ta ngad req is done bach nzid hadi hit daba matsd9chhit khsni nkhlih idoz tal parsin o tlgah sala bach thyd lih pollin
+		std::cerr << RED << "Client disconnected: fd " << fds[i].fd << RESET << std::endl;
+		close(fds[i].fd);
+		this->clients.erase(i);
+		this->fds.erase(fds.begin() + i);
+		i--;
+		return ;
+	}
+	this->clients[i].set_request(request);
+	std::cout << "fd = " << fds[i].fd << std::endl;
+	for (int j = 0; j < request.size(); j++)
+	{
+		std::cout << request[j];
+	}
+	this->fds[i].events = POLLOUT;
+	std::memset(buffer, 0, 4096);
+}
+
+void Server::handle_reponse(int i)
+{
+	std::cout << " --------------------RESPONSE-------------------" << std::endl;
+	std::string response = "";
+	std::cout << "fd = " << fds[i].fd << std::endl;
+	for (int j = 0; j < this->clients[i].get_request().size(); j++)
+	{
+		std::cout << this->clients[i].get_request()[j];
+	}
+	if (this->clients[i].get_request().size()&& this->clients[i].get_request()[5]  == 'f')
+	{
+		std::cout << "fd " << fds[i].fd << std::endl;
+		std::cout << "/ f.icon\n";
+		response =
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: image/x-icon\r\n"
+			"Content-Length: 0\r\n"
+			"Connection: keep-alive\r\n"
+			"\r\n";
+	}
+	else if (this->clients[i].get_request().size())
+	{
+		response =
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: text/html\r\n"
+			"Content-Length: 48\r\n"
+			"Connection: close\r\n"
+			"\r\n"
+			"<html><body><h1>Hello from poll server</h1></body></html>";
+	}
+	send(fds[i].fd, response.c_str(), response.size(), 0);
+	this->clients[i].clean_request();
+	this->fds[i].events = POLLIN;
+	std::cout << " -----------------------------------------------" << std::endl;
 }
