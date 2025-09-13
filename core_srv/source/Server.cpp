@@ -188,6 +188,7 @@ void Server::accept_client(int i)
 
 void Server::handle_request(int i)
 {
+	// mn hnaaaa
 	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
 	std::vector<char> request = this->clients[fds[i].fd].get_request();
 	char buffer[4096];
@@ -206,6 +207,7 @@ void Server::handle_request(int i)
 		return ;
 	}
 	this->clients[fds[i].fd].set_request(request);
+	// tal hna
 
 	// print request
 	// for (int j = 0; j < request.size(); j++)
@@ -213,6 +215,9 @@ void Server::handle_request(int i)
 	// 	std::cout << request[j];
 	// }
 
+	// youclass_request(this->clients[fds[i].fd])
+	// set request is done ,this->clients[fds[i].fd].set_req_done(true);
+	// set keep alive  ,this->clients[fds[i].fd].set_keep_alive(true);
 	this->fds[i].events = POLLOUT;
 	std::memset(buffer, 0, 4096);
 }
@@ -241,7 +246,8 @@ void Server::handle_response(int i)
 			"\r\n"
 			"<html><body>HELLO</body></html>";
 	}
-	send(fds[i].fd, response.c_str(), response.size(), 0);
-	this->clients[fds[i].fd].clean_request();
-	this->fds[i].events = POLLIN;
+	// youclass_response(this->clients[fds[i].fd])
+	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
+	this->clients[fds[i].fd].clean_request(); // don't remove it 
+	this->fds[i].events = POLLIN; // don't remove it 
 }
