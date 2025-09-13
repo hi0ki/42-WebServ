@@ -52,6 +52,10 @@
             std::string getAbsolutePath() const;
 
             void setStatus(int status_code, std::string status_text);
+            unsigned int getStatus_code() const;
+            std::string getStatus_text() const;
+
+
 
             void setfullPath(const std::string &fullPath);
             std::string getfullPath() const;
@@ -63,3 +67,8 @@
             std::string getRedirectLocation() const;
 
     };
+
+    //i should add querys :
+
+    /*GET /search?q=shoes&page=2 HTTP/1.1
+    Host: shop.com*/
