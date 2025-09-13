@@ -31,6 +31,7 @@ class Server
         void server_start();
             void bind_socket(int srv_index);
             void listen_socket();
+            // void start_connection();
             void start_connection();
             bool is_server(int fd);
         

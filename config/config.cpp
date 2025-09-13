@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/07 13:12:14 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/09 11:39:26 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             serv.set_IP(help[0]);//verify if ip is good??
             if(validnumber(help[1]))
             serv.set_port(atoi(help[1].c_str()));
-            std::cout << serv.get_port();
+            // std::cout << serv.get_port();
             help.clear();
         }
         else if(!tmp.empty() && tmp[0] == "server_name")
@@ -115,11 +115,20 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             check_semicolon(tmp[1]);
             serv.set_index(tmp[1]);
         }
+        else if(!tmp.empty() && tmp[0] == "autoindex")
+        {
+            if(serv.get_autoindex() != -1)
+                throw std::runtime_error("autoindex already exist");
+            if(tmp.size() != 2)
+                throw std::runtime_error("autoindex content invalid");
+            check_semicolon(tmp[1]);
+            serv.set_autoindex(tmp[1]);
+        }
         else if(!tmp.empty() && tmp[0] == "error_page")
         {
             if(tmp.size() != 3)
                 throw std::runtime_error("error page content invalid");
-            check_semicolon(tmp[1]);
+            check_semicolon(tmp[2]);
             ErrPage errpage;
             errpage.err = atoi(tmp[1].c_str());
             if(err_exist(errpage.err, serv.get_errpage()))
@@ -172,17 +181,28 @@ void config::parse_configFile()
     while(it != conf.end())// apres split verif lesligne vide
     {
         tmp = split(*it, ' ');
-        if(!tmp.empty() && tmp[0] == "server" && tmp[1] == "{")//check server
+        try
         {
-            if(tmp.size() >= 3)
+            if(!tmp.empty() && tmp[0] == "server" && tmp[1] == "{")//check server
             {
+                    
+                if(tmp.size() >= 3)
+                {
                     throw std::runtime_error("##content invalid");
+                }
+                else
+                {
+                    set_server(++it, conf);   
+                    
+                }       
             }
-            else
-                set_server(++it, conf);   
+            else if (!tmp.empty())
+                throw std::runtime_error("content invalid");
         }
-        else if (!tmp.empty())
-            throw std::runtime_error("content invalid");
+        catch (std::exception &e)
+        {
+            std::cerr << RED << e.what() << RESET << std::endl;
+        }
         it++;
         tmp.clear();
     }
@@ -201,7 +221,9 @@ void config::print_servers() // print server
         std::cout << "Server Name: " << it->get_name() << "\n";
         std::cout << "Root: " << it->get_root() << "\n";
         std::cout << "Index: " << it->get_index() << "\n";
+        std::cout << "Autoindex: " << it->get_autoindex() << "\n";
 
+        
         // --- Error Pages ---
         std::vector<ErrPage> errpages = it->get_errpage();
         std::vector<ErrPage>::iterator e_it = errpages.begin();

@@ -1,6 +1,9 @@
-#include "../include/Server.hpp"
+ #include "../include/Server.hpp"
+#include "../../config/server.hpp"
+
 #include <unistd.h>
 #include <sstream>
+#include "../../request/request.hpp"
 
 
 /*
@@ -122,6 +125,8 @@ void Server::start_connection()
 {
 	int poll_var;
 	char  buffer[5000];
+	Httprequest req; 
+
 
 	while (true)
 	{
