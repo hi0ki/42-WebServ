@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/09 11:23:31 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/13 13:40:38 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ struct Location {
     std::string cgi_handler;       // pour CGI (ex: "/usr/bin/php-cgi")
     std::string redirect_url;      // pour REDIRECT (ex: "https://monsite.com/new")
     size_t max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
+    std::vector<std::string> limit_except;//fatimazahra zadtha
+     //client_max_body_size 5M;  
 };
 
 // struct Location {
