@@ -9,9 +9,10 @@
     #include <dirent.h>
     #include <sstream>
 
-    #include "../core_srv/include/Server.hpp"
+    #include "../core_srv/include/ClientData.hpp"
     #include "../config/server.hpp"
-    #include "../config/server.hpp"
+    #include "../config/config.hpp"
+
     class Httprequest {
     
             std::string method;
@@ -29,7 +30,7 @@
             std::string status_text;
         public:
             Httprequest();
-            int request_pars(std::vector<char>& request, config &config);
+            int request_pars(ClientData &client , config &config);
             ~Httprequest(){}
 
 
@@ -65,6 +66,8 @@
 
             void setRedirectLocation(const std::string &uri);
             std::string getRedirectLocation() const;
+
+            std::string buildHttpResponse(const std::string& filePath, Httprequest &req);
 
     };
 
