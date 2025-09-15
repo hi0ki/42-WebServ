@@ -61,6 +61,10 @@ bool ClientData::get_reqs_done() const
 {
     return (reqst_is_done);
 }
+Httprequest& ClientData::get_request_obj()
+{
+    return (req);
+}
 
 //              Clear
 void ClientData::clear()

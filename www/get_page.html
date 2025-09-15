@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GET method test</title>
+
+  <style>
+    /* Simple, self-contained CSS */
+    :root{
+      --bg:#0f1722;
+      --card:#0b1220;
+      --accent:#00c2a8;
+      --muted:#9aa6b2;
+      --glass: rgba(255,255,255,0.03);
+      --success:#16a34a;
+      --danger:#ef4444;
+      --radius:12px;
+      font-family: Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background: linear-gradient(180deg, #071021 0%, #081428 100%);
+      color: #e6eef3;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:36px;
+      box-sizing:border-box;
+    }
+
+    .card{
+      width:100%;
+      max-width:920px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:var(--radius);
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      padding:28px;
+      border: 1px solid rgba(255,255,255,0.03);
+      backdrop-filter: blur(6px);
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:18px;
+      align-items:start;
+    }
+
+    header h1{
+      margin:0 0 6px 0;
+      font-size:20px;
+      letter-spacing:0.2px;
+    }
+    header p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .left {
+      padding-right:6px;
+    }
+
+    .status {
+      margin-top:18px;
+      padding:14px;
+      border-radius:10px;
+      background:var(--glass);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .big {
+      display:inline-block;
+      padding:10px 14px;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(0,194,168,0.12), rgba(0,194,168,0.06));
+      color:var(--accent);
+      font-weight:600;
+      margin-bottom:12px;
+    }
+
+    .result {
+      margin-top:12px;
+      font-family: "Courier New", monospace;
+      font-size:13px;
+      color:#cfeff0;
+      background:rgba(0,0,0,0.18);
+      padding:12px;
+      border-radius:8px;
+      max-height:220px;
+      overflow:auto;
+    }
+
+    form{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin-top:12px;
+    }
+
+    input[type="text"]{
+      flex:1;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:transparent;
+      color:inherit;
+      outline:none;
+      font-size:14px;
+    }
+
+    .btn{
+      padding:10px 14px;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+      background:linear-gradient(90deg,var(--accent), #00e6c1);
+      color:#052023;
+      font-weight:700;
+      box-shadow:0 6px 18px rgba(0,194,168,0.12);
+    }
+
+    .sidebar{
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border-radius:10px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .chip {
+      display:inline-block;
+      padding:8px 10px;
+      border-radius:8px;
+      background:rgba(255,255,255,0.02);
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:10px;
+    }
+
+    .pass {
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin-top:12px;
+    }
+
+    .badge {
+      padding:8px 12px;
+      border-radius:10px;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .ok { background: rgba(22,163,74,0.12); color:var(--success); border:1px solid rgba(22,163,74,0.12); }
+    .no { background: rgba(239,68,68,0.08); color:var(--danger); border:1px solid rgba(239,68,68,0.06); }
+
+    .hint { color:var(--muted); font-size:13px; margin-top:8px; }
+    a.sample {
+      display:inline-block;
+      margin-top:8px;
+      color:var(--accent);
+      text-decoration:none;
+      font-weight:600;
+    }
+
+    @media (max-width:920px){
+      .card{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="main" aria-labelledby="title">
+      <div class="left">
+        <header>
+          <h1 id="title">GET method test</h1>
+          <p>Use the form below (method="GET") to send parameters. The page will show parsed GET parameters and a visual test result.</p>
+        </header>
+
+        <div class="status" id="statusBlock" aria-live="polite">
+          <div class="big">GET Method Tester</div>
+
+          <form id="getForm" method="GET" action="">
+            <input id="inputKey" name="key" type="text" placeholder="key (eg: name)" />
+            <input id="inputValue" name="value" type="text" placeholder="value (eg: alice)" />
+            <button class="btn" type="submit">Send GET</button>
+          </form>
+
+          <div class="hint">Tip: try submitting the form or loading the page with a query string like <code>?key=hello&value=world</code></div>
+
+          <div class="result" id="resultBlock" aria-live="polite">
+            <!-- Parsed GET data will appear here -->
+            <em>No GET parameters detected yet.</em>
+          </div>
+
+          <div class="pass" id="passBlock" style="display:none">
+            <span class="badge ok">GET method test — works!</span>
+            <span style="color:var(--muted); font-size:13px;">Server response simulation: this is client-side verification of GET params.</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="sidebar" aria-label="Examples & quick checks">
+        <div class="chip">Example</div>
+        <div style="margin-top:6px">
+          <strong>Quick links</strong>
+          <div style="margin-top:8px">
+            <a class="sample" href="?hello=world">?hello=world</a><br/>
+            <a class="sample" href="?name=fatimazahraa&lang=cpp">?name=...&lang=...</a>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <strong>How it works</strong>
+          <p class="hint">This page reads <code>window.location.search</code> (the query string) and parses parameters. If any parameter exists it shows a success badge.</p>
+        </div>
+
+        <div style="margin-top:12px">
+          <strong>Raw query</strong>
+          <pre id="rawQuery" style="font-size:12px;color:var(--muted);white-space:pre-wrap;word-break:break-word;margin:8px 0 0 0;">(empty)</pre>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // Parse query string into an object
+    function parseQuery(qs) {
+      var s = qs || window.location.search || '';
+      if (!s) return {};
+      if (s[0] === '?') s = s.slice(1);
+      var pairs = s.split('&').filter(Boolean);
+      var out = {};
+      pairs.forEach(function(p){
+        var parts = p.split('=');
+        var key = decodeURIComponent(parts.shift() || '');
+        var val = decodeURIComponent(parts.join('=') || '');
+        if (key) {
+          // handle repeated keys -> array
+          if (Object.prototype.hasOwnProperty.call(out, key)) {
+            if (!Array.isArray(out[key])) out[key] = [out[key]];
+            out[key].push(val);
+          } else {
+            out[key] = val;
+          }
+        }
+      });
+      return out;
+    }
+
+    // Render parsed params to the result block
+    function render() {
+      var q = window.location.search || '';
+      var parsed = parseQuery(q);
+      var resultBlock = document.getElementById('resultBlock');
+      var rawQuery = document.getElementById('rawQuery');
+      var passBlock = document.getElementById('passBlock');
+
+      rawQuery.textContent = q || '(empty)';
+
+      if (Object.keys(parsed).length === 0) {
+        resultBlock.innerHTML = '<em>No GET parameters detected yet.</em>';
+        passBlock.style.display = 'none';
+        return;
+      }
+
+      passBlock.style.display = 'flex';
+
+      var html = '<div style="font-weight:700; margin-bottom:8px;">Parsed GET parameters:</div>';
+      html += '<ul style="margin:0; padding-left:18px;">';
+      for (var k in parsed) {
+        var v = parsed[k];
+        // nicely pretty print arrays or single values
+        var pretty = (Array.isArray(v) ? '[' + v.map(function(x){return '"'+escapeHtml(x)+'"';}).join(', ') + ']' : '"'+escapeHtml(v)+'"');
+        html += '<li><strong>' + escapeHtml(k) + '</strong> = ' + pretty + '</li>';
+      }
+      html += '</ul>';
+
+      resultBlock.innerHTML = html;
+    }
+
+    // small helper to avoid raw HTML injection
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"'`=\/]/g, function(s) {
+        return ({
+          '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'
+        })[s];
+      });
+    }
+
+    // When DOM loads, render parsed query
+    document.addEventListener('DOMContentLoaded', function(){
+      render();
+
+      // Optional: if user changes fields and presses Enter, form will send GET and reload the page
+      // Nothing extra needed; render() will run on reload and show parsed params.
+    });
+
+    // Also re-render when history state changes (back/forward)
+    window.addEventListener('popstate', render);
+  </script>
+</body>
+</html>

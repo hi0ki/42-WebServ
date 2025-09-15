@@ -1,6 +1,6 @@
 async function getData() {
     try {
-      const response = await fetch('/test-get');
+      const response = await fetch('get_page.html');
       const text = await response.text();
       document.getElementById('getResult').textContent = text;
     } catch (err) {

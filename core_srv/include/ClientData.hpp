@@ -4,6 +4,10 @@
 #include <vector>
 
 
+#include "../../request/request.hpp"
+#include "Server.hpp"
+
+
 class ClientData
 {
     private:
@@ -12,6 +16,7 @@ class ClientData
         std::vector<char> response;
         bool keep_alive;
         bool reqst_is_done;
+        Httprequest req;
         // time;
         /*
         
@@ -35,6 +40,7 @@ class ClientData
         std::vector<char> get_response() const;
         bool get_keep_alive() const;
         bool get_reqs_done() const;
+        Httprequest& get_request_obj();
         //      clear
         void clear();
         void clean_request();

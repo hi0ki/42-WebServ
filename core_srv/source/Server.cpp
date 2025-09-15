@@ -202,14 +202,15 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
-	for (int j = 0; j < request.size(); j++)
-		std::cout << request[j];
+
+	// for (int j = 0; j < request.size(); j++)
+	// 	std::cout << request[j];
+
 	this->clients[fds[i].fd].set_request(request);
-	
-	req.request_pars(this->clients[fds[i].fd], this->myconfig);
+	this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
-		std::cout << YELLOW << "dkhllllllllllllllllllllaaaat\n";
+		std::cout << BLUE << "Request is done" << RESET << std::endl;
 		this->fds[i].events = POLLOUT;
 	}
 	std::memset(buffer, 0, 4096);
@@ -219,11 +220,11 @@ void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
-	response = req.buildHttpResponse(req.getfullPath(), req);
+	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_request_obj().getfullPath(), this->clients[fds[i].fd].get_request_obj());
 	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
-		std::cout << YELLOW << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
+		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
 		close(fds[i].fd);
 		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
@@ -233,6 +234,6 @@ void Server::handle_response(int i)
 	this->clients[fds[i].fd].clean_request(); // don't remove it 
 	this->clients[fds[i].fd].clean_response(); // don't remove it 
 	// clear req obj
-	req.ft_clean();
+	this->clients[fds[i].fd].get_request_obj().ft_clean();
 	this->fds[i].events = POLLIN; // don't remove it 
 }

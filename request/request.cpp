@@ -1,7 +1,7 @@
 
 
 #include "request.hpp"
-
+#include "../core_srv/include/ClientData.hpp" 
 Httprequest::Httprequest()
 {
     this->method = "";
@@ -10,6 +10,8 @@ Httprequest::Httprequest()
     // this->body = ;
         // std::string query;
     // this->headers = "";
+    this->absolutePath = "";
+    this->fullPath = "";
     this->status_code = 0;
     this->status_text = "";
 }
@@ -166,16 +168,15 @@ bool is_req_well_formed(Httprequest &req)
         req.setStatus(414, "Request-URI Too Long");
         return false;
     }
-    std::cout << "mnf mal had lekhra\n";
     //if =>Request body larger han client max body size in config file
     return true;
 }
 
-Location& findMatchingLocation(const Httprequest &req, config &config) 
+Location findMatchingLocation(const Httprequest &req, config &config) 
 {
    std::vector<Location> locations = config.get_servs()[0].get_location();
     static Location dummy; 
-    Location* best_match = nullptr;
+    Location best_match;
     size_t longest_match = 0;
 
     for (size_t i = 0; i < locations.size(); ++i) 
@@ -189,15 +190,17 @@ Location& findMatchingLocation(const Httprequest &req, config &config)
                 valid_match = true;
             if (valid_match && locations[i].path.size() > longest_match) 
             {
-                best_match = &locations[i];
+                best_match = locations[i];
                 longest_match = locations[i].path.size();
             }
         }
     }
-    if (best_match && best_match->path == "/" && req.getPath().find('/', 1) != std::string::npos)
+    if (best_match.path.size() && best_match.path == "/" && req.getPath().find('/', 1) != std::string::npos)
         return dummy;
-    if (best_match)
-        return *best_match;
+    // std::cout << "before  absolute path" << std::endl;
+    // std::cout << "the best match :  " << best_match.path << std::endl;
+    if (best_match.path.size())
+        return best_match;
     return dummy;
 }
 
@@ -424,9 +427,7 @@ std::string Httprequest::buildHttpResponse(const std::string& filePath, Httprequ
     std::string body;
     std::string statusLine;
     std::ifstream file(req.getfullPath().c_str(), std::ios::binary);
-    std::cout << req.getfullPath() << "   here\n"; 
     if (!file.is_open()) {
-        std::cout << "waaaa hnn\n";
         statusLine = "HTTP/1.1 404 Not Found\r\n";
         body = "<html><body><h1>404 Not Found</h1></body></html>";
     }
@@ -439,7 +440,7 @@ std::string Httprequest::buildHttpResponse(const std::string& filePath, Httprequ
     // response = "HTTP/1.1 " + uintToString(req.getStatus_code()) + " " + req.getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(req.getfullPath(), body.size())+  body;
-    std::cout << "response :"<< response<< std::endl;  
+    // std::cout << "response :"<< response<< std::endl; // print response
     return response;
 }
 
@@ -552,7 +553,7 @@ bool    handleMethod(Httprequest &req, config &config)
         handelGET(req, config);
     else if (meth == "POST")
     {
-        handelPOST(req, findMatchingLocation(req, config), config);
+        // handelPOST(req, findMatchingLocation(req, config), config);
     }
     // else if (meth == "DELETE")
 // 
@@ -650,10 +651,8 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
     // std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     error = is_req_well_formed(*this);
-
     if (error == false || findMatchingLocation(*this, config).path.empty())
         return 0;//dont miss do something like return
-    // std::cout << "dazet\n";
     //want from hafsa method allowed and return 301 /home/index.html and autoindex in every location
 
     //mazal maQditha 
@@ -674,10 +673,8 @@ int Httprequest::request_pars(ClientData &client , config &config)
     /*Look at the location’s config.Check if it has a redirection rule (e.g. return 301 ... or redirect ...).
     Return true (or a redirect config object) if yes, otherwise false.*/
 
-
-   
     resolvePath(config, *this);
-    std::cout << absolutePath << std::endl;
+    std::cout << "absolute path : " <<absolutePath << std::endl;
     handleMethod(*this, config);
 
 

@@ -18,6 +18,7 @@
 #define YELLOW  "\033[33m"
 #define BLUE    "\033[34m"
 
+
 class Server
 {
     private:
@@ -25,7 +26,6 @@ class Server
         std::vector<pollfd> fds;
         std::map<int, ClientData> clients;
         config &myconfig;
-        Httprequest req;
     public:
         //          for socket fun               //        for sockaddr_in
         Server(config &config);

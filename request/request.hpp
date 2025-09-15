@@ -9,9 +9,10 @@
     #include <dirent.h>
     #include <sstream>
 
-    #include "../core_srv/include/ClientData.hpp"
     #include "../config/server.hpp"
     #include "../config/config.hpp"
+
+    class ClientData;
 
     class Httprequest {
     
