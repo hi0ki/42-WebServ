@@ -69,6 +69,10 @@
 
             std::string buildHttpResponse(const std::string& filePath, Httprequest &req);
 
+
+            // clean
+            void ft_clean();
+
     };
 
     //i should add querys :

@@ -202,6 +202,8 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
+	for (int j = 0; j < request.size(); j++)
+		std::cout << request[j];
 	this->clients[fds[i].fd].set_request(request);
 	
 	req.request_pars(this->clients[fds[i].fd], this->myconfig);
@@ -230,5 +232,7 @@ void Server::handle_response(int i)
 	std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
 	this->clients[fds[i].fd].clean_request(); // don't remove it 
 	this->clients[fds[i].fd].clean_response(); // don't remove it 
+	// clear req obj
+	req.ft_clean();
 	this->fds[i].events = POLLIN; // don't remove it 
 }

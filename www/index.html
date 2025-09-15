@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Webserv Test Page</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🚀 Webserv Test</h1>
+
+  <section>
+    <h2>GET Test</h2>
+    <button onclick="getData()">Send GET Request</button>
+    <pre id="getResult"></pre>
+  </section>
+
+  <section>
+    <h2>POST Test</h2>
+    <form id="postForm">
+      <input type="text" id="postInput" placeholder="Enter some data">
+      <button type="submit">Send POST Request</button>
+    </form>
+    <pre id="postResult"></pre>
+  </section>
+
+  <section>
+    <h2>DELETE Test</h2>
+    <button onclick="deleteData()">Send DELETE Request</button>
+    <pre id="deleteResult"></pre>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>

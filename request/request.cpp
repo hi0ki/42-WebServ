@@ -150,7 +150,6 @@ bool is_req_well_formed(Httprequest &req)
             return false;
         }
     }
-    std::cout << "mnf mal had lekhra\n";
     if (req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length:") == req.getHeaders().end() \
        && req.getMethod() == "POST")
     {
@@ -167,6 +166,7 @@ bool is_req_well_formed(Httprequest &req)
         req.setStatus(414, "Request-URI Too Long");
         return false;
     }
+    std::cout << "mnf mal had lekhra\n";
     //if =>Request body larger han client max body size in config file
     return true;
 }
@@ -260,7 +260,7 @@ bool findIndexFile(Httprequest &req)
     indexFiles.push_back("index.php");
     for (size_t i = 0; i < indexFiles.size(); ++i) 
     {
-        std::string fullPath = req.getAbsolutePath() + "/" + indexFiles[i];
+        std::string fullPath = req.getAbsolutePath() + indexFiles[i];
         if (fileExists(fullPath))
         {
             req.setfullPath(fullPath);
@@ -424,8 +424,9 @@ std::string Httprequest::buildHttpResponse(const std::string& filePath, Httprequ
     std::string body;
     std::string statusLine;
     std::ifstream file(req.getfullPath().c_str(), std::ios::binary);
-    // std::cout << req.getfullPath() << "   here\n"; 
+    std::cout << req.getfullPath() << "   here\n"; 
     if (!file.is_open()) {
+        std::cout << "waaaa hnn\n";
         statusLine = "HTTP/1.1 404 Not Found\r\n";
         body = "<html><body><h1>404 Not Found</h1></body></html>";
     }
@@ -478,8 +479,9 @@ bool handelGET(Httprequest &req, config &config)
             }
         }
     }
-    // std::cout <<"dazet shiha\n";
+    std::cout <<"dazet shiha\n";
     req.setStatus(200, "OK");
+    req.setfullPath(req.getAbsolutePath());
     // buildHttpResponse(req.getfullPath(), req);
     return true;
 }
@@ -675,7 +677,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
    
     resolvePath(config, *this);
-    // std::cout << absolutePath << std::endl;
+    std::cout << absolutePath << std::endl;
     handleMethod(*this, config);
 
 
@@ -693,3 +695,19 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
 //     error_page 403 404 500 /error.html;
 // }
+
+
+
+void Httprequest::ft_clean()
+{
+    this->method.clear();
+    this->path.clear();
+    this->version.clear();
+    this->body.clear();
+    this->headers.clear();
+    this->absolutePath.clear();
+    this->fullPath.clear();
+
+    this->status_code = 0;
+    this->status_text.clear();
+}
