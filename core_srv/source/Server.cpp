@@ -35,7 +35,6 @@ uint32_t ip_convert(std::string ip)
 
 Server::Server(config &config) : myconfig(config)
 {
-	std::cout << ">>>>>>>>>>>>>>>>>>> " << this->clients.size() << std::endl;
 	this->server_start();
 	
 	std::cout << GREEN << "---------------------------------------" << std::endl;
