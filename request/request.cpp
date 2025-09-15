@@ -1,5 +1,3 @@
-
-
 #include "request.hpp"
 
 Httprequest::Httprequest()
@@ -127,7 +125,8 @@ bool is_valid_url(const std::string &uri)
   
     for(size_t i = 0; i < uri.size(); i++) 
     {
-        if(std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end()) {
+        if(uri[i] != '\0' && std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end()) {
+            // std::cout << "ana likhalitha tekhroj :" << "["<< uri[i] << "]"<< std::endl;
             return false;
         }
     }
@@ -150,7 +149,7 @@ bool is_req_well_formed(Httprequest &req)
             return false;
         }
     }
-    std::cout << "mnf mal had lekhra\n";
+    // std::cout << "mnf mal had lekhra\n";
     if (req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length:") == req.getHeaders().end() \
        && req.getMethod() == "POST")
     {
@@ -159,11 +158,13 @@ bool is_req_well_formed(Httprequest &req)
     } 
     if (is_valid_url(req.getPath()) == false)
     {
+        // std::cout << "f not valid url\n";
         req.setStatus(400, "Bad Request");
         return false;
     }
     if (req.getPath().size() > 2048)
     {
+        // std::cout << "im here\n";
         req.setStatus(414, "Request-URI Too Long");
         return false;
     }
@@ -425,16 +426,17 @@ std::string Httprequest::buildHttpResponse(const std::string& filePath, Httprequ
     std::string statusLine;
     std::ifstream file(req.getfullPath().c_str(), std::ios::binary);
     // std::cout << req.getfullPath() << "   here\n"; 
-    if (!file.is_open()) {
-        statusLine = "HTTP/1.1 404 Not Found\r\n";
-        body = "<html><body><h1>404 Not Found</h1></body></html>";
+    if (req.getStatus_code() == 200)
+    {
+        if (!file.is_open()) {
+            statusLine = "HTTP/1.1 404 Not Found\r\n";
+            body = "<html><body><h1>404 Not Found</h1></body></html>";
+        }
     }
-    else{
-        statusLine = "HTTP/1.1 " + uintToString(req.getStatus_code()) + " " + req.getStatus_text() + "\r\n";
-        std::ostringstream bodyStream;
-        bodyStream << file.rdbuf();
-        body = bodyStream.str();
-    }
+    statusLine = "HTTP/1.1 " + uintToString(req.getStatus_code()) + " " + req.getStatus_text() + "\r\n";
+    std::ostringstream bodyStream;
+    bodyStream << file.rdbuf();
+    body = bodyStream.str();
     // response = "HTTP/1.1 " + uintToString(req.getStatus_code()) + " " + req.getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(req.getfullPath(), body.size())+  body;
@@ -579,7 +581,7 @@ std::string readLineFromVector(const std::vector<char> &request , int &pos)
 
 void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
 {
-    std::cout << "dekhlat\n";
+    // std::cout << "dekhlat\n";
     client.set_reqs_done(false);
     std::string s;
     for(int i = start ; i < client.get_request().size(); i++)
@@ -608,7 +610,10 @@ int Httprequest::request_pars(ClientData &client , config &config)
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
     if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
+    {
         client.set_reqs_done(true);
+        // std::cout << "Kemlat\n";
+    }
     a = tmp.find("\r\n\r\n" , 0) + 2;
     std::string r;
     for(int i = 0; i < a; i++)
@@ -621,6 +626,8 @@ int Httprequest::request_pars(ClientData &client , config &config)
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
+    // std::cout << "size : "<<path.size() << std::endl;
+    // std::cout << "path :" << path << std::endl;
     // for(int i = 0; i < client.get_request().size(); i++)
     // {
     //     std::cout << client.get_request()[i];
@@ -648,7 +655,8 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
     // std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     error = is_req_well_formed(*this);
-
+    // if (error == false)
+    //     std::cout << "what\n";
     if (error == false || findMatchingLocation(*this, config).path.empty())
         return 0;//dont miss do something like return
     // std::cout << "dazet\n";
