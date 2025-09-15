@@ -206,9 +206,11 @@ void Server::handle_request(int i)
 	this->clients[fds[i].fd].set_request(request);
 	
 	req.request_pars(this->clients[fds[i].fd], this->myconfig);
-	// set request is done ,this->clients[fds[i].fd].set_req_done(true);
-	// set keep alive  ,this->clients[fds[i].fd].set_keep_alive(true);
-	this->fds[i].events = POLLOUT;
+	if (this->clients[fds[i].fd].get_reqs_done())
+	{
+		std::cout << YELLOW << "dkhllllllllllllllllllllaaaat\n";
+		this->fds[i].events = POLLOUT;
+	}
 	std::memset(buffer, 0, 4096);
 }
 
@@ -216,29 +218,18 @@ void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
-	// if (this->clients[fds[i].fd].get_request().size() && this->clients[fds[i].fd].get_request()[5]  == 'f')
-	// {
-	// 	std::cout << "/ f.icon\n";
-	// 	response =
-	// 		"HTTP/1.1 204 No Content\r\n"
-	// 		"Content-Type: image/x-icon\r\n"
-	// 		"Content-Length: 0\r\n"
-	// 		"Connection: keep-alive\r\n"
-	// 		"\r\n";
-	// }
-	// else
-	// {
-	// 	response =
-	// 		"HTTP/1.1 200 OK\r\n"
-	// 		"Content-Type: text/html\r\n"
-	// 		"Content-Length: 31\r\n"
-	// 		"Connection: keep-alive\r\n"
-	// 		"\r\n"
-	// 		"<html><body>HELLO</body></html>";
-	// }
-	// youclass_response(this->clients[fds[i].fd])
 	response = req.buildHttpResponse(req.getfullPath(), req);
 	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
+	if (!this->clients[fds[i].fd].get_keep_alive())
+	{
+		std::cout << YELLOW << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
+		close(fds[i].fd);
+		this->clients.erase(fds[i].fd);
+		this->fds.erase(fds.begin() + i);
+		return ;
+	}
+	std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
 	this->clients[fds[i].fd].clean_request(); // don't remove it 
+	this->clients[fds[i].fd].clean_response(); // don't remove it 
 	this->fds[i].events = POLLIN; // don't remove it 
 }
