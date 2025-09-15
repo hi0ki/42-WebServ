@@ -607,6 +607,8 @@ int Httprequest::request_pars(ClientData &client , config &config)
     int a = 0;
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
+    if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
+        client.set_reqs_done(true);
     a = tmp.find("\r\n\r\n" , 0) + 2;
     std::string r;
     for(int i = 0; i < a; i++)
@@ -624,14 +626,14 @@ int Httprequest::request_pars(ClientData &client , config &config)
     //     std::cout << client.get_request()[i];
     // }
     // std::cout << "bara : "<<client.get_request()[a + 2] << std::endl;
-    if (!headers.empty() && headers["Transfer-Encoding"] == "chunked")
-        parseChunkedBody(body ,client, a + 2);
-    else
-    {
+    // if (!headers.empty() && headers["Transfer-Encoding"] == "chunked")
+    //     parseChunkedBody(body ,client, a + 2);
+    // else
+    // {
         for(int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
-        client.set_reqs_done(true);
-    }
+    //     client.set_reqs_done(true);
+    // }
     // std::cout << "method : "<< method << std::endl;
     // std::cout << "path : "<< path << std::endl;
     // std::cout << "version : "<< version << std::endl;
