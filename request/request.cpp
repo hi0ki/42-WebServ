@@ -427,6 +427,7 @@ std::string Httprequest::buildHttpResponse(const std::string& filePath, Httprequ
     std::string body;
     std::string statusLine;
     std::ifstream file(req.getfullPath().c_str(), std::ios::binary);
+    std::cout << "paaath = " << req.getAbsolutePath() << std::endl;
     if (!file.is_open()) {
         statusLine = "HTTP/1.1 404 Not Found\r\n";
         body = "<html><body><h1>404 Not Found</h1></body></html>";
