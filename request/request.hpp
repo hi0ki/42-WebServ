@@ -9,9 +9,10 @@
     #include <dirent.h>
     #include <sstream>
 
-    #include "../core_srv/include/ClientData.hpp"
     #include "../config/server.hpp"
     #include "../config/config.hpp"
+
+    class ClientData;
 
     class Httprequest {
     
@@ -68,6 +69,10 @@
             std::string getRedirectLocation() const;
 
             std::string buildHttpResponse(const std::string& filePath, Httprequest &req);
+
+
+            // clean
+            void ft_clean();
 
     };
 
