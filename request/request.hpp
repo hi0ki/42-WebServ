@@ -25,10 +25,13 @@
             std::string fullPath;
             bool error;
             std::string redirectLocation;
+            std::string server_name;
+            int index;
 
             // std::string query;
             int status_code;
             std::string status_text;
+            bool check_autoindex;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -68,11 +71,23 @@
             void setRedirectLocation(const std::string &uri);
             std::string getRedirectLocation() const;
 
-            std::string buildHttpResponse(const std::string& filePath, Httprequest &req);
+            std::string buildHttpResponse(bool keep_alive);
 
 
             // clean
             void ft_clean();
+
+            void set_servername(config &config);
+            std::string& get_servername();
+
+            void set_check_autoindex(bool autoindex);
+            bool get_check_autoindex() const;
+
+
+            void set_index(int nindex);
+            int get_index() const;
+
+    
 
     };
 

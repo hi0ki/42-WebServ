@@ -175,7 +175,7 @@ void Server::accept_client(int i)
 	std::cout << "server fd = " << fds[i].fd << std::endl;
 	std::cout << "server index = " << i << std::endl;
 	new_client.clear();
-	new_client.set_srv_index(i + 1);
+	new_client.set_srv_index(i);
 	this->clients[client_fd] = new_client;
 	std::cout << "size = " << this->clients.size() << std::endl;
 	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
@@ -220,7 +220,7 @@ void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
-	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_request_obj().getfullPath(), this->clients[fds[i].fd].get_request_obj());
+	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
 	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
