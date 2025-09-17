@@ -203,8 +203,8 @@ void Server::handle_request(int i)
 		return ;
 	}
 
-	// for (int j = 0; j < request.size(); j++)
-	// 	std::cout << request[j];
+	for (int j = 0; j < request.size(); j++)
+		std::cout << request[j];
 
 	this->clients[fds[i].fd].set_request(request);
 	this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);

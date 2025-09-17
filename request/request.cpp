@@ -441,7 +441,7 @@ std::string Httprequest::buildHttpResponse(const std::string& filePath, Httprequ
     // response = "HTTP/1.1 " + uintToString(req.getStatus_code()) + " " + req.getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(req.getfullPath(), body.size())+  body;
-    // std::cout << "response :"<< response<< std::endl; // print response
+    std::cout << "response :"<< response<< std::endl; // print response
     return response;
 }
 
