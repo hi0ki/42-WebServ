@@ -157,7 +157,6 @@ void Server::accept_client(int i)
 
 	std::cout << GREEN << "\n--------------------server-------------------" << RESET << std::endl;
 	client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
-	// after accept i should create clientdata and give it the data from client like -> wich server + client fd.
 	if (client_fd == -1)
 	{
 		std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl; // replace fds.[i].fd with ip from my config
@@ -175,7 +174,7 @@ void Server::accept_client(int i)
 	std::cout << "server fd = " << fds[i].fd << std::endl;
 	std::cout << "server index = " << i << std::endl;
 	new_client.clear();
-	new_client.set_srv_index(i + 1);
+	new_client.set_srv_index(i);
 	this->clients[client_fd] = new_client;
 	std::cout << "size = " << this->clients.size() << std::endl;
 	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
@@ -194,19 +193,18 @@ void Server::handle_request(int i)
 	}
 	else if (bytesRead == 0)
 	{
-		// khli ta ngad req is done bach nzid hadi hit daba matsd9chhit khsni nkhlih idoz tal parsin o tlgah sala bach thyd lih pollin
 		std::cerr << RED << "[" << fds[i].fd << "]" << " : Client disconnected: fd " << fds[i].fd << RESET << std::endl;
 		close(fds[i].fd);
-		this->clients.erase(i);
+		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
 		i--;
 		return ;
 	}
 
-	for (int j = 0; j < request.size(); j++)
-		std::cout << request[j];
 
 	this->clients[fds[i].fd].set_request(request);
+	for (int j = 0; j < request.size(); j++)
+		std::cout << clients[fds[i].fd].get_request()[j];
 	this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
@@ -220,7 +218,7 @@ void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
-	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_request_obj().getfullPath(), this->clients[fds[i].fd].get_request_obj());
+	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
 	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
