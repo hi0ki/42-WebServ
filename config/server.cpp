@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/09 11:25:34 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/19 13:11:40 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,9 +93,10 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
-            if(spl.size() != 2)
-                throw std::runtime_error("----------invalid location");
-            check_semicolon(spl[1]);
+            if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
+                throw std::runtime_error("invalid location");
+            if(spl[0] != "methods")
+                check_semicolon(spl[1]);
             if(spl[0] == "root")
                 loc.root = spl[1];
             else if (spl[0] == "index")
@@ -125,13 +126,32 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
-            if(spl.size() != 2)
-                throw std::runtime_error("nvalid location");
-            check_semicolon(spl[1]);
+            if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
+                throw std::runtime_error("invalid location");
+            if(spl[0] != "methods")
+                check_semicolon(spl[1]);
             if(spl[0] == "root")
                 loc.root = spl[1];
             else if (spl[0] == "index")
                 loc.index = spl[1];
+            else if (spl[0] == "methods")
+            {
+                std::vector<std::string> meth;
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (i == spl.size() - 1)
+                        check_semicolon(spl[i]);  // supprime le ';' si présent
+
+                    if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
+                        throw std::runtime_error("invalid method: " + spl[i]);
+
+                    if (std::find(meth.begin(), meth.end(), spl[i]) != meth.end())
+                        throw std::runtime_error("duplicate method: " + spl[i]);
+
+                    meth.push_back(spl[i]);
+                }
+                loc.methods = meth;
+            }
             else
                 throw std::runtime_error("invalid key in location");
             it++;
@@ -155,13 +175,32 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
-            if(spl.size() != 2)
+            if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
                 throw std::runtime_error("invalid location");
-            check_semicolon(spl[1]);
+            if(spl[0] != "methods")
+                check_semicolon(spl[1]);
             if(spl[0] == "root")
                 loc.root = spl[1];
             else if (spl[0] == "max_upload_size")
                 loc.max_upload_size = string_to_sizet(spl[1]);
+            else if (spl[0] == "methods")
+            {
+                std::vector<std::string> meth;
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (i == spl.size() - 1)
+                        check_semicolon(spl[i]);  // supprime le ';' si présent
+
+                    if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
+                        throw std::runtime_error("invalid method: " + spl[i]);
+
+                    if (std::find(meth.begin(), meth.end(), spl[i]) != meth.end())
+                        throw std::runtime_error("duplicate method: " + spl[i]);
+
+                    meth.push_back(spl[i]);
+                }
+                loc.methods = meth;
+            }
             else
                 throw std::runtime_error("invalid key in location");
             it++;
@@ -185,9 +224,10 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
-            if(spl.size() != 2)
+            if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
                 throw std::runtime_error("invalid location");
-            check_semicolon(spl[1]);
+            if(spl[0] != "methods")
+                check_semicolon(spl[1]);
             if(spl[0] == "redirect_url")
             {
                 loc.redirect_url = spl[1];
@@ -210,8 +250,26 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
+            else if (spl[0] == "methods")
+            {
+                std::vector<std::string> meth;
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (i == spl.size() - 1)
+                        check_semicolon(spl[i]);  // supprime le ';' si présent
+
+                    if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
+                        throw std::runtime_error("invalid method: " + spl[i]);
+
+                    if (std::find(meth.begin(), meth.end(), spl[i]) != meth.end())
+                        throw std::runtime_error("duplicate method: " + spl[i]);
+
+                    meth.push_back(spl[i]);
+                }
+                loc.methods = meth;
+            }
             else
-                throw std::runtime_error("invalid key in location");
+                throw std::runtime_error(spl[0] + "---invalid key in location");
             it++;
             if(it == end)
                 throw std::runtime_error(" '}' is missing ");
@@ -311,4 +369,14 @@ int server::get_autoindex()
 std::vector<Location> server::get_location() const
 {
     return(location);
+}
+
+std::vector<std::string> server::get_methods() const
+{
+    return methods;
+}
+
+void server::set_methods(const std::vector<std::string> &med)
+{
+    methods = med;
 }
