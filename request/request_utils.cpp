@@ -1,0 +1,154 @@
+#include "request.hpp"
+#include "../core_srv/include/ClientData.hpp" 
+
+Httprequest::Httprequest()
+{
+    this->method = "";
+    this->path = "";
+    this->version = "";
+    // this->body = ;
+        // std::string query;
+    this->error = false;
+    this->absolutePath = "";
+    this->fullPath = "";
+    this->status_code = 0;
+    this->status_text = "";
+    this->check_autoindex = false;
+}
+
+void Httprequest::setMethod(const std::string &method)
+{
+    this->method = method;
+}
+
+std::string Httprequest::getMethod() const
+{
+    return this->method;
+}
+
+void Httprequest::setPath(const std::string &Path)
+{
+    this->path = Path;
+}
+
+std::string Httprequest::getPath() const
+{
+    return this->path;
+}
+
+void Httprequest::setVersion(const std::string &Version)
+{
+    this->version = Version;
+}
+
+std::string Httprequest::getVersion() const
+{
+    return this->version;
+}
+
+void Httprequest::setHeaders(const std::map<std::string, std::string> &Headers)
+{
+    this->headers = Headers;
+}
+    
+std::map<std::string, std::string>& Httprequest::getHeaders() 
+{
+    return this->headers;
+}
+        
+void Httprequest::setBody(const std::vector<char> &Body)
+{
+    this->body = Body;
+}
+        
+std::vector<char> Httprequest::getBody() const
+{
+    return this->body;
+}
+
+void Httprequest::setAbsolutePath(const std::string &AbsolutePath)
+{
+    this->absolutePath = AbsolutePath;
+}
+
+std::string Httprequest::getAbsolutePath() const
+{
+    return this->absolutePath;
+}
+
+void    Httprequest::setStatus(int status_code, std::string status_text)
+{
+    this->status_code = status_code;
+    this->status_text = status_text;
+}
+
+void Httprequest::setfullPath(const std::string &fullPath)
+{
+    this->fullPath = fullPath;
+}
+
+std::string Httprequest::getfullPath() const
+{
+    return (this->fullPath);
+}
+
+void Httprequest::setError(const bool &Error)
+{
+    this->error = Error;
+}
+            
+bool Httprequest::getError() const
+{
+    return error;
+}
+
+void Httprequest::setRedirectLocation(const std::string &uri)
+{
+        redirectLocation = uri;
+}
+
+std::string Httprequest::getRedirectLocation() const 
+{
+        return redirectLocation;
+}
+
+unsigned int Httprequest::getStatus_code() const
+{
+    return status_code;
+}
+            
+std::string Httprequest::getStatus_text() const
+{
+    return status_text;
+}
+
+void Httprequest::set_servername(config &config)
+{
+    this->server_name = config.get_servs()[0].get_name();
+}
+            
+std::string& Httprequest::get_servername()
+{
+    return this->server_name;
+}
+
+
+void Httprequest::set_check_autoindex(bool autoindex)
+{
+    this->check_autoindex = autoindex;
+}
+            
+bool Httprequest::get_check_autoindex() const
+{
+    return this->check_autoindex;
+}
+
+void Httprequest::set_index(int nindex)
+{
+    this->index = nindex;
+}
+            
+int Httprequest::get_index() const
+{
+    return this->index;
+}
