@@ -1,6 +1,6 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) {}
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(0) {}
 
 ClientData::ClientData(const ClientData &obj)
 {
@@ -39,6 +39,11 @@ void ClientData::set_reqs_done(bool reqst)
 {
     this->reqst_is_done = reqst;
 }
+void ClientData::set_length(int new_length)
+{
+    this->length = new_length;
+}
+
 
 //             Getters  
 int ClientData::get_srv_index() const
@@ -64,6 +69,10 @@ bool ClientData::get_reqs_done() const
 Httprequest& ClientData::get_request_obj()
 {
     return (req);
+}
+int ClientData::get_length()
+{
+    return (length);
 }
 
 //              Clear

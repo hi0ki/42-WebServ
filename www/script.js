@@ -35,3 +35,20 @@ async function getData() {
     }
   }
   
+  document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const fileInput = document.getElementById('uploadInput');
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+  
+    try {
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const text = await response.text();
+      document.getElementById('uploadResult').textContent = text;
+    } catch (err) {
+      document.getElementById('uploadResult').textContent = 'Error: ' + err;
+    }
+  });
