@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/09 11:39:26 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/19 13:14:27 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,6 +124,29 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             check_semicolon(tmp[1]);
             serv.set_autoindex(tmp[1]);
         }
+        else if(!tmp.empty() && tmp[0] == "methods")
+        {
+            
+            if(serv.get_methods().size() != 0)
+                throw std::runtime_error("methods already exist");
+            if(tmp.size() < 2 || tmp.size() > 4)
+                throw std::runtime_error("methods content invalid");
+            std::vector<std::string> meth;
+            for (size_t i = 1; i < tmp.size(); i++)
+            {
+                if (i == tmp.size() - 1)
+                    check_semicolon(tmp[i]);
+
+                if (tmp[i] != "GET" && tmp[i] != "POST" && tmp[i] != "DELETE")
+                    throw std::runtime_error("invalid method: " + tmp[i]);
+
+                if (std::find(meth.begin(), meth.end(), tmp[i]) != meth.end())
+                    throw std::runtime_error("duplicate method: " + tmp[i]);
+
+                meth.push_back(tmp[i]);
+            }
+            serv.set_methods(meth);
+        }
         else if(!tmp.empty() && tmp[0] == "error_page")
         {
             if(tmp.size() != 3)
@@ -208,6 +231,56 @@ void config::parse_configFile()
     }
 }
 
+// void config::print_servers() // print server
+// {
+//     std::vector<server>::iterator it = servs.begin();
+//     int idx = 1;
+
+//     while (it != servs.end())
+//     {
+//         std::cout << "===== Server " << idx++ << " =====\n";
+//         std::cout << "IP: " << it->get_IP() << "\n";
+//         std::cout << "Port: " << it->get_port() << "\n";
+//         std::cout << "Server Name: " << it->get_name() << "\n";
+//         std::cout << "Root: " << it->get_root() << "\n";
+//         std::cout << "Index: " << it->get_index() << "\n";
+//         std::cout << "Autoindex: " << it->get_autoindex() << "\n";
+
+        
+//         // --- Error Pages ---
+//         std::vector<ErrPage> errpages = it->get_errpage();
+//         std::vector<ErrPage>::iterator e_it = errpages.begin();
+//         while (e_it != errpages.end())
+//         {
+//             std::cout << "Error Page [" << e_it->err << "] -> " << e_it->red_page << "\n";
+//             ++e_it;
+//         }
+
+//         // --- Locations ---
+//         std::vector<Location> locs = it->get_location(); // tu devras écrire get_location()
+//         std::vector<Location>::iterator l_it = locs.begin();
+//         while (l_it != locs.end())
+//         {
+//             std::cout << "Location path: " << l_it->path << " | Type: ";
+//             switch (l_it->type)
+//             {
+//                 case STATIC:   std::cout << "STATIC"; break;
+//                 case CGI:      std::cout << "CGI"; break;
+//                 case REDIRECT: std::cout << "REDIRECT"; break;
+//                 case API:      std::cout << "API"; break;
+//                 case UPLOAD:   std::cout << "UPLOAD"; break;
+//                 case UNDEFINED: std::cout << "UNDEFINED"; break;
+                
+//             }
+//             std::cout << "\n";
+//             ++l_it;
+//         }
+
+//         std::cout << "========================\n";
+//         ++it;
+//     }
+// }
+
 void config::print_servers() // print server
 {
     std::vector<server>::iterator it = servs.begin();
@@ -223,7 +296,20 @@ void config::print_servers() // print server
         std::cout << "Index: " << it->get_index() << "\n";
         std::cout << "Autoindex: " << it->get_autoindex() << "\n";
 
-        
+        // --- Server Methods ---
+        std::vector<std::string> srv_methods = it->get_methods();
+        if (!srv_methods.empty())
+        {
+            std::cout << "Methods: ";
+            for (std::vector<std::string>::iterator m_it = srv_methods.begin(); m_it != srv_methods.end(); ++m_it)
+            {
+                std::cout << *m_it;
+                if (m_it + 1 != srv_methods.end())
+                    std::cout << ", ";
+            }
+            std::cout << "\n";
+        }
+
         // --- Error Pages ---
         std::vector<ErrPage> errpages = it->get_errpage();
         std::vector<ErrPage>::iterator e_it = errpages.begin();
@@ -234,7 +320,7 @@ void config::print_servers() // print server
         }
 
         // --- Locations ---
-        std::vector<Location> locs = it->get_location(); // tu devras écrire get_location()
+        std::vector<Location> locs = it->get_location();
         std::vector<Location>::iterator l_it = locs.begin();
         while (l_it != locs.end())
         {
@@ -247,9 +333,22 @@ void config::print_servers() // print server
                 case API:      std::cout << "API"; break;
                 case UPLOAD:   std::cout << "UPLOAD"; break;
                 case UNDEFINED: std::cout << "UNDEFINED"; break;
-                
             }
             std::cout << "\n";
+
+            // --- Location Methods ---
+            if (!l_it->methods.empty())
+            {
+                std::cout << "  Methods: ";
+                for (std::vector<std::string>::iterator m_it = l_it->methods.begin(); m_it != l_it->methods.end(); ++m_it)
+                {
+                    std::cout << *m_it;
+                    if (m_it + 1 != l_it->methods.end())
+                        std::cout << ", ";
+                }
+                std::cout << "\n";
+            }
+
             ++l_it;
         }
 

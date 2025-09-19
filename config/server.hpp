@@ -6,9 +6,10 @@
 /*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/18 13:59:11 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/09/19 13:52:08 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #pragma once
 #include <iostream>
@@ -34,6 +35,7 @@ struct Location {
     size_t max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
     std::vector<std::string> limit_except;//fatimazahra zadtha
      //client_max_body_size 5M;  
+    std::vector<std::string> methods ;
 };
 
 // struct Location {
@@ -57,6 +59,7 @@ class server
         std::string autoindex;
         std::vector<ErrPage> error_page;
         std::vector<Location> location;
+        std::vector<std::string> methods;
     public:
         void pars_errPage();
         void pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator end);
@@ -77,6 +80,8 @@ class server
         std::string get_root();
         std::string get_index();
         int get_autoindex();
+        std::vector<std::string> get_methods() const;
+        void set_methods(const std::vector<std::string> &med);
 };
 void check_semicolon(std::string &str);
 std::vector<std::string> split(const std::string &str, char c);

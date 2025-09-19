@@ -36,7 +36,11 @@ uint32_t ip_convert(std::string ip)
 Server::Server(config &config) : myconfig(config)
 {
 	this->server_start();
-	
+	if (this->myconfig.get_servs().size() == 0)
+	{
+		throw std::runtime_error("No server find\n" );
+		return ;
+	}
 	std::cout << GREEN << "---------------------------------------" << std::endl;
 	std::cout << "-----------Servers listening-----------" << std::endl;
 	std::cout << "---------------------------------------\n" << RESET<< std::endl;
