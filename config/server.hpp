@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/09 11:23:31 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/19 12:26:47 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ struct Location {
     std::string cgi_handler;       // pour CGI (ex: "/usr/bin/php-cgi")
     std::string redirect_url;      // pour REDIRECT (ex: "https://monsite.com/new")
     size_t max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
+    std::vector<std::string> methods ;
 };
 
 // struct Location {
@@ -55,6 +56,7 @@ class server
         std::string autoindex;
         std::vector<ErrPage> error_page;
         std::vector<Location> location;
+        std::vector<std::string> methods;
     public:
         void pars_errPage();
         void pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator end);
@@ -75,6 +77,8 @@ class server
         std::string get_root();
         std::string get_index();
         int get_autoindex();
+        std::vector<std::string> get_methods() const;
+        void set_methods(const std::vector<std::string> &med);
 };
 void check_semicolon(std::string &str);
 std::vector<std::string> split(const std::string &str, char c);
