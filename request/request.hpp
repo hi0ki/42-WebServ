@@ -91,7 +91,62 @@
 
     };
 
+
+
+   /*
+    1/ is_location_have_redirection()
+
+    location /old {
+        return 301 /new;
+    }
+    HTTP/1.1 301 Moved Permanently
+
+    2/  is_method_allowded_in_location()
+    location /upload {
+        methods POST, GET;
+        root /var/www/uploads;
+    }   
+    server {
+    listen 8080;
+    server_name localhost;
+
+    root /var/www/html;
+    index index.html;
+
+    methods_allowed GET, POST;   # default for entire server
+
+    location / {
+        # inherits: GET, POST
+    }
+
+    location /delete {
+        methods_allowed DELETE;  # overrides: only DELETE
+    }
+}
+    Request → / with GET ✅ allowed
+
+    Request → / with POST ✅ allowed (from server default)
+
+    Request → /delete with GET ❌ not allowed (location overrides)
+
+    Request → /delete with DELETE ✅ allowed
+
+    3/    //possible to be eroor page in location
+
+    4/  //want from hafsa method allowed and return 301 /home/index.html and autoindex in every location
+    5/ //khesni nzid   cgi_enabled on; allowed methods
+    6// pwd
+    7 //  errors pages for every location 
+     note:  location /cgi-bin {
+        root /var/www/cgi-bin;
+        methods GET, POST;
+        cgi_enabled on;
+        cgi_path /usr/bin/python3;
+        cgi_extension .py;
+}
     //i should add querys :
 
-    /*GET /search?q=shoes&page=2 HTTP/1.1
-    Host: shop.com*/
+    GET /search?q=shoes&page=2 HTTP/1.1
+    Host: shop.com
+    */
+   
