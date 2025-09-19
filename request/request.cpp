@@ -392,7 +392,7 @@ bool handelGET(Httprequest &req, config &config)
     // std::cout << "ha ana wsalt lehna \n";
     if (c == 'D')
     {
-        std::cout << "dkholt l directory\n";
+        // std::cout << "dkholt l directory\n";
         if (!isUriEndsWithSlash(req.getPath(), req))
             return false;
         // std::cout << "mazal haya\n";
@@ -400,7 +400,7 @@ bool handelGET(Httprequest &req, config &config)
             t_f = findIndexFile(req);
         if (t_f == false)
         {
-            std::cout << "la dekhlat hna anmoot\n";
+            // std::cout << "la dekhlat hna anmoot\n";
             //had lpart mazal naQsa
             if(config.get_servs()[req.get_index()].get_autoindex() == true)
             {
@@ -409,7 +409,7 @@ bool handelGET(Httprequest &req, config &config)
                 req.setStatus(200, "OK");
                 req.set_check_autoindex(true);
                 // AutoindexPage(req);
-                std::cout << "hahiya hna\n";
+                // std::cout << "hahiya hna\n";
                 return true;
             }
             else
@@ -452,7 +452,7 @@ bool handelPOST(Httprequest &req, Location loc, config &config)
     {
         if (allowed_methods[i] == "POST")
         {
-            std::cout << "jab lah tisir\n";
+            // std::cout << "jab lah tisir\n";
             req.setStatus(201, "Created");
             saveBodyToFile(req);
             return true;
@@ -607,7 +607,7 @@ bool check_Error_pages(Httprequest &req, config &config)
     if (findMatchingLocation(req, config).path.empty())
         return false;
     resolvePath(config, req);
-    std::cout <<"absolute path:" <<req.getAbsolutePath() << std::endl;
+    // std::cout <<"absolute path:" <<req.getAbsolutePath() << std::endl;
     handleMethod(req, config);
     return true;
 }
@@ -619,10 +619,13 @@ int Httprequest::request_pars(ClientData &client , config &config)
     int a = 0;
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
-    if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
-        client.set_reqs_done(true);
-    else 
-        return 0;
+    if (client.get_request()[0] != 'P')
+    {
+         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
+            client.set_reqs_done(true);
+        else 
+            return 0;
+    }
     a = tmp.find("\r\n\r\n" , 0) + 2;
     std::string r;
     for(int i = 0; i < a; i++)
@@ -634,6 +637,13 @@ int Httprequest::request_pars(ClientData &client , config &config)
     {
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
+    }
+    if (method == "POST" && headers.find("Content-Length") != headers.end())
+    {
+        // std::cout << "HELLO                    :  "<<headers["Content-Length"] << std::endl;
+        client.set_length(atoi(headers["Content-Length"].c_str()));
+        // std::cout << "**************       :  " << client.get_length() << std::endl;
+
     }
     // std::cout << "size : "<<path.size() << std::endl;
     // std::cout << "path :" << path << std::endl;
