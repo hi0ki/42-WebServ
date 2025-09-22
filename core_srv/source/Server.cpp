@@ -200,7 +200,7 @@ void Server::pars_post_req(int index)
 	
 	// setting body to request
 	this->clients[index].set_request(new_request);
-	if (this->clients[index].get_request().size() == this->clients[index].get_length())
+	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
 	{
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
@@ -240,7 +240,8 @@ void Server::handle_request(int i)
 	this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	for (int j = 0; j < request.size(); j++)
 		std::cout << this->clients[fds[i].fd].get_request()[j];
-	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
+	std::cout << this->clients[fds[i].fd].get_length() << std::endl;
+	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())  /// check dyal length mkhdamch li kayn f lpars dyal post body
 	{
 		std::cout << "\n\nPost case\n" << std::endl;
 		pars_post_req(fds[i].fd);
