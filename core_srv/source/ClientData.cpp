@@ -1,19 +1,21 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) {}
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) {}
 
 ClientData::ClientData(const ClientData &obj)
 {
-    *this = obj;
+	*this = obj;
 }
 ClientData &ClientData::operator=(const ClientData &obj)
 {
-    this->srv_index = obj.srv_index;
-    this->request = obj.request;
-    this->response = obj.response;
-    this->keep_alive = obj.keep_alive;
-    this->reqst_is_done = obj.reqst_is_done;
-    return (*this);
+	this->srv_index = obj.srv_index;
+	this->request = obj.request;
+	this->response = obj.response;
+	this->keep_alive = obj.keep_alive;
+	this->reqst_is_done = obj.reqst_is_done;
+	this->length = obj.length;
+	this->post_body_done = obj.post_body_done;
+	return (*this);
 }
 
 ClientData::~ClientData() {}
@@ -21,64 +23,86 @@ ClientData::~ClientData() {}
 //             Setters
 void ClientData::set_srv_index(int index)
 {
-    this->srv_index = index;
+	this->srv_index = index;
 }
 void ClientData::set_request(std::vector<char> reqs)
 {
-    this->request = reqs;
+	this->request = reqs;
 }
 void ClientData::set_response(std::vector<char> resp)
 {
-    this->response = resp;
+	this->response = resp;
 }
 void ClientData::set_keep_alive(bool kp_alive)
 {
-    this->keep_alive = kp_alive;
+	this->keep_alive = kp_alive;
 }
 void ClientData::set_reqs_done(bool reqst)
 {
-    this->reqst_is_done = reqst;
+	this->reqst_is_done = reqst;
+}
+void ClientData::set_length(int new_length)
+{
+	this->length = new_length;
+}
+void ClientData::set_post_boyd(bool body)
+{
+	this->post_body_done = body;
 }
 
 //             Getters  
 int ClientData::get_srv_index() const
 {
-    return (srv_index);
+	return (srv_index);
 }
 std::vector<char> ClientData::get_request() const
 {
-    return (request);
+	return (request);
 }
 std::vector<char> ClientData::get_response() const
 {
-    return (response);
+	return (response);
 }
 bool ClientData::get_keep_alive() const
 {
-    return (keep_alive);
+	return (keep_alive);
 }
 bool ClientData::get_reqs_done() const
 {
-    return (reqst_is_done);
+	return (reqst_is_done);
 }
 Httprequest& ClientData::get_request_obj()
 {
-    return (req);
+	return (req);
+}
+int ClientData::get_length()
+{
+	return (length);
+}
+bool ClientData::get_post_boolen()
+{
+	return (post_body_done);
+}
+
+//              append
+void    ClientData::requse_append(std::vector<char> append_req)
+{
+	this->request.insert(request.end(), append_req.begin(), append_req.end());
 }
 
 //              Clear
 void ClientData::clear()
 {
-    this->srv_index = 0;
-    this->request.clear();
-    this->response.clear();
+	this->srv_index = 0;
+	this->request.clear();
+	this->response.clear();
 }
 
 void ClientData::clean_request()
 {
-    this->request.clear();
+	this->request.clear();
 }
 void ClientData::clean_response()
 {
-    this->response.clear();
+	this->response.clear();
 }

@@ -36,7 +36,11 @@ uint32_t ip_convert(std::string ip)
 Server::Server(config &config) : myconfig(config)
 {
 	this->server_start();
-	
+	if (this->myconfig.get_servs().size() == 0)
+	{
+		throw std::runtime_error("No server find\n" );
+		return ;
+	}
 	std::cout << GREEN << "---------------------------------------" << std::endl;
 	std::cout << "-----------Servers listening-----------" << std::endl;
 	std::cout << "---------------------------------------\n" << RESET<< std::endl;
@@ -145,7 +149,6 @@ void Server::start_connection()
 				this->handle_response(i);
 		}
 	}
-	// close all fds.
 }
 
 
@@ -180,6 +183,35 @@ void Server::accept_client(int i)
 	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
 	std::cout << GREEN << "---------------------------------------------" << RESET << std::endl;
 }
+void Server::pars_post_req(int index)
+{
+	std::vector<char> new_request;
+	std::string old_request;
+	std::string body;
+	size_t find_index;
+
+	for(int i = 0; i < this->clients[index].get_request().size(); i++)
+		old_request.push_back(this->clients[index].get_request()[i]);
+	find_index = old_request.find("\r\n\r\n");	
+	if (find_index != std::string::npos)
+		body = old_request.substr(find_index + 4);
+	new_request.insert(new_request.end(), body.begin(), body.end());
+	
+	// setting body to request
+	this->clients[index].set_request(new_request);
+	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
+	{
+		this->clients[index].set_post_boyd(true);
+		this->clients[index].set_reqs_done(true);
+	}
+	// std::cout << "test = '>";
+	// for (int i = 0; i <= new_request.size(); i++)
+	// {
+	// 	std::cout << new_request[i] << " ";
+	// }
+	// std::cout << "<'" << std::endl;
+
+}
 
 void Server::handle_request(int i)
 {
@@ -206,6 +238,14 @@ void Server::handle_request(int i)
 	for (int j = 0; j < request.size(); j++)
 		std::cout << clients[fds[i].fd].get_request()[j];
 	this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+	for (int j = 0; j < request.size(); j++)
+		std::cout << this->clients[fds[i].fd].get_request()[j];
+	std::cout << this->clients[fds[i].fd].get_length() << std::endl;
+	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())  /// check dyal length mkhdamch li kayn f lpars dyal post body
+	{
+		std::cout << "\n\nPost case\n" << std::endl;
+		pars_post_req(fds[i].fd);
+	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
 		std::cout << BLUE << "Request is done" << RESET << std::endl;

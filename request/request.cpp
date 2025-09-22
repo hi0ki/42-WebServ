@@ -30,7 +30,7 @@ bool is_req_well_formed(Httprequest &req)
             return false;
         }
     }
-    if (req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length:") == req.getHeaders().end() \
+    if (req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length") == req.getHeaders().end() \
        && req.getMethod() == "POST")
     {
         req.setStatus(400, "Bad Request");
@@ -289,9 +289,9 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
 
     std::string contentType = "";
     std::string filePath = req.getfullPath();
-    if (filePath.find(".html") != std::string::npos)
-        contentType = "text/html";
-    else if (filePath.find(".css") != std::string::npos)
+    // if (filePath.find(".html") != std::string::npos)
+    //     contentType = "text/html";
+    if (filePath.find(".css") != std::string::npos)
         contentType = "text/css";
     else if (filePath.find(".js") != std::string::npos)
         contentType = "application/javascript";
@@ -299,6 +299,8 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
         contentType = "image/png";
     else if (filePath.find(".jpg") != std::string::npos || filePath.find(".jpeg") != std::string::npos)
         contentType = "image/jpeg";
+    else
+        contentType = "text/html";
     s = "Server: " + req.get_servername() + "\r\n";
     s += "Content-Type: " + contentType + "\r\n";
     s += "Content-Length: " + uintToString(contentLength) + "\r\n";
@@ -348,21 +350,32 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
     std::string statusLine;
     std::ifstream file(this->getfullPath().c_str(), std::ios::binary);
     // std::cout << this->getfullPath() << "   here\n"; 
-    if (!file.is_open()) {
+    if (!this->get_check_autoindex() && this->getError() && !file.is_open()) {
         statusLine = "HTTP/1.1 404 Not Found\r\n";
         body = "<html><body><h1>404 Not Found</h1></body></html>";
     }
     else{
         statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
-        std::ostringstream bodyStream;
-        bodyStream << file.rdbuf();
-        body = bodyStream.str();
+        if (this->get_check_autoindex())
+            body = AutoindexPage(*this);
+        else
+        { 
+            std::ostringstream bodyStream;  
+            bodyStream << file.rdbuf();
+            body = bodyStream.str();
+            if (this->method ==  "POST" && this->getStatus_code() == 201)
+            {
+                body = "Upload Success\nFile uploaded successfully!";
+            }
+               
+    
+        }
     }
     // std::cout << "im hereeeee\n";
     // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
-    // std::cout << "response :"<< response<< std::endl; //  print response
+    // std::cout << "response :"<< response<< std::endl; // print response
     return response;
 }
 
@@ -373,14 +386,13 @@ bool handelGET(Httprequest &req, config &config)
     bool t_f = true;
     if (pathExists(req.getAbsolutePath(), req, c) != true)
     {
-        // std::cout << "Path not exist" << std::endl;
         req.setStatus(404, "Not Found");
         return false;
     }
     // std::cout << "ha ana wsalt lehna \n";
     if (c == 'D')
     {
-        std::cout << "dkholt l directory\n";
+        // std::cout << "dkholt l directory\n";
         if (!isUriEndsWithSlash(req.getPath(), req))
             return false;
         // std::cout << "mazal haya\n";
@@ -388,15 +400,16 @@ bool handelGET(Httprequest &req, config &config)
             t_f = findIndexFile(req);
         if (t_f == false)
         {
-            std::cout << "la dekhlat hna anmoot\n";
+            // std::cout << "la dekhlat hna anmoot\n";
             //had lpart mazal naQsa
             if(config.get_servs()[req.get_index()].get_autoindex() == true)
             {
                 //  std::cout << "la dekhlat hna anmoot\n";
                 //khesni nzid auto index ela kol location
                 req.setStatus(200, "OK");
-                AutoindexPage(req);
-                std::cout << "hahiya hna\n";
+                req.set_check_autoindex(true);
+                // AutoindexPage(req);
+                // std::cout << "hahiya hna\n";
                 return true;
             }
             else
@@ -415,15 +428,36 @@ bool handelGET(Httprequest &req, config &config)
     return true;
 }
 
-bool handelPOST(Httprequest &req, Location &loc, config &config)
+
+void    saveBodyToFile(Httprequest &req)
+{
+    std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
+    if (!outfile.is_open())
+    {
+        //return 500
+        return ;
+    }
+    outfile.write(req.getBody().data(), req.getBody().size());
+    outfile.close();
+}
+
+bool handelPOST(Httprequest &req, Location loc, config &config)
 {
     //khesni nzid   cgi_enabled on; allowed methods
     bool found = false;
-    // for(int i = 0; i < loc.limit_except.size(); i++)
-    // {
-    //     if(loc.limit_except[i] == "POST")
-    //         found = !found;
-    // }
+    std::vector<std::string> allowed_methods;
+    allowed_methods.push_back("GET");
+    allowed_methods.push_back("POST");
+    for(int i = 0; i < allowed_methods.size(); i++)
+    {
+        if (allowed_methods[i] == "POST")
+        {
+            // std::cout << "jab lah tisir\n";
+            req.setStatus(201, "Created");
+            saveBodyToFile(req);
+            return true;
+        }
+    }
     if (found == true)
     {
         //If yes → read the body, validate size, store it.
@@ -482,7 +516,7 @@ bool    handleMethod(Httprequest &req, config &config)
         check = handelGET(req, config);
     else if (meth == "POST")
     {
-        // handelPOST(req, findMatchingLocation(req, config), config);
+        check = handelPOST(req, findMatchingLocation(req, config), config);
     }
     // else if (meth == "DELETE")
 // 
@@ -562,10 +596,18 @@ bool check_Error_pages(Httprequest &req, config &config)
         }
     }
     if (req.getError() == false)
-        return false;
+    {
+        std::cout << "wawwwwww3\n";
+        req.setPath("/errors/" +  uintToString(req.getStatus_code()) + ".html");
+        std::cout << "Path :" << req.getPath() << std::endl;  
+        req.setError(true);
+
+        // return false;
+    }
     if (findMatchingLocation(req, config).path.empty())
         return false;
     resolvePath(config, req);
+    // std::cout <<"absolute path:" <<req.getAbsolutePath() << std::endl;
     handleMethod(req, config);
     return true;
 }
@@ -577,8 +619,13 @@ int Httprequest::request_pars(ClientData &client , config &config)
     int a = 0;
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
-    if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
-        client.set_reqs_done(true);
+    if (client.get_request()[0] != 'P')
+    {
+         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
+            client.set_reqs_done(true);
+        else 
+            return 0;
+    }
     a = tmp.find("\r\n\r\n" , 0) + 2;
     std::string r;
     for(int i = 0; i < a; i++)
@@ -591,6 +638,13 @@ int Httprequest::request_pars(ClientData &client , config &config)
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
+    if (method == "POST" && headers.find("Content-Length") != headers.end())
+    {
+        // std::cout << "HELLO                    :  "<<headers["Content-Length"] << std::endl;
+        client.set_length(atoi(headers["Content-Length"].c_str()));
+        // std::cout << "**************       :  " << client.get_length() << std::endl;
+
+    }
     // std::cout << "size : "<<path.size() << std::endl;
     // std::cout << "path :" << path << std::endl;
     // for(int i = 0; i < client.get_request().size(); i++)
@@ -602,7 +656,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     //     parseChunkedBody(body ,client, a + 2);
     // else
     // {
-        for(int i = a + 2; i < client.get_request().size(); i++)
+    for(int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
     //     client.set_reqs_done(true);
     // }
@@ -618,11 +672,17 @@ int Httprequest::request_pars(ClientData &client , config &config)
     //  std::cout << "body : "<< body[i] << std::endl;
     // }
 
-    // std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
-
+    std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
+    std::cout << "size : " << path.size() << std::endl;
 
     if (checkAndApplyErrorPage(config, *this) == false)
-        return 0;
+    {
+        
+        setPath("/errors/" +  uintToString(this->getStatus_code()) + ".html");
+        std::cout << "Path :" << this->getPath() << std::endl;  
+        this->setError(true);
+        // return 0;
+    }
     //dont miss do something like return
     //want from hafsa method allowed and return 301 /home/index.html and autoindex in every location
 
@@ -645,9 +705,10 @@ int Httprequest::request_pars(ClientData &client , config &config)
     Return true (or a redirect config object) if yes, otherwise false.*/
 
     resolvePath(config, *this);
-    std::cout << "absolute path : " <<absolutePath << std::endl;
+    std::cout << "absolute path : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config) == false)
     {
+        std::cout << "ha ana hna \n";
         check_Error_pages(*this, config);
         // std::cout << this->getStatus_code() << std::endl;
     } 
@@ -683,6 +744,8 @@ void Httprequest::ft_clean()
     this->server_name.clear();
     this->status_code = 0;
     this->status_text.clear();
+    this->check_autoindex = false;
+    this->error = false;
 }
 
 /*std::string Httprequest::buildHttpResponse(bool keep_alive) 
