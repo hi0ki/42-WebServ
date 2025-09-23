@@ -199,6 +199,8 @@ void Server::pars_post_req(int index)
 	
 	// setting body to request
 	this->clients[index].set_request(new_request);
+	std::cout << "length dyal req = " << this->clients[index].get_request().size() << std::endl;
+	std::cout << "length dyal req 1 = " << this->clients[index].get_length() << std::endl;
 	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
 	{
 		this->clients[index].set_post_boyd(true);
