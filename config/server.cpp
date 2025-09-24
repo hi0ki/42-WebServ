@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/19 13:11:40 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/24 21:47:59 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 throw std::runtime_error(" '}' is missing ");
         }
        if(loc.max_upload_size == 0)
-            loc.max_upload_size = 1048576;   
+            loc.max_upload_size = 1048576;   /// a verifier d ou vient 0
     }
     else if (tmp[1][0] == '/')
     {
@@ -224,29 +224,105 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
-            if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
+            // if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
+            //     throw std::runtime_error("invalid location");
+            
+            if (spl.empty())
                 throw std::runtime_error("invalid location");
-            if(spl[0] != "methods")
-                check_semicolon(spl[1]);
-            if(spl[0] == "redirect_url")
+
+            // methods
+            if (spl[0] == "methods")
             {
-                loc.redirect_url = spl[1];
+                if (spl.size() < 2 || spl.size() > 4)
+                    throw std::runtime_error("invalid location (methods must have 2 to 4 args)");
+            }
+            // return
+            else if (spl[0] == "return")
+            {
+                if (spl.size() != 3)
+                    throw std::runtime_error("invalid location (return must have exactly 3 args)");
+            }
+            // tout le reste
+            else if (spl[0] != "extension")
+            {
+                if (spl.size() != 2)
+                    throw std::runtime_error("invalid location (directive must have exactly 2 args)");
+            }
+            if(spl[0] != "methods" && spl[0] != "return" && spl[0] != "extension")
+                check_semicolon(spl[1]);
+            // if(spl[0] == "redirect_url")
+            // {
+            //     loc.redirect_url = spl[1];
+            //     loc.path = tmp[1];
+            //     loc.type = REDIRECT;
+            // }
+            if (spl[0] == "return")
+            {
+                if (spl.size() != 3)
+                    throw std::runtime_error("invalid return directive: expected 'return <code> <url>;'");
+
+                // Vérifier que spl[1] est bien un nombre
+                for (size_t i = 0; i < spl[1].size(); i++)
+                {
+                    if (!isdigit(static_cast<unsigned char>(spl[1][i])))
+                        throw std::runtime_error("invalid return code: " + spl[1]);
+                }
+
+                int code = std::stoi(spl[1]);
+                if (code < 100 || code > 599)  // seulement codes HTTP valides
+                    throw std::runtime_error("invalid return code: must be between 100 and 599");
+
+                // Vérifier et nettoyer l’URL
+                check_semicolon(spl[2]);
+
+                loc.return_r.err = code;
+                loc.return_r.red_url = spl[2];
                 loc.path = tmp[1];
                 loc.type = REDIRECT;
             }
-            else if(spl[0] == "root" && loc.redirect_url.empty())
+            else if(spl[0] == "root" && loc.return_r.red_url.empty())
             {
                 loc.root = spl[1];
                 if(loc.path.empty())
                     loc.path = tmp[1];
-                if(loc.type == UNDEFINED)
-                    loc.type = CGI;
+                // if(loc.type == UNDEFINED)
+                //     loc.type = CGI;
             }
-            else if(spl[0] == "cgi_handler" && loc.redirect_url.empty())
+            else if(spl[0] == "cgi_handler" && loc.return_r.red_url.empty())
             {
                 loc.cgi_handler = spl[1];
                 if(loc.path.empty())
                     loc.path = tmp[1];
+                if(loc.type == UNDEFINED)//why i use UNDEFINED
+                    loc.type = CGI;
+            }
+            else if (spl[0] == "cgi_enabled")
+            {
+                if (spl[1] == "on")
+                    loc.cgi_enabled = true;
+                else if (spl[1] == "off")
+                    loc.cgi_enabled = false;
+                else
+                    throw std::runtime_error("invalid value for cgi_enabled: " + spl[1]);
+                if(loc.type == UNDEFINED)
+                    loc.type = CGI; // important pour marquer que c'est une location CGI
+                    ///// je dois verifier si j ai redirect et ja i autre key de CGI et le contraire
+            }
+            else if (spl[0] == "cgi_extension")
+            {
+                // check_semicolon(spl[1]);
+                if (spl[1].empty() || spl[1][0] != '.')
+                    throw std::runtime_error("invalid cgi_extension: " + spl[1]);
+                loc.cgi_extension.push_back(spl[1]);
+                if(loc.type == UNDEFINED)
+                    loc.type = CGI;
+            }
+            else if (spl[0] == "cgi_path")
+            {
+                // check_semicolon(spl[1]);
+                if (spl[1].empty())
+                    throw std::runtime_error("cgi_path cannot be empty");
+                loc.cgi_handler = spl[1];  // tu avais déjà `cgi_handler`, tu peux utiliser `cgi_path` ou garder l'ancien
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
@@ -274,7 +350,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(it == end)
                 throw std::runtime_error(" '}' is missing ");
         }
-        if ((loc.type == REDIRECT && loc.redirect_url.empty())
+        if ((loc.type == REDIRECT && loc.return_r.red_url.empty())
             || (loc.type == CGI && (loc.cgi_handler.empty() || loc.root.empty())))
             throw std::runtime_error("invalid location");    
     }
@@ -282,7 +358,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
         throw std::runtime_error("path invalid");
     set_location(loc);
 }
-    
+
 void server::pars_serv()
 {
     
