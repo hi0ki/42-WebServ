@@ -39,6 +39,10 @@ class ClientData
 		void 				set_length(int new_length);
 		void 				set_post_boyd(bool body);
 		//      Getters
+		Httprequest			&get_obj_req()
+		{
+			return (req);
+		}
 		int 				get_srv_index() const;
 		std::vector<char> 	get_request() const;
 		std::vector<char> 	get_response() const;

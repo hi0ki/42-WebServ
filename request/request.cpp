@@ -289,8 +289,8 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
 
     std::string contentType = "";
     std::string filePath = req.getfullPath();
-    // if (filePath.find(".html") != std::string::npos)
-    //     contentType = "text/html";
+    if (filePath.find(".html") != std::string::npos)
+        contentType = "text/html";
     if (filePath.find(".css") != std::string::npos)
         contentType = "text/css";
     else if (filePath.find(".js") != std::string::npos)
@@ -300,7 +300,7 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     else if (filePath.find(".jpg") != std::string::npos || filePath.find(".jpeg") != std::string::npos)
         contentType = "image/jpeg";
     else
-        contentType = "text/html";
+        contentType = "text/";
     s = "Server: " + req.get_servername() + "\r\n";
     s += "Content-Type: " + contentType + "\r\n";
     s += "Content-Length: " + uintToString(contentLength) + "\r\n";
@@ -349,7 +349,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
     std::string body;
     std::string statusLine;
     std::ifstream file(this->getfullPath().c_str(), std::ios::binary);
-    // std::cout << this->getfullPath() << "   here\n"; 
+    std::cout << this->getfullPath() << "   here\n"; 
     if (!this->get_check_autoindex() && this->getError() && !file.is_open()) {
         statusLine = "HTTP/1.1 404 Not Found\r\n";
         body = "<html><body><h1>404 Not Found</h1></body></html>";
@@ -431,6 +431,11 @@ bool handelGET(Httprequest &req, config &config)
 
 void    saveBodyToFile(Httprequest &req)
 {
+    std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
+    for(int i = 0; i < req.getBody().size(); i++)
+    {
+        std::cout <<  req.getBody()[i] ;
+    }
     std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
     if (!outfile.is_open())
     {
@@ -441,7 +446,7 @@ void    saveBodyToFile(Httprequest &req)
     outfile.close();
 }
 
-bool handelPOST(Httprequest &req, Location loc, config &config)
+bool handelPOST(Httprequest &req, config &config)
 {
     //khesni nzid   cgi_enabled on; allowed methods
     bool found = false;
@@ -516,7 +521,7 @@ bool    handleMethod(Httprequest &req, config &config)
         check = handelGET(req, config);
     else if (meth == "POST")
     {
-        check = handelPOST(req, findMatchingLocation(req, config), config);
+        check = handelPOST(req, config);
     }
     // else if (meth == "DELETE")
 // 
@@ -617,6 +622,15 @@ int Httprequest::request_pars(ClientData &client , config &config)
     std::string tmp;
     set_index(client.get_srv_index());
     int a = 0;
+
+    if (client.get_post_boolen()) // mehdi li darha dayl post case
+    {
+        for(int i = 0; i < client.get_request().size(); i++)
+            body.push_back(client.get_request()[i]);
+        handleMethod(*this, config);
+        return 0;
+    }
+
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
     if (client.get_request()[0] != 'P')
@@ -658,6 +672,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     // {
     for(int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
+
     //     client.set_reqs_done(true);
     // }
     // std::cout << "method : "<< method << std::endl;
@@ -671,6 +686,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     // {
     //  std::cout << "body : "<< body[i] << std::endl;
     // }
+
 
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     std::cout << "size : " << path.size() << std::endl;
@@ -719,6 +735,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     /********************************************/
     return 0;
 }
+
 
 
 

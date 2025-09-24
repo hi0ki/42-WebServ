@@ -189,22 +189,30 @@ void Server::pars_post_req(int index)
 	std::string old_request;
 	std::string body;
 	size_t find_index;
+	static bool first_time;
 
-	for(int i = 0; i < this->clients[index].get_request().size(); i++)
-		old_request.push_back(this->clients[index].get_request()[i]);
-	find_index = old_request.find("\r\n\r\n");	
-	if (find_index != std::string::npos)
-		body = old_request.substr(find_index + 4);
-	new_request.insert(new_request.end(), body.begin(), body.end());
-	
-	// setting body to request
-	this->clients[index].set_request(new_request);
-	std::cout << "length dyal req = " << this->clients[index].get_request().size() << std::endl;
-	std::cout << "length dyal req 1 = " << this->clients[index].get_length() << std::endl;
+	if (!first_time)
+	{
+		std::cout << "first time \n";
+		for(int i = 0; i < this->clients[index].get_request().size(); i++)
+			old_request.push_back(this->clients[index].get_request()[i]);
+		find_index = old_request.find("\r\n\r\n");
+		if (find_index != std::string::npos)
+			body = old_request.substr(find_index + 4);
+		new_request.insert(new_request.end(), body.begin(), body.end());
+		first_time = !first_time;
+		this->clients[index].set_request(new_request);
+	}
+	else
+		this->clients[index].requse_append(new_request);
+
+	std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;
+	std::cout << "length dyal myreq = " << this->clients[index].get_request().size() << std::endl;
 	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
 	{
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
+		this->clients[index].set_length(-1);
 	}
 	// std::cout << "test = '>";
 	// for (int i = 0; i <= new_request.size(); i++)
@@ -235,18 +243,22 @@ void Server::handle_request(int i)
 		return ;
 	}
 
-
 	this->clients[fds[i].fd].set_request(request);
+	
 	for (int j = 0; j < request.size(); j++)
 		std::cout << clients[fds[i].fd].get_request()[j];
-	this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
-	for (int j = 0; j < request.size(); j++)
-		std::cout << this->clients[fds[i].fd].get_request()[j];
+
+	if (this->clients[fds[i].fd].get_length() == -1)
+		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+
 	std::cout << this->clients[fds[i].fd].get_length() << std::endl;
+
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())  /// check dyal length mkhdamch li kayn f lpars dyal post body
-	{
-		std::cout << "\n\nPost case\n" << std::endl;
 		pars_post_req(fds[i].fd);
+	if (this->clients[fds[i].fd].get_post_boolen())
+	{
+		std::cout << "dkhl lmra tanya l post" << std::endl;
+ 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
@@ -261,6 +273,7 @@ void Server::handle_response(int i)
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
+	std::cout << response << std::endl;
 	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{

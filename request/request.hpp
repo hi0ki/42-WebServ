@@ -88,9 +88,9 @@
             int get_index() const;
 
     
-
     };
 
+    bool handelPOST(Httprequest &req, config &config);
 
 
    /*
