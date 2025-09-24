@@ -1,21 +1,59 @@
 #include "request.hpp"
 #include "../core_srv/include/ClientData.hpp" 
 
+// bool is_valid_url(const std::string &uri) 
+// {
+//     (void) uri;
+//     const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_-~/?#[]@!$()'*+,'=%.&";
+//     const std::vector<char> allowedChars(chars.begin(), chars.end());
+//     // if (uri.find("%20"))
+//     // {
+//     //     return false;
+//     // }
+//     // for(size_t i = 0; i < uri.size(); i++) 
+//     // {
+//     //     if(uri[i] != '\0' && std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end())
+//     //         return false;
+//     // }
+//         std::cout << "yeeeees\n";
+
+//     return true;
+// }
+
+bool isValidURIChar(char c) {
+
+    std::string unreserved = "-._~";
+    if (isalnum(c) || unreserved.find(c) != std::string::npos || c == '%')
+        return true;
+    std::string reserved = ":/?#[]@!$&'()*+,;=";
+    if (reserved.find(c) != std::string::npos)
+        return true;
+    return false;
+}
+
 bool is_valid_url(const std::string &uri) 
 {
-    const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_-~/?#[]@!$()'*+,'=%.&";
-    const std::vector<char> allowedChars(chars.begin(), chars.end());
-    // if (uri.find("%20"))
-    // {
-    //     return false;
-    // }
-    // for(size_t i = 0; i < uri.size(); i++) 
-    // {
-    //     if(uri[i] != '\0' && std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end())
-    //         return false;
-    // }
-        std::cout << "yeeeees\n";
+   for (size_t i = 0; i < uri.size(); ++i) 
+   {
+        if (!isValidURIChar(uri[i]))
+            return false;
+        if (uri[i] == '%') 
+        {
+            if (i + 2 >= uri.size() || !isxdigit(uri[i+1]) || !isxdigit(uri[i+2]))
+                return false;
+            i += 2;
+        }
+    }
+    return true;
+}
 
+bool checkBodySize(Httprequest &req)
+{
+    if (req.getBody().size() > 5242880)
+    {
+        req.setStatus(413, "Request Entity Too Large");
+        return false;
+    }
     return true;
 }
 
@@ -46,6 +84,8 @@ bool is_req_well_formed(Httprequest &req)
         req.setStatus(414, "Request-URI Too Long");
         return false;
     }
+    if (!checkBodySize(req))
+        return false;
     std::cout << "dazet shiha mn errors\n";
     //if =>Request body larger han client max body size in config file
     return true;
@@ -179,9 +219,9 @@ bool isAutoindexEnabled(Httprequest &req, config &config, bool found)
     {
         std::string dir = req.getPath().substr(0, req.getPath().find('/' , 1));
         std::vector<Location> loc = config.get_servs()[req.get_index()].get_location();
-        for(int i = 0; i < loc.size(); i++)
+        for(unsigned int i = 0; i < loc.size(); i++)
         {
-            if (loc[i].path.find(dir) != -1)
+            if (loc[i].path.find(dir) != std::string::npos)
             {
                 if (loc[i].path != "")
                 {
@@ -244,7 +284,7 @@ bool isMethodAllowed(Httprequest &req, config &config)
     std::string meth = req.getMethod();
     if (loc.methods.empty() && config.get_servs()[req.get_index()].get_methods().empty())
         return true;
-    for(int i = 0; i < loc.methods.size(); i++)
+    for(unsigned int i = 0; i < loc.methods.size(); i++)
     {
         if (loc.methods[i] == meth)
             return true;
@@ -254,7 +294,7 @@ bool isMethodAllowed(Httprequest &req, config &config)
         std::vector<std::string> s = config.get_servs()[req.get_index()].get_methods();
         if (!s.empty())
         {
-            for (int i = 0; i < s.size(); i++)
+            for (unsigned int i = 0; i < s.size(); i++)
             {
                 if (s[i] == meth)
                     return true;
@@ -410,7 +450,7 @@ void    saveBodyToFile(Httprequest &req)
     outfile.close();
 }
 
-bool handelPOST(Httprequest &req, Location loc, config &config)
+bool handelPOST(Httprequest &req, config &config)
 {
     //khesni nzid   cgi_enabled on; allowed methods
     char c = '\0';
@@ -455,7 +495,7 @@ bool handelPOST(Httprequest &req, Location loc, config &config)
 bool handelDELETE(Httprequest &req, config &config)
 {
     char c = '\0';
-    bool t_f = true;
+    // bool t_f = true;
     if (!isMethodAllowed(req, config))
         return false;
     if (pathExists(req.getAbsolutePath(), req, c) != true)
@@ -486,7 +526,7 @@ bool    handleMethod(Httprequest &req, config &config)
         check = handelGET(req, config);
     else if (meth == "POST")
     {
-        check = handelPOST(req, findMatchingLocation(req, config), config);
+        check = handelPOST(req, config);
     }
     else if (meth == "DELETE")
         check = handelDELETE(req, config);
@@ -496,9 +536,9 @@ bool    handleMethod(Httprequest &req, config &config)
 std::string readLineFromVector(const std::vector<char> &request , int &pos)
 {
     std::string line;
-    while (pos < request.size())
+    while ((unsigned int)pos < request.size())
     {
-        if (request[pos] == '\r' && pos + 1 < request.size() && request[pos + 1] == '\n')
+        if (request[pos] == '\r' && (size_t)(pos + 1) < request.size() && request[pos + 1] == '\n')
         {
             pos += 2;
             break;
@@ -514,7 +554,7 @@ void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
     // std::cout << "dekhlat\n";
     client.set_reqs_done(false);
     std::string s;
-    for(int i = start ; i < client.get_request().size(); i++)
+    for(int i = start ; (unsigned int)i < client.get_request().size(); i++)
     {
         s = readLineFromVector(client.get_request(), i);
         long chunk_size = strtol(s.c_str(), NULL, 16);
@@ -528,7 +568,7 @@ void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
         for(int j = 0; j < chunk_size; j++)
             body.push_back(client.get_request()[i + j]);
         i += chunk_size - 1;
-        if (i + 2 <= client.get_request().size() && client.get_request()[i] == '\r' && client.get_request()[i + 1] == '\n')
+        if ((unsigned int)(i + 2) <= client.get_request().size() && client.get_request()[i] == '\r' && client.get_request()[i + 1] == '\n')
             i += 2;
     }
 }
@@ -564,9 +604,9 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
             req.setForceGetOnError(true);
         }
         std::cout << req.getStatus_code() << "\n";
-        for(int i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
+        for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
         {
-            if (req.getStatus_code() == config.get_servs()[req.get_index()].get_errpage()[i].err)
+            if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
             {
                 std::cout << "hasab tawaQo3i dekhlat hna\n";
                 req.setError_page_found(true);
@@ -585,9 +625,9 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
 
 bool check_Error_pages(Httprequest &req, config &config)
 {
-    for(int i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
+    for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
     {
-        if (req.getStatus_code() == config.get_servs()[req.get_index()].get_errpage()[i].err)
+        if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
         {
             // std::cout << "hhhihihihio\n";
             req.setError_page_found(true);
@@ -621,7 +661,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     set_servername(config);
     set_index(client.get_srv_index());
     int a = 0;
-    for(int i = 0; i < client.get_request().size(); i++)
+    for(size_t i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
     if (client.get_request()[0] != 'P')
     {
@@ -637,7 +677,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     method = r.substr(0 , r.find(' ', 0));
     path = r.substr(r.find(' ', 0) + 1, r.find(' ',r.find(' ', 0) + 1) - (r.find(' ', 0) + 1));
     version = r.substr(r.find(' ',r.find(' ', 0) + 1) + 1,(r.find('\r', 0) - 1) - r.find(' ',r.find(' ', 0) + 1));
-    for(int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
+    for(unsigned int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
     {
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
@@ -648,7 +688,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     //     parseChunkedBody(body ,client, a + 2);
     // else
     // {
-    for(int i = a + 2; i < client.get_request().size(); i++)
+    for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     std::cout << "size : " << path.size() << std::endl;
