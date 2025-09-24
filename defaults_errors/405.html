@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>405 Method Not Allowed</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { --bg: #f7f8fa; --card: #fff; --accent: #ff6b6b; --muted: #6b7280; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+      color: #222;
+    }
+    .card {
+      max-width: 720px;
+      width: 90%;
+      background: var(--card);
+      padding: 36px;
+      border-radius: 10px;
+      box-shadow: 0 8px 30px rgba(16,24,40,0.08);
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 40px;
+      color: var(--accent);
+    }
+    p.lead {
+      margin: 0 0 18px;
+      font-size: 18px;
+      color: var(--muted);
+    }
+    .info {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      background: #f3f4f6;
+      color: #374151;
+      font-size: 14px;
+    }
+    a.button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 18px;
+      border-radius: 6px;
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a.button:hover { opacity: 0.95; }
+    footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="card" role="main" aria-labelledby="title">
+    <h1 id="title">405 Method Not Allowed</h1>
+    <p class="lead">The request method is not supported for the requested resource.</p>
+
+    <div class="info">
+      Allowed methods: <strong><!-- insert allowed methods here, e.g. GET, HEAD --></strong>
+    </div>
+
+    <div>
+      <a class="button" href="/">Return to Home</a>
+    </div>
+
+    <footer>
+      If you believe this is an error, check the request method or contact the site administrator.
+    </footer>
+  </div>
+</body>
+</html>
