@@ -14,6 +14,7 @@ Httprequest::Httprequest()
     this->status_code = 0;
     this->status_text = "";
     this->check_autoindex = false;
+    this->forceGetOnError = false;
 }
 
 void Httprequest::setMethod(const std::string &method)
@@ -92,6 +93,16 @@ std::string Httprequest::getfullPath() const
     return (this->fullPath);
 }
 
+void Httprequest::setError_page_found(const bool &Error)
+{
+    this->Error_page_found = Error;
+}
+            
+bool Httprequest::getError_page_found() const
+{
+    return Error_page_found;
+}
+
 void Httprequest::setError(const bool &Error)
 {
     this->error = Error;
@@ -151,4 +162,13 @@ void Httprequest::set_index(int nindex)
 int Httprequest::get_index() const
 {
     return this->index;
+}
+
+void Httprequest::setForceGetOnError(bool forceGetOnError)
+{
+    this->forceGetOnError = forceGetOnError;
+}
+bool Httprequest::getForceGetOnError()const
+{
+    return this->forceGetOnError;
 }

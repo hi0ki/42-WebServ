@@ -1,15 +1,58 @@
 #include "request.hpp"
 #include "../core_srv/include/ClientData.hpp" 
 
+// bool is_valid_url(const std::string &uri) 
+// {
+//     (void) uri;
+//     const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_-~/?#[]@!$()'*+,'=%.&";
+//     const std::vector<char> allowedChars(chars.begin(), chars.end());
+//     // if (uri.find("%20"))
+//     // {
+//     //     return false;
+//     // }
+//     // for(size_t i = 0; i < uri.size(); i++) 
+//     // {
+//     //     if(uri[i] != '\0' && std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end())
+//     //         return false;
+//     // }
+//         std::cout << "yeeeees\n";
+
+//     return true;
+// }
+
+bool isValidURIChar(char c) {
+
+    std::string unreserved = "-._~";
+    if (isalnum(c) || unreserved.find(c) != std::string::npos || c == '%')
+        return true;
+    std::string reserved = ":/?#[]@!$&'()*+,;=";
+    if (reserved.find(c) != std::string::npos)
+        return true;
+    return false;
+}
+
 bool is_valid_url(const std::string &uri) 
 {
-    const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_-~/?#[]@!$()'*+,'=%.&";
-    const std::vector<char> allowedChars(chars.begin(), chars.end());
-  
-    for(size_t i = 0; i < uri.size(); i++) 
-    {
-        if(uri[i] != '\0' && std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end())
+   for (size_t i = 0; i < uri.size(); ++i) 
+   {
+        if (!isValidURIChar(uri[i]))
             return false;
+        if (uri[i] == '%') 
+        {
+            if (i + 2 >= uri.size() || !isxdigit(uri[i+1]) || !isxdigit(uri[i+2]))
+                return false;
+            i += 2;
+        }
+    }
+    return true;
+}
+
+bool checkBodySize(Httprequest &req)
+{
+    if (req.getBody().size() > 5242880)
+    {
+        req.setStatus(413, "Request Entity Too Large");
+        return false;
     }
     return true;
 }
@@ -30,28 +73,27 @@ bool is_req_well_formed(Httprequest &req)
             return false;
         }
     }
-    if (req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length") == req.getHeaders().end() \
-       && req.getMethod() == "POST")
+    if ((req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length") == req.getHeaders().end() \
+       && req.getMethod() == "POST") || !is_valid_url(req.getPath()))
     {
         req.setStatus(400, "Bad Request");
         return false;
     } 
-    if (is_valid_url(req.getPath()) == false)
-    {
-        req.setStatus(400, "Bad Request");
-        return false;
-    }
     if (req.getPath().size() > 2048)
     {
         req.setStatus(414, "Request-URI Too Long");
         return false;
     }
+    if (!checkBodySize(req))
+        return false;
+    std::cout << "dazet shiha mn errors\n";
     //if =>Request body larger han client max body size in config file
     return true;
 }
 
 Location findMatchingLocation(Httprequest &req, config &config) 
 {
+    std::cout << "dekhlat l find location\n";
    std::vector<Location> locations = config.get_servs()[req.get_index()].get_location();
     static Location dummy; 
     Location best_match;
@@ -73,42 +115,17 @@ Location findMatchingLocation(Httprequest &req, config &config)
             }
         }
     }
-    if (best_match.path.size() && best_match.path == "/" && req.getPath().find('/', 1) != std::string::npos)
+    if (best_match.path.size() && best_match.path == "/" && req.getPath().find('/', 1) != std::string::npos && !req.getError())
     {
-        if (req.getError() == false)
-            req.setStatus(404, "Not Found");
+        req.setStatus(404, "Not Found");
         return dummy;
     }
     if (best_match.path.size())
         return best_match;
-    if (req.getError() == false)
-        req.setStatus(404, "Not Found");
+    // if (req.getError() == false)
+    //     req.setStatus(404, "Not Found");
     return dummy;
 }
-
-// Location& findMatchingLocation(Httprequest &req, config &config)
-// {
-//     std::vector<Location> locations = config.get_servs()[req.get_index()].get_location();
-//     static Location dummy; 
-//     Location* best_match = nullptr;
-//     size_t longest = 0;
-
-//     for (size_t i = 0; i < locations.size(); i++) 
-//     {
-//         if (req.getPath().compare(0, locations[i].path.size(), locations[i].path) == 0) 
-//         {
-//             if (locations[i].path.size() > longest) 
-//             {
-//                 best_match = &locations[i];
-//                 longest = locations[i].path.size();
-//             }
-//         }
-//     }
-//     if (best_match)
-//         return *best_match;
-//     req.setStatus(404, "Not Found");
-//     return dummy;
-// }
 
 bool pathExists(const std::string& path, Httprequest &req, char &c) 
 {
@@ -135,9 +152,6 @@ bool fileExists(const std::string& path)
     return false;
 }
 
-//Most websites use a default “homepage” inside directories.
-//If the user requests /folder/, they usually want /folder/index.html.
-
 bool findIndexFile(Httprequest &req) 
 {
     std::vector<std::string> indexFiles;
@@ -150,7 +164,10 @@ bool findIndexFile(Httprequest &req)
         std::string fullPath = req.getAbsolutePath() + indexFiles[i];
         if (fileExists(fullPath))
         {
-            req.setfullPath(fullPath);
+            // req.setfullPath(fullPath);
+            req.setAbsolutePath(fullPath);
+
+            req.setStatus(200, "OK");
             return true;
         } 
     }
@@ -175,7 +192,10 @@ bool resolve_index(Httprequest &req, config &config)
     {
         if(fileExists(req.getAbsolutePath() + loc.index) == true)
         {
-            req.setfullPath(req.getAbsolutePath() + loc.index);
+            // req.setfullPath(req.getAbsolutePath() + loc.index);
+            req.setAbsolutePath(req.getAbsolutePath() + loc.index);
+
+            req.setStatus(200, "OK");
             return true;
         }
         return false;
@@ -184,30 +204,32 @@ bool resolve_index(Httprequest &req, config &config)
     {
         if(fileExists(req.getAbsolutePath() + config.get_servs()[req.get_index()].get_index()) == true)
         {
-            req.setfullPath(req.getAbsolutePath() + config.get_servs()[req.get_index()].get_index());
+            // req.setfullPath(req.getAbsolutePath() + config.get_servs()[req.get_index()].get_index());
+            req.setAbsolutePath(req.getAbsolutePath() + config.get_servs()[req.get_index()].get_index());
+            req.setStatus(200, "OK");
             return true;
         }
     }
     return false;
 }
 
-//Connects to IP 127.0.0.1 on port 8080.
-//If your web server is running and listening on 8080, connection succeeds.
 bool isAutoindexEnabled(Httprequest &req, config &config, bool found)
 {
     if (found == true)
     {
         std::string dir = req.getPath().substr(0, req.getPath().find('/' , 1));
         std::vector<Location> loc = config.get_servs()[req.get_index()].get_location();
-        for(int i = 0; i < loc.size(); i++)
+        for(unsigned int i = 0; i < loc.size(); i++)
         {
-            if (loc[i].path.find(dir) != -1)
+            if (loc[i].path.find(dir) != std::string::npos)
             {
                 if (loc[i].path != "")
                 {
                     if(fileExists(req.getAbsolutePath() + "/" + loc[i].index) == true)
                     {
-                        req.setfullPath(req.getAbsolutePath() + "/" + loc[i].index);
+                        // req.setfullPath(req.getAbsolutePath() + "/" + loc[i].index);
+                        req.setAbsolutePath(req.getAbsolutePath() + "/" + loc[i].index);
+
                         return true;
                     }
                     return false;
@@ -259,11 +281,29 @@ std::string AutoindexPage(Httprequest &req)
 bool isMethodAllowed(Httprequest &req, config &config)
 {
     Location loc = findMatchingLocation(req, config);
-    if (loc.path.empty())
-        return false;
-    return true;
-    // loc.me
-
+    std::string meth = req.getMethod();
+    if (loc.methods.empty() && config.get_servs()[req.get_index()].get_methods().empty())
+        return true;
+    for(unsigned int i = 0; i < loc.methods.size(); i++)
+    {
+        if (loc.methods[i] == meth)
+            return true;
+    }
+    if (loc.methods.empty())
+    {
+        std::vector<std::string> s = config.get_servs()[req.get_index()].get_methods();
+        if (!s.empty())
+        {
+            for (unsigned int i = 0; i < s.size(); i++)
+            {
+                if (s[i] == meth)
+                    return true;
+            }
+        }
+    }
+    if (!req.getError_page_found())
+        req.setStatus(405, "Method Not Allowed");
+    return false;
 }
 
 bool isUriEndsWithSlash(std::string s, Httprequest &req)
@@ -302,6 +342,8 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     else
         contentType = "text/html";
     s = "Server: " + req.get_servername() + "\r\n";
+    // if (req.getStatus_code() == 301)
+    //     s += "Location: /api/html\r\n" ; //khesak tQadiha 
     s += "Content-Type: " + contentType + "\r\n";
     s += "Content-Length: " + uintToString(contentLength) + "\r\n";
     s += "Connection: " ;
@@ -313,44 +355,17 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     return s;
 }
 
-// std::string Httprequest::buildHttpResponse() 
-// {
-//     // std::cout << "wlh \n";
-//     std::string response;
-//     std::string body;
-//     std::string statusLine;
-//     std::ifstream file(this->getfullPath().c_str(), std::ios::binary);
-//     // std::cout << this->getfullPath() << "   here\n";
-//    //remember to test with www/
-// //    if (this->get_check_autoindex() == true)
-// //         body = AutoindexPage(*this);
-//     if (!file.is_open()) {
-//         statusLine = "HTTP/1.1 404 Not Found\r\n";
-//         body = "<html><body><h1>404 Not Found</h1></body></html>";
-//     }
-//     else{
-//         statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
-//         std::ostringstream bodyStream;
-//         bodyStream << file.rdbuf();
-//         body = bodyStream.str();
-//     }
-//     // std::cout << "im hereeeee\n";
-//     // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
-//     // response += "\r\n";
-//     response = statusLine + buildHeaders(*this, body.size())+  body;
-//     std::cout << "response :"<< response<< std::endl; // print response
-//     return response;
-// }
 
 std::string Httprequest::buildHttpResponse(bool keep_alive) 
 {
-    // std::cout << "wlh mnf mal had lekhra\n";
+    std::cout << "wlh mnf mal had lekhra\n";
+    std::cout << this->getStatus_code() << std::endl;
     std::string response;
     std::string body;
     std::string statusLine;
-    std::ifstream file(this->getfullPath().c_str(), std::ios::binary);
-    // std::cout << this->getfullPath() << "   here\n"; 
-    if (!this->get_check_autoindex() && this->getError() && !file.is_open()) {
+    std::ifstream file(this->getAbsolutePath().c_str(), std::ios::binary);
+    std::cout << this->getAbsolutePath() << "   here\n"; 
+    if (!this->get_check_autoindex() && !file.is_open()) {
         statusLine = "HTTP/1.1 404 Not Found\r\n";
         body = "<html><body><h1>404 Not Found</h1></body></html>";
     }
@@ -360,6 +375,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
             body = AutoindexPage(*this);
         else
         { 
+            std::cout << "mohm rani hna\n";
             std::ostringstream bodyStream;  
             bodyStream << file.rdbuf();
             body = bodyStream.str();
@@ -384,46 +400,39 @@ bool handelGET(Httprequest &req, config &config)
 {
     char c = '\0';
     bool t_f = true;
+    if (!isMethodAllowed(req, config))
+        return false;
     if (pathExists(req.getAbsolutePath(), req, c) != true)
     {
+        req.setError(true);
         req.setStatus(404, "Not Found");
         return false;
     }
-    // std::cout << "ha ana wsalt lehna \n";
     if (c == 'D')
     {
-        // std::cout << "dkholt l directory\n";
         if (!isUriEndsWithSlash(req.getPath(), req))
             return false;
-        // std::cout << "mazal haya\n";
         if (resolve_index(req, config) == false)
             t_f = findIndexFile(req);
         if (t_f == false)
         {
-            // std::cout << "la dekhlat hna anmoot\n";
-            //had lpart mazal naQsa
             if(config.get_servs()[req.get_index()].get_autoindex() == true)
             {
-                //  std::cout << "la dekhlat hna anmoot\n";
                 //khesni nzid auto index ela kol location
                 req.setStatus(200, "OK");
                 req.set_check_autoindex(true);
-                // AutoindexPage(req);
-                // std::cout << "hahiya hna\n";
                 return true;
             }
             else
             {
-                std::cout << "wtf\n";
                 req.setStatus(403, "Forbidden");
                 return false;
             }
         }
     }
-    if (req.getError() == false)
-        req.setStatus(200, "OK");
-    if (c == 'F')
-        req.setfullPath(req.getAbsolutePath());
+    // if (c == 'F')
+    //     req.setfullPath(req.getAbsolutePath());
+    //if_location_has_cgi() the last thing
     std::cout << req.getAbsolutePath() << std::endl;
     return true;
 }
@@ -441,98 +450,95 @@ void    saveBodyToFile(Httprequest &req)
     outfile.close();
 }
 
-bool handelPOST(Httprequest &req, Location loc, config &config)
+bool handelPOST(Httprequest &req, config &config)
 {
     //khesni nzid   cgi_enabled on; allowed methods
-    bool found = false;
-    std::vector<std::string> allowed_methods;
-    allowed_methods.push_back("GET");
-    allowed_methods.push_back("POST");
-    for(int i = 0; i < allowed_methods.size(); i++)
+    char c = '\0';
+    if (isMethodAllowed(req, config))
     {
-        if (allowed_methods[i] == "POST")
-        {
-            // std::cout << "jab lah tisir\n";
-            req.setStatus(201, "Created");
-            saveBodyToFile(req);
-            return true;
-        }
-    }
-    if (found == true)
-    {
-        //If yes → read the body, validate size, store it.
-        /*Read the Content-Length header from the request.
-        Make sure it does not exceed client_max_body_size.
-        Read the body from the socket into a buffer (or temporary file if large).
-        Save the body to the appropriate location on the filesystem.*/
         req.setStatus(201, "Created");
+        saveBodyToFile(req);
         return true;
     }
-    // else
-    // {
-        //possible nzewel had else
-        char c = '\0';
-        if (pathExists(req.getAbsolutePath(), req, c) != true)
-        {
-            // std::cout << "Path not exist" << std::endl;
-            req.setStatus(404, "Not Found");
+    if (pathExists(req.getAbsolutePath(), req, c) != true)
+    {
+        req.setError(true);///
+        req.setStatus(404, "Not Found");
+        return false;
+    }
+    if (c == 'D')
+    {  
+        bool t_f = true;
+        if (!isUriEndsWithSlash(req.getPath(), req))
             return false;
-        }
-        if (c == 'D')
-        {  
-            bool t_f = true;
-            if (!isUriEndsWithSlash(req.getPath(), req))
-                return false;
-            if (resolve_index(req, config) == false)
-                t_f = findIndexFile(req);
-            if (t_f == false)
+        if (resolve_index(req, config) == false)
+            t_f = findIndexFile(req);
+        if (t_f == false)
+        {
+            if(config.get_servs()[req.get_index()].get_autoindex() == true)
             {
-                //had lpart mazal naQsa
-                if(config.get_servs()[req.get_index()].get_autoindex() == true)
-                {
-                    //khesni nzid auto index ela kol location
-                    req.setStatus(200, "OK");
-                    AutoindexPage(req);
-                    return true;
-                }
-                else
-                {
-                    req.setStatus(403, "Forbidden");
-                    return false;
-                }
+                //khesni nzid auto index ela kol location
+                req.setStatus(200, "OK");
+                AutoindexPage(req);
+                return true;
+            }
+            else
+            {
+                req.setStatus(403, "Forbidden");
+                return false;
             }
         }
-        // if it a file or dirc i should check cgi
-
-    // }
+    }
+    // if it a file or dirc i should check cgi
     return true;
 }
-
+bool handelDELETE(Httprequest &req, config &config)
+{
+    char c = '\0';
+    // bool t_f = true;
+    if (!isMethodAllowed(req, config))
+        return false;
+    if (pathExists(req.getAbsolutePath(), req, c) != true)
+    {
+        req.setError(true);
+        req.setStatus(404, "Not Found");
+        return false;
+    }
+    if (c == 'D')
+    {
+        if (!isUriEndsWithSlash(req.getPath(), req))
+        {
+            req.setStatus(409, "Conflict");
+            return false;
+        }
+        //if hase a location in cgi
+    }
+    //if doent have an cgi delete the file 
+    req.setStatus(204, "No Content");
+    remove(req.getAbsolutePath().c_str());
+    return true;
+}
 bool    handleMethod(Httprequest &req, config &config)
 {
     std::string meth = req.getMethod();
-    bool check;
+    bool check = false;
     if (meth == "GET")
         check = handelGET(req, config);
     else if (meth == "POST")
     {
-        check = handelPOST(req, findMatchingLocation(req, config), config);
+        check = handelPOST(req, config);
     }
-    // else if (meth == "DELETE")
-// 
-    else
-    {
-        req.setStatus(405, "Method Not Allowed");
-    }
+    else if (meth == "DELETE")
+        check = handelDELETE(req, config);
     return check;
 }
 
 std::string readLineFromVector(const std::vector<char> &request , int &pos)
 {
     std::string line;
-    while (pos < request.size())
+    while ((unsigned int)pos < request.size())
     {
-        if (request[pos] == '\r' && pos + 1 < request.size() && request[pos + 1] == '\n')
+        if (request[pos] == '\r' && (size_t)(pos + 1) < request.size() && request[pos + 1] == '\n')
         {
             pos += 2;
             break;
@@ -548,7 +554,7 @@ void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
     // std::cout << "dekhlat\n";
     client.set_reqs_done(false);
     std::string s;
-    for(int i = start ; i < client.get_request().size(); i++)
+    for(int i = start ; (unsigned int)i < client.get_request().size(); i++)
     {
         s = readLineFromVector(client.get_request(), i);
         long chunk_size = strtol(s.c_str(), NULL, 16);
@@ -562,24 +568,56 @@ void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
         for(int j = 0; j < chunk_size; j++)
             body.push_back(client.get_request()[i + j]);
         i += chunk_size - 1;
-        if (i + 2 <= client.get_request().size() && client.get_request()[i] == '\r' && client.get_request()[i + 1] == '\n')
+        if ((unsigned int)(i + 2) <= client.get_request().size() && client.get_request()[i] == '\r' && client.get_request()[i + 1] == '\n')
             i += 2;
     }
 }
 
-bool checkAndApplyErrorPage(config &config, Httprequest &req)
+bool is_location_have_redirect(Httprequest &req, config &config)
 {
-    if (!is_req_well_formed(req) || findMatchingLocation(req, config).path.empty())
+    Location loc = findMatchingLocation(req, config);
+    if (loc.type == REDIRECT)
     {
-        for(int i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
+        req.setStatus(301, "Moved Permanently");
+        return true;
+    }
+    return false;
+}
+
+bool isValidMethod(Httprequest &req)
+{
+    std::string method = req.getMethod();
+    if (method == "POST" || method == "DELETE" || method == "GET")
+        return true;
+    req.setStatus(405, "Method Not Allowed");
+    return false;
+}
+bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client)
+{
+    if (!is_req_well_formed(req) || findMatchingLocation(req, config).path.empty() || !isValidMethod(req))
+    {
+        // req.setError(true);// **********************************
+        client.set_reqs_done(true);//
+        if (req.getMethod() == "POST")
         {
-            if (req.getStatus_code() == config.get_servs()[req.get_index()].get_errpage()[i].err)
+            req.setMethod("GET");
+            req.setForceGetOnError(true);
+        }
+        std::cout << req.getStatus_code() << "\n";
+        for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
+        {
+            if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
             {
-                req.setError(true);
+                std::cout << "hasab tawaQo3i dekhlat hna\n";
+                req.setError_page_found(true);
                 req.setPath(config.get_servs()[req.get_index()].get_errpage()[i].red_page);
+                resolvePath(config, req);
+                if (fileExists(req.getAbsolutePath()) == false)
+                    return false;
+                return true;
             }
         }
-        if (req.getError() == false)
+        if (req.getError_page_found() == false)
             return false;
     }
     return true;
@@ -587,27 +625,32 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req)
 
 bool check_Error_pages(Httprequest &req, config &config)
 {
-    for(int i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
+    for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
     {
-        if (req.getStatus_code() == config.get_servs()[req.get_index()].get_errpage()[i].err)
+        if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
         {
-            req.setError(true);
+            // std::cout << "hhhihihihio\n";
+            req.setError_page_found(true);
             req.setPath(config.get_servs()[req.get_index()].get_errpage()[i].red_page);
+            resolvePath(config, req);
+            if (!fileExists(req.getAbsolutePath()) || !isMethodAllowed(req, config))
+                req.setError_page_found(false);
+            
+            std::cout << "ach l path jdid :" << req.getPath() << std::endl;
         }
     }
-    if (req.getError() == false)
+    if (req.getError_page_found() == false)
     {
         std::cout << "wawwwwww3\n";
-        req.setPath("/errors/" +  uintToString(req.getStatus_code()) + ".html");
-        std::cout << "Path :" << req.getPath() << std::endl;  
-        req.setError(true);
-
-        // return false;
+        req.setAbsolutePath("/Users/felhafid/Desktop/hikii/defaults_errors/" +  uintToString(req.getStatus_code()) + ".html");
+        return true;
+        // req.setError(true);
     }
     if (findMatchingLocation(req, config).path.empty())
         return false;
     resolvePath(config, req);
-    // std::cout <<"absolute path:" <<req.getAbsolutePath() << std::endl;
+    std::cout <<"absolute path:" <<req.getAbsolutePath() << std::endl;
+    std::cout << "hhh : " << req.getStatus_code() << std::endl;
     handleMethod(req, config);
     return true;
 }
@@ -615,9 +658,10 @@ bool check_Error_pages(Httprequest &req, config &config)
 int Httprequest::request_pars(ClientData &client , config &config)
 {
     std::string tmp;
+    set_servername(config);
     set_index(client.get_srv_index());
     int a = 0;
-    for(int i = 0; i < client.get_request().size(); i++)
+    for(size_t i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
     if (client.get_request()[0] != 'P')
     {
@@ -633,60 +677,30 @@ int Httprequest::request_pars(ClientData &client , config &config)
     method = r.substr(0 , r.find(' ', 0));
     path = r.substr(r.find(' ', 0) + 1, r.find(' ',r.find(' ', 0) + 1) - (r.find(' ', 0) + 1));
     version = r.substr(r.find(' ',r.find(' ', 0) + 1) + 1,(r.find('\r', 0) - 1) - r.find(' ',r.find(' ', 0) + 1));
-    for(int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
+    for(unsigned int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
     {
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
     if (method == "POST" && headers.find("Content-Length") != headers.end())
-    {
-        // std::cout << "HELLO                    :  "<<headers["Content-Length"] << std::endl;
         client.set_length(atoi(headers["Content-Length"].c_str()));
-        // std::cout << "**************       :  " << client.get_length() << std::endl;
-
-    }
-    // std::cout << "size : "<<path.size() << std::endl;
-    // std::cout << "path :" << path << std::endl;
-    // for(int i = 0; i < client.get_request().size(); i++)
-    // {
-    //     std::cout << client.get_request()[i];
-    // }
-    // std::cout << "bara : "<<client.get_request()[a + 2] << std::endl;
     // if (!headers.empty() && headers["Transfer-Encoding"] == "chunked")
     //     parseChunkedBody(body ,client, a + 2);
     // else
     // {
-    for(int i = a + 2; i < client.get_request().size(); i++)
+    for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
-    //     client.set_reqs_done(true);
-    // }
-    // std::cout << "method : "<< method << std::endl;
-    // std::cout << "path : "<< path << std::endl;
-    // std::cout << "version : "<< version << std::endl;
-    // for(std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
-    // {
-    //  std::cout << "header : "<< it->first << " : " << it->second<<  std::endl;
-    // }
-    // for(int i = 0; i < body.size(); i++)
-    // {
-    //  std::cout << "body : "<< body[i] << std::endl;
-    // }
-
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     std::cout << "size : " << path.size() << std::endl;
 
-    if (checkAndApplyErrorPage(config, *this) == false)
+    if (checkAndApplyErrorPage(config, *this, client) == false)
     {
-        
-        setPath("/errors/" +  uintToString(this->getStatus_code()) + ".html");
-        std::cout << "Path :" << this->getPath() << std::endl;  
-        this->setError(true);
-        // return 0;
+        setAbsolutePath("/Users/felhafid/Desktop/hikii/defaults_errors/" +  uintToString(this->getStatus_code()) + ".html");
+        return 0;
     }
-    //dont miss do something like return
-    //want from hafsa method allowed and return 301 /home/index.html and autoindex in every location
-
-    //mazal maQditha 
+    // if (is_location_have_redirect(*this, config) == true) // hadi khesa tQa
+   
+    std::cout << "waaaaaa\n";
     if (headers.find("Connection") != headers.end())
     {
         std::string val = headers["Connection"];
@@ -696,27 +710,17 @@ int Httprequest::request_pars(ClientData &client , config &config)
             client.set_keep_alive(false);
         else if (val == "keep-alive")
             client.set_keep_alive(true);
-
-    }   
-
-    set_servername(config);
-
+    }
     /*Look at the location’s config.Check if it has a redirection rule (e.g. return 301 ... or redirect ...).
     Return true (or a redirect config object) if yes, otherwise false.*/
-
     resolvePath(config, *this);
     std::cout << "absolute path : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config) == false)
     {
         std::cout << "ha ana hna \n";
+        std::cout << this->getStatus_code() <<std::endl;
         check_Error_pages(*this, config);
-        // std::cout << this->getStatus_code() << std::endl;
-    } 
-    
-
-
-
-    /********************************************/
+    }
     return 0;
 }
 
@@ -745,37 +749,6 @@ void Httprequest::ft_clean()
     this->status_code = 0;
     this->status_text.clear();
     this->check_autoindex = false;
-    this->error = false;
+    this->Error_page_found = false;
 }
 
-/*std::string Httprequest::buildHttpResponse(bool keep_alive) 
-{
-    std::cout << "wlh mnf mal had lekhra\n";
-    std::string response;
-    std::string body;
-    std::string statusLine;
-    std::ifstream file(this->getfullPath().c_str(), std::ios::binary);
-    // std::cout << this->getfullPath() << "   here\n"; 
-    if (!file.is_open()) {
-        statusLine = "HTTP/1.1 404 Not Found\r\n";
-        body = "<html><body><h1>404 Not Found</h1></body></html>";
-    }
-    else{
-        statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
-        std::ostringstream bodyStream;
-        bodyStream << file.rdbuf();
-        body = bodyStream.str();
-    }
-    // std::cout << "im hereeeee\n";
-    // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
-    // response += "\r\n";
-    response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
-    // std::cout << "response :"<< response<< std::endl; // print response
-    return response;
-}*/
-
-
-/*    error_page 404 /errors/404.html;
-    error_page 500 502 503 504 /errors/50x.html;*/
-
-    //possible to be eroor page in location
