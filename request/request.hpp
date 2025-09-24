@@ -23,10 +23,12 @@
             std::map<std::string, std::string> headers;
             std::string absolutePath;
             std::string fullPath;
-            bool error;
+            bool error; //fach kaykon path makeynech andlit biha wahed l cas odaba anzid f aya cas
             std::string redirectLocation;
             std::string server_name;
             int index;
+            bool forceGetOnError; //mazal makhademto
+            bool Error_page_found; //fach kanelQa fconfig erro page kayen
 
             // std::string query;
             int status_code;
@@ -65,6 +67,8 @@
             void setfullPath(const std::string &fullPath);
             std::string getfullPath() const;
 
+            void setError_page_found(const bool &Error);
+            bool getError_page_found() const;
             void setError(const bool &Error);
             bool getError() const;
 
@@ -86,6 +90,10 @@
 
             void set_index(int nindex);
             int get_index() const;
+
+
+            void setForceGetOnError(bool forceGetOnError);
+            bool getForceGetOnError()const;
 
     
 
