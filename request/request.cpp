@@ -328,9 +328,9 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     std::string s;
 
     std::string contentType = "";
-    std::string filePath = req.getfullPath();
-    // if (filePath.find(".html") != std::string::npos)
-    //     contentType = "text/html";
+    std::string filePath = req.getAbsolutePath();
+    if (filePath.find(".html") != std::string::npos)
+        contentType = "text/html";
     if (filePath.find(".css") != std::string::npos)
         contentType = "text/css";
     else if (filePath.find(".js") != std::string::npos)
@@ -339,8 +339,8 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
         contentType = "image/png";
     else if (filePath.find(".jpg") != std::string::npos || filePath.find(".jpeg") != std::string::npos)
         contentType = "image/jpeg";
-    else
-        contentType = "text/html";
+    // else
+    //     contentType = "text/html";
     s = "Server: " + req.get_servername() + "\r\n";
     // if (req.getStatus_code() == 301)
     //     s += "Location: /api/html\r\n" ; //khesak tQadiha 
@@ -433,6 +433,7 @@ bool handelGET(Httprequest &req, config &config)
     // if (c == 'F')
     //     req.setfullPath(req.getAbsolutePath());
     //if_location_has_cgi() the last thing
+    req.setStatus(200, "OK");
     std::cout << req.getAbsolutePath() << std::endl;
     return true;
 }
