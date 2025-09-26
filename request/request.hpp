@@ -96,9 +96,9 @@
             bool getForceGetOnError()const;
 
     
-
     };
 
+    bool handelPOST(Httprequest &req, config &config);
 
 
    /*

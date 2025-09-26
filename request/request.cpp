@@ -391,7 +391,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
     // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
-    std::cout << "response :"<< response<< std::endl; // print response
+    // std::cout << "response :"<< response<< std::endl; // print response
     return response;
 }
 
@@ -441,6 +441,11 @@ bool handelGET(Httprequest &req, config &config)
 
 void    saveBodyToFile(Httprequest &req)
 {
+    std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
+    for(int i = 0; i < req.getBody().size(); i++)
+    {
+        std::cout <<  req.getBody()[i] ;
+    }
     std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
     if (!outfile.is_open())
     {
@@ -662,7 +667,16 @@ int Httprequest::request_pars(ClientData &client , config &config)
     set_servername(config);
     set_index(client.get_srv_index());
     int a = 0;
-    for(size_t i = 0; i < client.get_request().size(); i++)
+
+    if (client.get_post_boolen()) // mehdi li darha dayl post case
+    {
+        for(int i = 0; i < client.get_request().size(); i++)
+            body.push_back(client.get_request()[i]);
+        handleMethod(*this, config);
+        return 0;
+    }
+
+    for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
     if (client.get_request()[0] != 'P')
     {
@@ -724,6 +738,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     }
     return 0;
 }
+
 
 
 
