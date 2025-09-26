@@ -32,13 +32,13 @@ class Server
         void server_start();
             void bind_socket(int srv_index);
             void listen_socket();
-            // void start_connection();
             void start_connection();
             bool is_server(int fd);
         
             void accept_client(int i);
             void handle_request(int i);
             void handle_response(int i);
-
+        //          Utils
+        void pars_post_req(int index);
     
 }; 
