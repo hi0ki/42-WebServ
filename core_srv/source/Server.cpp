@@ -6,6 +6,17 @@
 
 
 /*
+
+
+
+
+
+
+	tasks of the day
+		khasni nbda n9ra 7ed dak lkey onht f tswire hit t9dr tkon ktr mn tswire f req whda;
+
+
+
 	0 -try to work in map with i nothe fd : impossible
 	1 -move the fds vector to the class : ✅
 	2 -split the code : ✅
@@ -214,13 +225,6 @@ void Server::pars_post_req(int index)
 		this->clients[index].set_reqs_done(true);
 		this->clients[index].set_length(-1);
 	}
-	// std::cout << "test = '>";
-	// for (int i = 0; i <= new_request.size(); i++)
-	// {
-	// 	std::cout << new_request[i] << " ";
-	// }
-	// std::cout << "<'" << std::endl;
-
 }
 
 void Server::handle_request(int i)
@@ -284,9 +288,8 @@ void Server::handle_response(int i)
 		return ;
 	}
 	std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
-	this->clients[fds[i].fd].clean_request(); // don't remove it 
-	this->clients[fds[i].fd].clean_response(); // don't remove it 
-	// clear req obj
-	this->clients[fds[i].fd].get_request_obj().ft_clean();
-	this->fds[i].events = POLLIN; // don't remove it 
+	this->clients[fds[i].fd].clean_request(); 				// don't remove it 
+	this->clients[fds[i].fd].clean_response(); 				// don't remove it 
+	this->clients[fds[i].fd].get_request_obj().ft_clean();	// clear req obj
+	this->fds[i].events = POLLIN; 							// don't remove it 
 }
