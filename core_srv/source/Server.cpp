@@ -9,7 +9,7 @@
 
 
 
-
+	
 
 
 	tasks of the day
@@ -194,6 +194,8 @@ void Server::accept_client(int i)
 	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
 	std::cout << GREEN << "---------------------------------------------" << RESET << std::endl;
 }
+
+
 void Server::pars_post_req(int index)
 {
 	std::vector<char> new_request;
