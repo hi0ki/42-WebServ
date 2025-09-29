@@ -13,6 +13,7 @@ Httprequest::Httprequest()
     this->fullPath = "";
     this->status_code = 0;
     this->status_text = "";
+    this->QUERY_STRING = "";
     this->check_autoindex = false;
     this->forceGetOnError = false;
 }
