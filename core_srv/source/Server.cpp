@@ -198,14 +198,14 @@ void Server::accept_client(int i)
 
 void Server::pars_post_req(int index)
 {
-	std::vector<char> new_request;
-	std::string old_request;
-	std::string body;
-	size_t find_index;
-	static bool first_time;
-
-	if (!first_time)
+	// atji dir dakchi f file
+	if (!this->clients[index].get_ftime_pars())
 	{
+		std::vector<char> new_request;
+		std::string old_request;
+		size_t find_index;
+		std::string body;
+
 		std::cout << "first time \n";
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]);
@@ -213,11 +213,9 @@ void Server::pars_post_req(int index)
 		if (find_index != std::string::npos)
 			body = old_request.substr(find_index + 4);
 		new_request.insert(new_request.end(), body.begin(), body.end());
-		first_time = !first_time;
+		this->clients[index].set_ftime_pars(true);
 		this->clients[index].set_request(new_request);
 	}
-	else
-		this->clients[index].requse_append(new_request);
 
 	std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;
 	std::cout << "length dyal myreq = " << this->clients[index].get_request().size() << std::endl;
@@ -251,20 +249,29 @@ void Server::handle_request(int i)
 
 	this->clients[fds[i].fd].set_request(request);
 	
-	for (int j = 0; j < request.size(); j++)
+	std::cout << " \n-----------------------request---------------------------\n";
+	for (int j = 0; j < clients[fds[i].fd].get_request().size(); j++)
 		std::cout << clients[fds[i].fd].get_request()[j];
+	std::cout << " ----------------------------------------------------------\n\n";
 
 	if (this->clients[fds[i].fd].get_length() == -1)
+	{
+		std::cout << "----------------------------------------------------------------awl mraaa\n";
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
-
-	std::cout << this->clients[fds[i].fd].get_length() << std::endl;
+	}
 
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())  /// check dyal length mkhdamch li kayn f lpars dyal post body
 		pars_post_req(fds[i].fd);
+
+	std::cout << " \n-----------------------request2---------------------------\n";
+	for (int j = 0; j < clients[fds[i].fd].get_request().size(); j++)
+		std::cout << clients[fds[i].fd].get_request()[j];
+	std::cout << " ----------------------------------------------------------\n\n";
+
 	if (this->clients[fds[i].fd].get_post_boolen())
 	{
-		std::cout << "dkhl lmra tanya l post" << std::endl;
- 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+		std::cout << "----------------------------------------------------------------tani mraaa" << std::endl;
+		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{

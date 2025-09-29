@@ -19,6 +19,7 @@ class ClientData
 		Httprequest req;
 		int length;
 		bool post_body_done;
+		bool ftime_pars;
 		// time;
 		/*
 		
@@ -38,6 +39,7 @@ class ClientData
 		void 				set_reqs_done(bool reqst);
 		void 				set_length(int new_length);
 		void 				set_post_boyd(bool body);
+		void 				set_ftime_pars(bool first_time);
 		//      Getters
 		Httprequest			&get_obj_req()
 		{
@@ -51,6 +53,7 @@ class ClientData
 		Httprequest&		get_request_obj();
 		int    				get_length();
 		bool   				get_post_boolen();
+		bool   				get_ftime_pars();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
