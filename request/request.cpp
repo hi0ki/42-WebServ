@@ -47,6 +47,12 @@ bool is_valid_url(const std::string &uri)
     return true;
 }
 
+std::string uintToString(unsigned int value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
 bool checkBodySize(Httprequest &req)
 {
     if (req.getBody().size() > 5242880)
@@ -74,11 +80,16 @@ bool is_req_well_formed(Httprequest &req)
         }
     }
     if ((req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length") == req.getHeaders().end() \
-       && req.getMethod() == "POST") || !is_valid_url(req.getPath()))
+       && req.getMethod() == "POST") || !is_valid_url(req.getPath()) || req.getHeaders().find("Host") == req.getHeaders().end())
     {
         req.setStatus(400, "Bad Request");
         return false;
-    } 
+    }
+    if (req.getHeaders().find("Content-Length") != req.getHeaders().end() && req.getHeaders()["Content-Length"] != uintToString(req.getBody().size()))
+    {
+        req.setStatus(400, "Bad Request");
+        return false;
+    }
     if (req.getPath().size() > 2048)
     {
         req.setStatus(414, "Request-URI Too Long");
@@ -317,11 +328,6 @@ bool isUriEndsWithSlash(std::string s, Httprequest &req)
     return true;
 }
 
-std::string uintToString(unsigned int value) {
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
 
 std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive)
 {
@@ -340,7 +346,7 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     else if (filePath.find(".jpg") != std::string::npos || filePath.find(".jpeg") != std::string::npos)
         contentType = "image/jpeg";
     else
-        contentType = "text/plain";
+        contentType = "text/html";
     s = "Server: " + req.get_servername() + "\r\n";
     // if (req.getStatus_code() == 301)
     //     s += "Location: /api/html\r\n" ; //khesak tQadiha 
@@ -391,7 +397,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
     // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
-    std::cout << "response :"<< response<< std::endl; // print response
+    // std::cout << "response :"<< response<< std::endl; // print response
     return response;
 }
 
@@ -441,6 +447,11 @@ bool handelGET(Httprequest &req, config &config)
 
 void    saveBodyToFile(Httprequest &req)
 {
+    std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
+    for(int i = 0; i < req.getBody().size(); i++)
+    {
+        std::cout <<  req.getBody()[i] ;
+    }
     std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
     if (!outfile.is_open())
     {
@@ -457,6 +468,7 @@ bool handelPOST(Httprequest &req, config &config)
     char c = '\0';
     if (isMethodAllowed(req, config))
     {
+        
         req.setStatus(201, "Created");
         saveBodyToFile(req);
         return true;
@@ -656,14 +668,77 @@ bool check_Error_pages(Httprequest &req, config &config)
     return true;
 }
 
+
+// std::string removeExtraSpaces(const std::string &input) {
+//     std::string result;
+//     bool inSpace = false;
+
+//     for (size_t i = 0; i < input.size(); i++) {
+//         char c = input[i];
+//         if (c == ' ') {
+//             if (!inSpace) { 
+//                 result += c;   // keep only the first space
+//                 inSpace = true;
+//             }
+//         } else {
+//             result += c;       // keep characters
+//             inSpace = false;
+//         }
+//     }
+
+//     return result;
+// }
+
+
+std::vector<char> removeExtraSpaces(const std::vector<char> &input) {
+    std::vector<char> result;
+    bool inSpace = false;
+
+    for (size_t i = 0; i < input.size(); i++) {
+        // Check stop condition: "\r\n\r\n"
+        if (i + 3 < input.size() &&
+            input[i] == '\r' && input[i+1] == '\n' &&
+            input[i+2] == '\r' && input[i+3] == '\n') 
+        {
+            // Copy the rest without touching
+            for (size_t j = i; j < input.size(); j++)
+                result.push_back(input[j]);
+            break;
+        }
+
+        if (input[i] == ' ') {
+            if (!inSpace) {
+                result.push_back(' ');
+                inSpace = true;
+            }
+        } else {
+            result.push_back(input[i]);
+            inSpace = false;
+        }
+    }
+
+    return result;
+}
+
+
 int Httprequest::request_pars(ClientData &client , config &config)
 {
     std::string tmp;
     set_servername(config);
     set_index(client.get_srv_index());
     int a = 0;
-    for(size_t i = 0; i < client.get_request().size(); i++)
+
+    if (client.get_post_boolen()) // mehdi li darha dayl post case
+    {
+        for(int i = 0; i < client.get_request().size(); i++)
+            body.push_back(client.get_request()[i]);
+        handleMethod(*this, config);
+        return 0;
+    }
+    client.set_request(removeExtraSpaces(client.get_request()));
+    for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
+    std::cout << "request mora mazeeltliha spaces: " << tmp << std::endl;
     if (client.get_request()[0] != 'P')
     {
          if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
@@ -676,13 +751,25 @@ int Httprequest::request_pars(ClientData &client , config &config)
     for(int i = 0; i < a; i++)
         r.push_back(tmp[i]);
     method = r.substr(0 , r.find(' ', 0));
-    path = r.substr(r.find(' ', 0) + 1, r.find(' ',r.find(' ', 0) + 1) - (r.find(' ', 0) + 1));
-    version = r.substr(r.find(' ',r.find(' ', 0) + 1) + 1,(r.find('\r', 0) - 1) - r.find(' ',r.find(' ', 0) + 1));
+    size_t path_start = r.find(' ', 0) + 1;
+    size_t path_end = r.find(' ', path_start);
+    std::string tar = r.substr(path_start, path_end - path_start);
+    if (tar.find('?') != std::string::npos)
+    {
+        path = tar.substr(0, tar.find('?'));
+        QUERY_STRING = tar.substr(tar.find('?') + 1);
+    }
+    else
+        path = tar;
+    version = r.substr(path_end + 1, r.find('\r', 0) - (path_end + 1));
+    // path = r.substr(r.find(' ', 0) + 1, r.find(' ',r.find(' ', 0) + 1) - (r.find(' ', 0) + 1));
+    // version = r.substr(r.find(' ',r.find(' ', 0) + 1) + 1,(r.find('\r', 0) - 1) - r.find(' ',r.find(' ', 0) + 1));
     for(unsigned int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
     {
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
+ 
     if (method == "POST" && headers.find("Content-Length") != headers.end())
         client.set_length(atoi(headers["Content-Length"].c_str()));
     // if (!headers.empty() && headers["Transfer-Encoding"] == "chunked")
@@ -691,6 +778,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     // {
     std::cout << "method : " << method << std::endl;
     std::cout << "path : " << path << std::endl;
+    std::cout << "Querry :" << QUERY_STRING << std::endl;
     std::cout << "version : " << version << std::endl;
     std::cout << "headers : \n";
     for(std::map<std::string, std::string>::iterator i = headers.begin(); i != headers.end(); i++)
@@ -700,9 +788,12 @@ int Httprequest::request_pars(ClientData &client , config &config)
     
     for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
+
     for(int i = 0; i < body.size(); i++)
-        std::cout << "body : " << body[i] << std::endl;
-    
+    {
+     std::cout << "body : "<< body[i] << std::endl;
+    }
+
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     std::cout << "size : " << path.size() << std::endl;
 
@@ -739,6 +830,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
 
 
+
 // Multiple error codes to the same page
 // server {
 //     listen 8080;
@@ -761,6 +853,7 @@ void Httprequest::ft_clean()
     this->server_name.clear();
     this->status_code = 0;
     this->status_text.clear();
+    this->QUERY_STRING.clear();
     this->check_autoindex = false;
     this->Error_page_found = false;
 }
@@ -775,3 +868,5 @@ void Httprequest::ft_clean()
 
 
 // Expected: 400 Bad Request
+
+
