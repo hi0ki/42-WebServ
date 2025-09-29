@@ -1,6 +1,6 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) {}
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false) {}
 
 ClientData::ClientData(const ClientData &obj)
 {
@@ -49,6 +49,10 @@ void ClientData::set_post_boyd(bool body)
 {
 	this->post_body_done = body;
 }
+void ClientData::set_ftime_pars(bool first_time)
+{
+	this->ftime_pars = first_time;
+}
 
 //             Getters  
 int ClientData::get_srv_index() const
@@ -82,6 +86,10 @@ int ClientData::get_length()
 bool ClientData::get_post_boolen()
 {
 	return (post_body_done);
+}
+bool ClientData::get_ftime_pars()
+{
+	return (ftime_pars);
 }
 
 //              append

@@ -86,15 +86,15 @@ bool is_req_well_formed(Httprequest &req)
     }
     if (!checkBodySize(req))
         return false;
-    std::cout << "dazet shiha mn errors\n";
+    // std::cout << "dazet shiha mn errors\n";
     //if =>Request body larger han client max body size in config file
     return true;
 }
 
 Location findMatchingLocation(Httprequest &req, config &config) 
 {
-    std::cout << "dekhlat l find location\n";
-   std::vector<Location> locations = config.get_servs()[req.get_index()].get_location();
+    // std::cout << "dekhlat l find location\n";
+    std::vector<Location> locations = config.get_servs()[req.get_index()].get_location();
     static Location dummy; 
     Location best_match;
     size_t longest_match = 0;
@@ -441,11 +441,11 @@ bool handelGET(Httprequest &req, config &config)
 
 void    saveBodyToFile(Httprequest &req)
 {
-    std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
-    for(int i = 0; i < req.getBody().size(); i++)
-    {
-        std::cout <<  req.getBody()[i] ;
-    }
+    // std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
+    // for(int i = 0; i < req.getBody().size(); i++)
+    // {
+    //     std::cout <<  req.getBody()[i] ;
+    // }
     std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
     if (!outfile.is_open())
     {
@@ -680,7 +680,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
         tmp.push_back(client.get_request()[i]);
     if (client.get_request()[0] != 'P')
     {
-         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
+        if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
             client.set_reqs_done(true);
         else 
             return 0;
@@ -706,19 +706,19 @@ int Httprequest::request_pars(ClientData &client , config &config)
     std::cout << "method : " << method << std::endl;
     std::cout << "path : " << path << std::endl;
     std::cout << "version : " << version << std::endl;
-    std::cout << "headers : \n";
-    for(std::map<std::string, std::string>::iterator i = headers.begin(); i != headers.end(); i++)
-    {
-        std::cout << i->first  << " : "  << i->second << std::endl;
-    }
+    // std::cout << "headers : \n";
+    // for(std::map<std::string, std::string>::iterator i = headers.begin(); i != headers.end(); i++)
+    // {
+    //     std::cout << i->first  << " : "  << i->second << std::endl;
+    // }
     
     for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
-    for(int i = 0; i < body.size(); i++)
-        std::cout << "body : " << body[i] << std::endl;
+    // for(int i = 0; i < body.size(); i++)
+    //     std::cout << "body : " << body[i] << std::endl;
     
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
-    std::cout << "size : " << path.size() << std::endl;
+    // std::cout << "size : " << path.size() << std::endl;
 
     if (checkAndApplyErrorPage(config, *this, client) == false)
     {
@@ -726,8 +726,8 @@ int Httprequest::request_pars(ClientData &client , config &config)
         return 0;
     }
     // if (is_location_have_redirect(*this, config) == true) // hadi khesa tQa
-   
-    std::cout << "waaaaaa\n";
+
+    // std::cout << "waaaaaa\n";
     if (headers.find("Connection") != headers.end())
     {
         std::string val = headers["Connection"];
