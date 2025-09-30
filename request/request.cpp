@@ -328,10 +328,10 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     std::string s;
 
     std::string contentType = "";
-    std::string filePath = req.getfullPath();
-    // if (filePath.find(".html") != std::string::npos)
-    //     contentType = "text/html";
-    if (filePath.find(".css") != std::string::npos)
+    std::string filePath = req.getAbsolutePath();
+    if (filePath.find(".html") != std::string::npos)
+        contentType = "text/html";
+    else if (filePath.find(".css") != std::string::npos)
         contentType = "text/css";
     else if (filePath.find(".js") != std::string::npos)
         contentType = "application/javascript";
@@ -340,7 +340,7 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     else if (filePath.find(".jpg") != std::string::npos || filePath.find(".jpeg") != std::string::npos)
         contentType = "image/jpeg";
     else
-        contentType = "text/html";
+        contentType = "text/plain";
     s = "Server: " + req.get_servername() + "\r\n";
     // if (req.getStatus_code() == 301)
     //     s += "Location: /api/html\r\n" ; //khesak tQadiha 
@@ -433,6 +433,7 @@ bool handelGET(Httprequest &req, config &config)
     // if (c == 'F')
     //     req.setfullPath(req.getAbsolutePath());
     //if_location_has_cgi() the last thing
+    req.setStatus(200, "OK");
     std::cout << req.getAbsolutePath() << std::endl;
     return true;
 }
@@ -688,8 +689,20 @@ int Httprequest::request_pars(ClientData &client , config &config)
     //     parseChunkedBody(body ,client, a + 2);
     // else
     // {
+    std::cout << "method : " << method << std::endl;
+    std::cout << "path : " << path << std::endl;
+    std::cout << "version : " << version << std::endl;
+    std::cout << "headers : \n";
+    for(std::map<std::string, std::string>::iterator i = headers.begin(); i != headers.end(); i++)
+    {
+        std::cout << i->first  << " : "  << i->second << std::endl;
+    }
+    
     for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
+    for(int i = 0; i < body.size(); i++)
+        std::cout << "body : " << body[i] << std::endl;
+    
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     std::cout << "size : " << path.size() << std::endl;
 
@@ -752,3 +765,13 @@ void Httprequest::ft_clean()
     this->Error_page_found = false;
 }
 
+
+
+// 2) Missing Host: header (HTTP/1.1 requires Host)
+
+// This should trigger 400 Bad Request for HTTP/1.1.
+
+// printf 'GET /index.html HTTP/1.1\r\n\r\n' | nc localhost 8080
+
+
+// Expected: 400 Bad Request
