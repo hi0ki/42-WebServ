@@ -1,21 +1,65 @@
 #include "request.hpp"
 #include "../core_srv/include/ClientData.hpp" 
 
+// bool is_valid_url(const std::string &uri) 
+// {
+//     (void) uri;
+//     const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_-~/?#[]@!$()'*+,'=%.&";
+//     const std::vector<char> allowedChars(chars.begin(), chars.end());
+//     // if (uri.find("%20"))
+//     // {
+//     //     return false;
+//     // }
+//     // for(size_t i = 0; i < uri.size(); i++) 
+//     // {
+//     //     if(uri[i] != '\0' && std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end())
+//     //         return false;
+//     // }
+//         std::cout << "yeeeees\n";
+
+//     return true;
+// }
+
+bool isValidURIChar(char c) {
+
+    std::string unreserved = "-._~";
+    if (isalnum(c) || unreserved.find(c) != std::string::npos || c == '%')
+        return true;
+    std::string reserved = ":/?#[]@!$&'()*+,;=";
+    if (reserved.find(c) != std::string::npos)
+        return true;
+    return false;
+}
+
 bool is_valid_url(const std::string &uri) 
 {
-    const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_-~/?#[]@!$()'*+,'=%.&";
-    const std::vector<char> allowedChars(chars.begin(), chars.end());
-    // if (uri.find("%20"))
-    // {
-    //     return false;
-    // }
-    // for(size_t i = 0; i < uri.size(); i++) 
-    // {
-    //     if(uri[i] != '\0' && std::find(allowedChars.begin(), allowedChars.end(), uri[i]) == allowedChars.end())
-    //         return false;
-    // }
-        std::cout << "yeeeees\n";
+   for (size_t i = 0; i < uri.size(); ++i) 
+   {
+        if (!isValidURIChar(uri[i]))
+            return false;
+        if (uri[i] == '%') 
+        {
+            if (i + 2 >= uri.size() || !isxdigit(uri[i+1]) || !isxdigit(uri[i+2]))
+                return false;
+            i += 2;
+        }
+    }
+    return true;
+}
 
+std::string uintToString(unsigned int value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+bool checkBodySize(Httprequest &req)
+{
+    if (req.getBody().size() > 5242880)
+    {
+        req.setStatus(413, "Request Entity Too Large");
+        return false;
+    }
     return true;
 }
 
@@ -36,16 +80,23 @@ bool is_req_well_formed(Httprequest &req)
         }
     }
     if ((req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length") == req.getHeaders().end() \
-       && req.getMethod() == "POST") || !is_valid_url(req.getPath()))
+       && req.getMethod() == "POST") || !is_valid_url(req.getPath()) || req.getHeaders().find("Host") == req.getHeaders().end())
     {
         req.setStatus(400, "Bad Request");
         return false;
-    } 
+    }
+    if (req.getHeaders().find("Content-Length") != req.getHeaders().end() && req.getHeaders()["Content-Length"] != uintToString(req.getBody().size()))
+    {
+        req.setStatus(400, "Bad Request");
+        return false;
+    }
     if (req.getPath().size() > 2048)
     {
         req.setStatus(414, "Request-URI Too Long");
         return false;
     }
+    if (!checkBodySize(req))
+        return false;
     std::cout << "dazet shiha mn errors\n";
     //if =>Request body larger han client max body size in config file
     return true;
@@ -179,9 +230,9 @@ bool isAutoindexEnabled(Httprequest &req, config &config, bool found)
     {
         std::string dir = req.getPath().substr(0, req.getPath().find('/' , 1));
         std::vector<Location> loc = config.get_servs()[req.get_index()].get_location();
-        for(int i = 0; i < loc.size(); i++)
+        for(unsigned int i = 0; i < loc.size(); i++)
         {
-            if (loc[i].path.find(dir) != -1)
+            if (loc[i].path.find(dir) != std::string::npos)
             {
                 if (loc[i].path != "")
                 {
@@ -244,7 +295,7 @@ bool isMethodAllowed(Httprequest &req, config &config)
     std::string meth = req.getMethod();
     if (loc.methods.empty() && config.get_servs()[req.get_index()].get_methods().empty())
         return true;
-    for(int i = 0; i < loc.methods.size(); i++)
+    for(unsigned int i = 0; i < loc.methods.size(); i++)
     {
         if (loc.methods[i] == meth)
             return true;
@@ -254,7 +305,7 @@ bool isMethodAllowed(Httprequest &req, config &config)
         std::vector<std::string> s = config.get_servs()[req.get_index()].get_methods();
         if (!s.empty())
         {
-            for (int i = 0; i < s.size(); i++)
+            for (unsigned int i = 0; i < s.size(); i++)
             {
                 if (s[i] == meth)
                     return true;
@@ -277,21 +328,16 @@ bool isUriEndsWithSlash(std::string s, Httprequest &req)
     return true;
 }
 
-std::string uintToString(unsigned int value) {
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
 
 std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive)
 {
     std::string s;
 
     std::string contentType = "";
-    std::string filePath = req.getfullPath();
-    // if (filePath.find(".html") != std::string::npos)
-    //     contentType = "text/html";
-    if (filePath.find(".css") != std::string::npos)
+    std::string filePath = req.getAbsolutePath();
+    if (filePath.find(".html") != std::string::npos)
+        contentType = "text/html";
+    else if (filePath.find(".css") != std::string::npos)
         contentType = "text/css";
     else if (filePath.find(".js") != std::string::npos)
         contentType = "application/javascript";
@@ -351,7 +397,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
     // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
-    std::cout << "response :"<< response<< std::endl; // print response
+    // std::cout << "response :"<< response<< std::endl; // print response
     return response;
 }
 
@@ -393,6 +439,7 @@ bool handelGET(Httprequest &req, config &config)
     // if (c == 'F')
     //     req.setfullPath(req.getAbsolutePath());
     //if_location_has_cgi() the last thing
+    req.setStatus(200, "OK");
     std::cout << req.getAbsolutePath() << std::endl;
     return true;
 }
@@ -400,6 +447,11 @@ bool handelGET(Httprequest &req, config &config)
 
 void    saveBodyToFile(Httprequest &req)
 {
+    std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
+    for(int i = 0; i < req.getBody().size(); i++)
+    {
+        std::cout <<  req.getBody()[i] ;
+    }
     std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
     if (!outfile.is_open())
     {
@@ -410,12 +462,13 @@ void    saveBodyToFile(Httprequest &req)
     outfile.close();
 }
 
-bool handelPOST(Httprequest &req, Location loc, config &config)
+bool handelPOST(Httprequest &req, config &config)
 {
     //khesni nzid   cgi_enabled on; allowed methods
     char c = '\0';
     if (isMethodAllowed(req, config))
     {
+        
         req.setStatus(201, "Created");
         saveBodyToFile(req);
         return true;
@@ -455,7 +508,7 @@ bool handelPOST(Httprequest &req, Location loc, config &config)
 bool handelDELETE(Httprequest &req, config &config)
 {
     char c = '\0';
-    bool t_f = true;
+    // bool t_f = true;
     if (!isMethodAllowed(req, config))
         return false;
     if (pathExists(req.getAbsolutePath(), req, c) != true)
@@ -486,7 +539,7 @@ bool    handleMethod(Httprequest &req, config &config)
         check = handelGET(req, config);
     else if (meth == "POST")
     {
-        check = handelPOST(req, findMatchingLocation(req, config), config);
+        check = handelPOST(req, config);
     }
     else if (meth == "DELETE")
         check = handelDELETE(req, config);
@@ -496,9 +549,9 @@ bool    handleMethod(Httprequest &req, config &config)
 std::string readLineFromVector(const std::vector<char> &request , int &pos)
 {
     std::string line;
-    while (pos < request.size())
+    while ((unsigned int)pos < request.size())
     {
-        if (request[pos] == '\r' && pos + 1 < request.size() && request[pos + 1] == '\n')
+        if (request[pos] == '\r' && (size_t)(pos + 1) < request.size() && request[pos + 1] == '\n')
         {
             pos += 2;
             break;
@@ -514,7 +567,7 @@ void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
     // std::cout << "dekhlat\n";
     client.set_reqs_done(false);
     std::string s;
-    for(int i = start ; i < client.get_request().size(); i++)
+    for(int i = start ; (unsigned int)i < client.get_request().size(); i++)
     {
         s = readLineFromVector(client.get_request(), i);
         long chunk_size = strtol(s.c_str(), NULL, 16);
@@ -528,7 +581,7 @@ void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
         for(int j = 0; j < chunk_size; j++)
             body.push_back(client.get_request()[i + j]);
         i += chunk_size - 1;
-        if (i + 2 <= client.get_request().size() && client.get_request()[i] == '\r' && client.get_request()[i + 1] == '\n')
+        if ((unsigned int)(i + 2) <= client.get_request().size() && client.get_request()[i] == '\r' && client.get_request()[i + 1] == '\n')
             i += 2;
     }
 }
@@ -564,9 +617,9 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
             req.setForceGetOnError(true);
         }
         std::cout << req.getStatus_code() << "\n";
-        for(int i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
+        for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
         {
-            if (req.getStatus_code() == config.get_servs()[req.get_index()].get_errpage()[i].err)
+            if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
             {
                 std::cout << "hasab tawaQo3i dekhlat hna\n";
                 req.setError_page_found(true);
@@ -585,9 +638,9 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
 
 bool check_Error_pages(Httprequest &req, config &config)
 {
-    for(int i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
+    for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
     {
-        if (req.getStatus_code() == config.get_servs()[req.get_index()].get_errpage()[i].err)
+        if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
         {
             // std::cout << "hhhihihihio\n";
             req.setError_page_found(true);
@@ -615,14 +668,77 @@ bool check_Error_pages(Httprequest &req, config &config)
     return true;
 }
 
+
+// std::string removeExtraSpaces(const std::string &input) {
+//     std::string result;
+//     bool inSpace = false;
+
+//     for (size_t i = 0; i < input.size(); i++) {
+//         char c = input[i];
+//         if (c == ' ') {
+//             if (!inSpace) { 
+//                 result += c;   // keep only the first space
+//                 inSpace = true;
+//             }
+//         } else {
+//             result += c;       // keep characters
+//             inSpace = false;
+//         }
+//     }
+
+//     return result;
+// }
+
+
+std::vector<char> removeExtraSpaces(const std::vector<char> &input) {
+    std::vector<char> result;
+    bool inSpace = false;
+
+    for (size_t i = 0; i < input.size(); i++) {
+        // Check stop condition: "\r\n\r\n"
+        if (i + 3 < input.size() &&
+            input[i] == '\r' && input[i+1] == '\n' &&
+            input[i+2] == '\r' && input[i+3] == '\n') 
+        {
+            // Copy the rest without touching
+            for (size_t j = i; j < input.size(); j++)
+                result.push_back(input[j]);
+            break;
+        }
+
+        if (input[i] == ' ') {
+            if (!inSpace) {
+                result.push_back(' ');
+                inSpace = true;
+            }
+        } else {
+            result.push_back(input[i]);
+            inSpace = false;
+        }
+    }
+
+    return result;
+}
+
+
 int Httprequest::request_pars(ClientData &client , config &config)
 {
     std::string tmp;
     set_servername(config);
     set_index(client.get_srv_index());
     int a = 0;
+
+    if (client.get_post_boolen()) // mehdi li darha dayl post case
+    {
+        for(int i = 0; i < client.get_request().size(); i++)
+            body.push_back(client.get_request()[i]);
+        handleMethod(*this, config);
+        return 0;
+    }
+    client.set_request(removeExtraSpaces(client.get_request()));
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
+    std::cout << "request mora mazeeltliha spaces: " << tmp << std::endl;
     if (client.get_request()[0] != 'P')
     {
          if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
@@ -635,21 +751,49 @@ int Httprequest::request_pars(ClientData &client , config &config)
     for(int i = 0; i < a; i++)
         r.push_back(tmp[i]);
     method = r.substr(0 , r.find(' ', 0));
-    path = r.substr(r.find(' ', 0) + 1, r.find(' ',r.find(' ', 0) + 1) - (r.find(' ', 0) + 1));
-    version = r.substr(r.find(' ',r.find(' ', 0) + 1) + 1,(r.find('\r', 0) - 1) - r.find(' ',r.find(' ', 0) + 1));
-    for(int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
+    size_t path_start = r.find(' ', 0) + 1;
+    size_t path_end = r.find(' ', path_start);
+    std::string tar = r.substr(path_start, path_end - path_start);
+    if (tar.find('?') != std::string::npos)
+    {
+        path = tar.substr(0, tar.find('?'));
+        QUERY_STRING = tar.substr(tar.find('?') + 1);
+    }
+    else
+        path = tar;
+    version = r.substr(path_end + 1, r.find('\r', 0) - (path_end + 1));
+    // path = r.substr(r.find(' ', 0) + 1, r.find(' ',r.find(' ', 0) + 1) - (r.find(' ', 0) + 1));
+    // version = r.substr(r.find(' ',r.find(' ', 0) + 1) + 1,(r.find('\r', 0) - 1) - r.find(' ',r.find(' ', 0) + 1));
+    for(unsigned int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
     {
         headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
+ 
     if (method == "POST" && headers.find("Content-Length") != headers.end())
         client.set_length(atoi(headers["Content-Length"].c_str()));
     // if (!headers.empty() && headers["Transfer-Encoding"] == "chunked")
     //     parseChunkedBody(body ,client, a + 2);
     // else
     // {
-    for(int i = a + 2; i < client.get_request().size(); i++)
+    std::cout << "method : " << method << std::endl;
+    std::cout << "path : " << path << std::endl;
+    std::cout << "Querry :" << QUERY_STRING << std::endl;
+    std::cout << "version : " << version << std::endl;
+    std::cout << "headers : \n";
+    for(std::map<std::string, std::string>::iterator i = headers.begin(); i != headers.end(); i++)
+    {
+        std::cout << i->first  << " : "  << i->second << std::endl;
+    }
+    
+    for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
+
+    for(int i = 0; i < body.size(); i++)
+    {
+     std::cout << "body : "<< body[i] << std::endl;
+    }
+
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     std::cout << "size : " << path.size() << std::endl;
 
@@ -686,6 +830,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
 
 
+
 // Multiple error codes to the same page
 // server {
 //     listen 8080;
@@ -708,7 +853,20 @@ void Httprequest::ft_clean()
     this->server_name.clear();
     this->status_code = 0;
     this->status_text.clear();
+    this->QUERY_STRING.clear();
     this->check_autoindex = false;
     this->Error_page_found = false;
 }
+
+
+
+// 2) Missing Host: header (HTTP/1.1 requires Host)
+
+// This should trigger 400 Bad Request for HTTP/1.1.
+
+// printf 'GET /index.html HTTP/1.1\r\n\r\n' | nc localhost 8080
+
+
+// Expected: 400 Bad Request
+
 
