@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/24 21:47:59 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/30 12:13:27 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,18 @@ void server::pars_errPage()
     
 }
 
+std::string getPWDwithWWW() {
+    char buffer[PATH_MAX];
+    if (getcwd(buffer, sizeof(buffer)) != NULL) {
+        std::string path(buffer);
+        path += "/www";   // on ajoute /www à la fin
+        return path;
+    } else {
+        perror("getcwd error");
+        return "";
+    }
+}
+
 size_t string_to_sizet(const std::string &str)
 {
     if (str.empty())
@@ -98,7 +110,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl[0] != "methods")
                 check_semicolon(spl[1]);
             if(spl[0] == "root")
-                loc.root = spl[1];
+                loc.root = getPWDwithWWW() + spl[1];
             else if (spl[0] == "index")
                 loc.index = spl[1];
             else
@@ -131,7 +143,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl[0] != "methods")
                 check_semicolon(spl[1]);
             if(spl[0] == "root")
-                loc.root = spl[1];
+                loc.root = getPWDwithWWW() + spl[1];
             else if (spl[0] == "index")
                 loc.index = spl[1];
             else if (spl[0] == "methods")
@@ -180,7 +192,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl[0] != "methods")
                 check_semicolon(spl[1]);
             if(spl[0] == "root")
-                loc.root = spl[1];
+                loc.root = getPWDwithWWW() + spl[1];
             else if (spl[0] == "max_upload_size")
                 loc.max_upload_size = string_to_sizet(spl[1]);
             else if (spl[0] == "methods")
@@ -282,7 +294,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             else if(spl[0] == "root" && loc.return_r.red_url.empty())
             {
-                loc.root = spl[1];
+                loc.root = getPWDwithWWW() + spl[1];
                 if(loc.path.empty())
                     loc.path = tmp[1];
                 // if(loc.type == UNDEFINED)
