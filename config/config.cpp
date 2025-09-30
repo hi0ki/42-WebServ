@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/19 13:14:27 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/09/30 12:13:01 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,6 @@ int check_char_count(const std::string &str, char c)
     return (count == 1) ? 0 : 1;
 }
 
-
 void config::set_server(std::vector<std::string>::iterator &it, std::vector<std::string> &conf)
 {
     std::vector<std::string> tmp;
@@ -104,7 +103,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 2)
                 throw std::runtime_error("root content invalid");
             check_semicolon(tmp[1]);
-            serv.set_root(tmp[1]);
+            serv.set_root(getPWDwithWWW() + tmp[1]);
         }
         else if(!tmp.empty() && tmp[0] == "index")
         {
