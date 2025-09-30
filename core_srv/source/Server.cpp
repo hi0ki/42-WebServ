@@ -149,7 +149,6 @@ void Server::start_connection()
 				this->handle_response(i);
 		}
 	}
-	// close all fds.
 }
 
 
@@ -161,7 +160,6 @@ void Server::accept_client(int i)
 
 	std::cout << GREEN << "\n--------------------server-------------------" << RESET << std::endl;
 	client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
-	// after accept i should create clientdata and give it the data from client like -> wich server + client fd.
 	if (client_fd == -1)
 	{
 		std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl; // replace fds.[i].fd with ip from my config
@@ -185,6 +183,45 @@ void Server::accept_client(int i)
 	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
 	std::cout << GREEN << "---------------------------------------------" << RESET << std::endl;
 }
+void Server::pars_post_req(int index)
+{
+	std::vector<char> new_request;
+	std::string old_request;
+	std::string body;
+	size_t find_index;
+	static bool first_time;
+
+	if (!first_time)
+	{
+		std::cout << "first time \n";
+		for(int i = 0; i < this->clients[index].get_request().size(); i++)
+			old_request.push_back(this->clients[index].get_request()[i]);
+		find_index = old_request.find("\r\n\r\n");
+		if (find_index != std::string::npos)
+			body = old_request.substr(find_index + 4);
+		new_request.insert(new_request.end(), body.begin(), body.end());
+		first_time = !first_time;
+		this->clients[index].set_request(new_request);
+	}
+	else
+		this->clients[index].requse_append(new_request);
+
+	std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;
+	std::cout << "length dyal myreq = " << this->clients[index].get_request().size() << std::endl;
+	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
+	{
+		this->clients[index].set_post_boyd(true);
+		this->clients[index].set_reqs_done(true);
+		this->clients[index].set_length(-1);
+	}
+	// std::cout << "test = '>";
+	// for (int i = 0; i <= new_request.size(); i++)
+	// {
+	// 	std::cout << new_request[i] << " ";
+	// }
+	// std::cout << "<'" << std::endl;
+
+}
 
 void Server::handle_request(int i)
 {
@@ -198,20 +235,31 @@ void Server::handle_request(int i)
 	}
 	else if (bytesRead == 0)
 	{
-		// khli ta ngad req is done bach nzid hadi hit daba matsd9chhit khsni nkhlih idoz tal parsin o tlgah sala bach thyd lih pollin
 		std::cerr << RED << "[" << fds[i].fd << "]" << " : Client disconnected: fd " << fds[i].fd << RESET << std::endl;
 		close(fds[i].fd);
-		this->clients.erase(i);
+		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
 		i--;
 		return ;
 	}
 
-	for (int j = 0; j < request.size(); j++)
-		std::cout << request[j];
-
 	this->clients[fds[i].fd].set_request(request);
-	this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+	
+	for (int j = 0; j < request.size(); j++)
+		std::cout << clients[fds[i].fd].get_request()[j];
+
+	if (this->clients[fds[i].fd].get_length() == -1)
+		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+
+	std::cout << this->clients[fds[i].fd].get_length() << std::endl;
+
+	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())  /// check dyal length mkhdamch li kayn f lpars dyal post body
+		pars_post_req(fds[i].fd);
+	if (this->clients[fds[i].fd].get_post_boolen())
+	{
+		std::cout << "dkhl lmra tanya l post" << std::endl;
+ 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
 		std::cout << BLUE << "Request is done" << RESET << std::endl;
@@ -225,6 +273,7 @@ void Server::handle_response(int i)
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
+	std::cout << response << std::endl;
 	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
