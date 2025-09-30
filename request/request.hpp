@@ -34,6 +34,7 @@
             int status_code;
             std::string status_text;
             bool check_autoindex;
+            std::string QUERY_STRING;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -96,9 +97,9 @@
             bool getForceGetOnError()const;
 
     
-
     };
 
+    bool handelPOST(Httprequest &req, config &config);
 
 
    /*
