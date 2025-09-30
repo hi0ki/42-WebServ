@@ -91,6 +91,10 @@ bool ClientData::get_ftime_pars()
 {
 	return (ftime_pars);
 }
+body_data	&ClientData::get_body_struct()
+{
+	return (post_info);
+}
 
 //              append
 void    ClientData::requse_append(std::vector<char> append_req)

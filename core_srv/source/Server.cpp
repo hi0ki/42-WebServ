@@ -118,6 +118,7 @@ void Server::bind_socket(int srv_index)
 	if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 		throw std::runtime_error("bind err");
 }
+
 void Server::listen_socket()
 {
 	if (listen(this->connection, SOMAXCONN) == -1)
@@ -215,6 +216,11 @@ void Server::pars_post_req(int index)
 		new_request.insert(new_request.end(), body.begin(), body.end());
 		this->clients[index].set_ftime_pars(true);
 		this->clients[index].set_request(new_request);
+	}
+	if (this->clients[index].get_ftime_pars() && this->clients[index].get_request().size())
+	{
+		std::cout << RED << "dkhl l not first time hahaahah " << std::endl;
+		// std::find()
 	}
 
 	std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;

@@ -678,6 +678,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
+    // std::cout << "waaaaaaa ha P = " << client.get_request()[0] << std::endl;
     if (client.get_request()[0] != 'P')
     {
         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
@@ -717,6 +718,18 @@ int Httprequest::request_pars(ClientData &client , config &config)
     // for(int i = 0; i < body.size(); i++)
     //     std::cout << "body : " << body[i] << std::endl;
     
+    if (method == "POST")
+    {
+        if (headers.find("Content-Type") != headers.end())
+        {
+            size_t found = headers["Content-Type"].find("----");
+            if (found != std::string::npos)
+            {
+                client.get_body_struct().key = headers["Content-Type"].substr(found + 4, headers["Content-Type"].size() - found + 4);
+                std::cout << "keeeeey ===== \'" << client.get_body_struct().key << "\'" << std::endl;
+            }
+        }
+    }
     std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
     // std::cout << "size : " << path.size() << std::endl;
 
