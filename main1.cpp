@@ -5,7 +5,6 @@
 
 int main()
 {
-    HTTPCGI cgi;
 
     // Créer une fausse requête pour tester
     Httprequest req;
@@ -17,7 +16,8 @@ int main()
     req.setAbsolutePath("/Users/hanebaro/Desktop/webserv/www/html/cgi/test.py");
     
     // ✅ IMPORTANT : Initialiser l'environnement CGI AVANT execute()
-    cgi.cgi_env(req, loc);
+    // cgi.cgi_env(req, loc);
+    HTTPCGI cgi(req, loc);
 
     // Maintenant execute() utilisera envr correctement
     std::string script = "/Users/hanebaro/Desktop/webserv/www/html/cgi/test.py";
