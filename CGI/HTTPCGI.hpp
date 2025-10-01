@@ -1,19 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   CGI.cpp                                            :+:      :+:    :+:   */
+/*   CGI.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/30 18:25:49 by hanebaro         ###   ########.fr       */
+/*   Created: 2025/09/02 16:01:17 by hanebaro          #+#    #+#             */
+/*   Updated: 2025/10/01 13:56:42 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "CGI.hpp"
+#pragma once
+#include<iostream>
+#include<vector>
 
-std::vector<std::string> CGI::cgi_env(const Httprequest &req, const Location &loc)
+#include "../request/request.hpp"
+class HTTPCGI
 {
-    env.push_back("REQUEST_METHOD=" + req.method);
-    
-}
+    private:
+        std::vector<char*> envr;
+    public:
+        void cgi_env(Httprequest &req, const Location &loc);
+        //function to execute
+        std::string execute(const std::string &script_path, const std::string &body = "");
+};

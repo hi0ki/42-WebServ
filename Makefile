@@ -1,13 +1,13 @@
 C++ = c++ -Wall -Wextra -Werror
 
-Src = main.cpp \
+Src = main1.cpp \
 	core_srv/source/Server.cpp core_srv/source/ClientData.cpp\
 	config/config.cpp config/server.cpp \
-	request/request.cpp request/request_utils.cpp\
+	request/request.cpp request/request_utils.cpp CGI/HTTPCGI.cpp\
 
 Headers = core_srv/include/Server.hpp core_srv/include/ClientData.hpp\
 	config/config.hpp config/server.hpp\
-	request/request.hpp \
+	request/request.hpp CGI/HTTPCGI.hpp\
 
 
 Name = webserv
