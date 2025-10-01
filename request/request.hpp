@@ -96,6 +96,9 @@
             void setForceGetOnError(bool forceGetOnError);
             bool getForceGetOnError()const;
 
+            //add by hanebaro
+            std::string get_query_string() const;
+
     
     };
 

@@ -859,6 +859,19 @@ void Httprequest::ft_clean()
 }
 
 
+//add by hanebaro
+std::string Httprequest::get_query_string() const
+{
+    return (QUERY_STRING);
+}
+
+
+
+
+
+
+
+
 
 // 2) Missing Host: header (HTTP/1.1 requires Host)
 
