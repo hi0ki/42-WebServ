@@ -6,11 +6,16 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/01 14:21:46 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/01 16:28:31 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HTTPCGI.hpp"
+
+HTTPCGI::HTTPCGI(Httprequest &req, const Location &loc)
+{
+    cgi_env(req, loc);
+}
 
 void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
 {
