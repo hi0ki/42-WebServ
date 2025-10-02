@@ -6,12 +6,13 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/01 16:28:31 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/01 16:44:02 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HTTPCGI.hpp"
 
+/// dont forget delete (free the memory)
 HTTPCGI::HTTPCGI(Httprequest &req, const Location &loc)
 {
     cgi_env(req, loc);
@@ -32,7 +33,7 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
         if (it != headers.end())
             env.push_back("CONTENT_TYPE=" + it->second);
     }
-    env.push_back("SCRIPT_FILENAME=" + req.getAbsolutePath());
+    env.push_back("SCRIPT_FILENAME=" + req.getAbsolutePath());// without file name, ask fatima zahraa
     env.push_back("SERVER_SOFTWARE=webserv/1.0");
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
     env.push_back("SERVER_PROTOCOL=HTTP/1.1");
