@@ -200,10 +200,10 @@ void Server::accept_client(int i)
 void Server::pars_post_req(int index)
 {
 	// atji dir dakchi f file
+	std::string old_request;
 	if (!this->clients[index].get_ftime_pars())
 	{
 		std::vector<char> new_request;
-		std::string old_request;
 		size_t find_index;
 		std::string body;
 
@@ -220,17 +220,24 @@ void Server::pars_post_req(int index)
 	if (this->clients[index].get_ftime_pars() && this->clients[index].get_request().size())
 	{
 		std::cout << RED << "dkhl l not first time hahaahah " << std::endl;
+		int pos = 0;
+
+		for(int i = 0; i < this->clients[index].get_request().size(); i++)
+			old_request.push_back(this->clients[index].get_request()[i]); // check ila kan kaydir had for dima f first time o hadi dirha bra dyal if mra whda osaf;
+
+		pos = std::find(old_request.begin() + 5, old_request.begin() + this->clients[index].get_body_struct().key.size(), this->clients[index].get_body_struct().key);
+		std::cout << "pooooooos = " << pos << std::cout;
 		// std::find()
 	}
 
 	std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;
 	std::cout << "length dyal myreq = " << this->clients[index].get_request().size() << std::endl;
-	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
-	{
-		this->clients[index].set_post_boyd(true);
-		this->clients[index].set_reqs_done(true);
-		this->clients[index].set_length(-1);
-	}
+	// if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
+	// {
+	// 	this->clients[index].set_post_boyd(true);
+	// 	this->clients[index].set_reqs_done(true);
+	// 	this->clients[index].set_length(-1);
+	// }
 }
 
 void Server::handle_request(int i)
