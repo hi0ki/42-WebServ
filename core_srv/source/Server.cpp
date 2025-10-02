@@ -221,12 +221,27 @@ void Server::pars_post_req(int index)
 	{
 		std::cout << RED << "dkhl l not first time hahaahah " << std::endl;
 		int pos = 0;
+		std::string filename;
 
+		old_request.clear();
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]); // check ila kan kaydir had for dima f first time o hadi dirha bra dyal if mra whda osaf;
 
-		pos = std::find(old_request.begin() + 5, old_request.begin() + this->clients[index].get_body_struct().key.size(), this->clients[index].get_body_struct().key);
-		std::cout << "pooooooos = " << pos << std::cout;
+		pos = old_request.find(this->clients[index].get_body_struct().key);
+		if (pos != std::string::npos)
+		{
+			pos = old_request.find("filename=\"");
+			if (pos != std::string::npos)
+			{
+				std::cout << "pooooooos = " << pos << std::endl;
+				pos += 10;
+				for (; old_request[pos] != '"'; pos++)
+				{
+					filename.push_back(old_request[pos]);
+				}
+				std::cout << "file name \"" << filename << "\"" << std::endl;
+			}
+		}
 		// std::find()
 	}
 
