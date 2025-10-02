@@ -799,7 +799,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
     if (checkAndApplyErrorPage(config, *this, client) == false)
     {
-        setAbsolutePath("/Users/felhafid/Desktop/hikii/defaults_errors/" +  uintToString(this->getStatus_code()) + ".html");
+        setAbsolutePath("/Users/felhafid/Desktop/hikii/defaults_errors/" + uintToString(this->getStatus_code()) + ".html");  
         return 0;
     }
     // if (is_location_have_redirect(*this, config) == true) // hadi khesa tQa
@@ -870,3 +870,4 @@ void Httprequest::ft_clean()
 // Expected: 400 Bad Request
 
 
+ 
