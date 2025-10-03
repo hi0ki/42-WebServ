@@ -219,27 +219,40 @@ void Server::pars_post_req(int index)
 	}
 	if (this->clients[index].get_ftime_pars() && this->clients[index].get_request().size())
 	{
-		std::cout << RED << "dkhl l not first time hahaahah " << std::endl;
-		int pos = 0;
-		std::string filename;
+		std::cout << RED << "dkhl l not first time hahaahah " << RESET << std::endl;
+		size_t key_pos = 0;
 
 		old_request.clear();
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]); // check ila kan kaydir had for dima f first time o hadi dirha bra dyal if mra whda osaf;
 
-		pos = old_request.find(this->clients[index].get_body_struct().key);
-		if (pos != std::string::npos)
+		// daaabaaa khsni nhl lfile o nchof wach kayna chi case adkhl hna omkhshach bhal la kant ha data 3adya ola ila vid , onchof ila ktr mn key kayn 
+		key_pos = old_request.find(this->clients[index].get_body_struct().key);
+			std::cout << "KEY POS = " << key_pos << std::endl;
+		if (key_pos != std::string::npos)
 		{
-			pos = old_request.find("filename=\"");
-			if (pos != std::string::npos)
+			old_request.erase(key_pos - 5, this->clients[index].get_body_struct().key.size() + 5);
+
+			std::cout << "\nreq mora erase\n\n" << std::endl;
+			for (int x = 0; x < old_request.size(); x++)
 			{
-				std::cout << "pooooooos = " << pos << std::endl;
-				pos += 10;
-				for (; old_request[pos] != '"'; pos++)
+				std::cout << old_request[x];
+			}
+			std::cout << "-----------------------" << std::endl;
+
+
+			size_t fname_pos = old_request.find("filename=\"");
+			std::cout << "FNAME POS = " << fname_pos << std::endl;
+			if (fname_pos != std::string::npos)
+			{
+				fname_pos += 10;
+				for (; old_request[fname_pos] != '"'; fname_pos++)
+					this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
+				std::cout << "file name \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
+				// open the file and output on it
 				{
-					filename.push_back(old_request[pos]);
+					std::fstream myfile(this->clients[index].get_body_struct().file_name);
 				}
-				std::cout << "file name \"" << filename << "\"" << std::endl;
 			}
 		}
 		// std::find()
