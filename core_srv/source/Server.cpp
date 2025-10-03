@@ -226,32 +226,43 @@ void Server::pars_post_req(int index)
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]); // check ila kan kaydir had for dima f first time o hadi dirha bra dyal if mra whda osaf;
 
-		// daaabaaa khsni nhl lfile o nchof wach kayna chi case adkhl hna omkhshach bhal la kant ha data 3adya ola ila vid , onchof ila ktr mn key kayn 
-		key_pos = old_request.find(this->clients[index].get_body_struct().key);
-			std::cout << "KEY POS = " << key_pos << std::endl;
-		if (key_pos != std::string::npos)
+		while (true)
 		{
-			old_request.erase(key_pos - 5, this->clients[index].get_body_struct().key.size() + 5);
-
-			std::cout << "\nreq mora erase\n\n" << std::endl;
-			for (int x = 0; x < old_request.size(); x++)
+			key_pos = old_request.find(this->clients[index].get_body_struct().key);
+			std::cout << "KEY POS = " << key_pos << std::endl;
+			if (key_pos != std::string::npos)
 			{
-				std::cout << old_request[x];
-			}
-			std::cout << "-----------------------" << std::endl;
+				old_request.erase(0, this->clients[index].get_body_struct().key.size() + key_pos + 2);
 
-
-			size_t fname_pos = old_request.find("filename=\"");
-			std::cout << "FNAME POS = " << fname_pos << std::endl;
-			if (fname_pos != std::string::npos)
-			{
-				fname_pos += 10;
-				for (; old_request[fname_pos] != '"'; fname_pos++)
-					this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
-				std::cout << "file name \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
-				// open the file and output on it
+				std::cout << "\nreq mora erase" << std::endl;
+				for (int x = 0; x < old_request.size(); x++)
 				{
-					std::fstream myfile(this->clients[index].get_body_struct().file_name);
+					std::cout << old_request[x];
+				}
+				std::cout << "-----------------------" << std::endl;
+
+
+				size_t fname_pos = old_request.find("filename=\"");
+				std::cout << "FNAME POS = " << fname_pos << std::endl;
+				if (fname_pos != std::string::npos)
+				{
+					fname_pos += 10;
+					for (; old_request[fname_pos] != '"'; fname_pos++)
+						this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
+					std::cout << "file name \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
+					// open the file and output on it
+					std::ofstream myfile(this->clients[index].get_body_struct().file_name.c_str());
+					if (myfile.is_open())
+					{
+						key_pos = old_request.find(this->clients[index].get_body_struct().key);
+						std::cout << "file t7777lllllch pos = " << key_pos << std::endl;
+						for (int j = old_request.find("\r\n\r\n") + 4; j < key_pos - 6; j++)
+						{
+							myfile << old_request[j];
+						}
+					}
+					else
+						std::cout << "file maaaaat7777lllllch\n";
 				}
 			}
 		}
