@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/30 12:14:05 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/04 16:53:30 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,10 +39,10 @@ struct Location {
     LocationType type;             // type de la location
     std::string root;              // pour STATIC, CGI, UPLOAD
     std::string index;             // pour STATIC
-    std::string cgi_handler;       // pour CGI (ex: "/usr/bin/php-cgi")
+    // std::string cgi_handler;       // pour CGI (ex: "/usr/bin/php-cgi")
     bool cgi_enabled;
     std::vector<std::string> cgi_extension;
-    std::string cgi_path;
+    std::string cgi_path; // pour CGI (ex: "/usr/bin/php-cgi")
     return_red return_r;      // pour REDIRECT (ex: "https://monsite.com/new")
     size_t max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
     std::vector<std::string> limit_except;//fatimazahra zadtha
@@ -94,6 +94,7 @@ class server
         int get_autoindex();
         std::vector<std::string> get_methods() const;
         void set_methods(const std::vector<std::string> &med);
+        std::vector<std::string> get_cgi_ext();
 };
 void check_semicolon(std::string &str);
 std::vector<std::string> split(const std::string &str, char c);
