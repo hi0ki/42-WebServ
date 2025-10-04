@@ -12,6 +12,7 @@ typedef struct s_body_data
 	std::string key;
 	std::string file_name;
 	std::fstream file;
+	bool imgs_is_done;
 } body_data;
 
 class ClientData

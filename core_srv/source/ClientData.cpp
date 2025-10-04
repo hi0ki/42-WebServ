@@ -1,6 +1,9 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false) {}
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false)
+{
+	get_body_struct().imgs_is_done = false;
+}
 
 ClientData::ClientData(const ClientData &obj)
 {

@@ -217,7 +217,7 @@ void Server::pars_post_req(int index)
 		this->clients[index].set_ftime_pars(true);
 		this->clients[index].set_request(new_request);
 	}
-	if (this->clients[index].get_ftime_pars() && this->clients[index].get_request().size())
+	if (this->clients[index].get_ftime_pars() && this->clients[index].get_request().size() && !this->clients[index].get_body_struct().imgs_is_done)
 	{
 		std::cout << RED << "dkhl l not first time hahaahah " << RESET << std::endl;
 		size_t key_pos = 0;
@@ -225,20 +225,31 @@ void Server::pars_post_req(int index)
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]); // check ila kan kaydir had for dima f first time o hadi dirha bra dyal if mra whda osaf;
 
-		// while (true)
-		// {
+		while (true)
+		{
 			key_pos = old_request.find(this->clients[index].get_body_struct().key);
 			std::cout << "KEY POS = " << key_pos << std::endl;
 			if (key_pos != std::string::npos)
 			{
+				if (old_request[key_pos + this->clients[index].get_body_struct().key.size() + 1] == '-')
+				{
+					// std::cout << RED << "------------dkhl ims7 " << key_pos;
+					// for (int x = 0; x < old_request.size(); x++)
+					// {
+					// 	std::cout << old_request[x];
+					// }
+					old_request.erase(old_request.begin(), old_request.begin() + key_pos + this->clients[index].get_body_struct().key.size() + 2);
+					this->clients[index].get_body_struct().imgs_is_done = true;
+					break ;
+				}
 				old_request.erase(0, this->clients[index].get_body_struct().key.size() + key_pos + 2);
 
-				std::cout << "\nreq mora erase" << std::endl;
-				for (int x = 0; x < old_request.size(); x++)
-				{
-					std::cout << old_request[x];
-				}
-				std::cout << "-----------------------" << std::endl;
+				// std::cout << "\n-------req mora erase-----" << std::endl;
+				// for (int x = 0; x < old_request.size(); x++)
+				// {
+				// 	std::cout << old_request[x];
+				// }
+				// std::cout << "-----------------------" << std::endl;
 
 
 				size_t fname_pos = old_request.find("filename=\"");
@@ -246,6 +257,7 @@ void Server::pars_post_req(int index)
 				if (fname_pos != std::string::npos)
 				{
 					fname_pos += 10;
+					this->clients[index].get_body_struct().file_name.clear();
 					for (; old_request[fname_pos] != '"'; fname_pos++)
 						this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
 					std::cout << "file name \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
@@ -253,33 +265,36 @@ void Server::pars_post_req(int index)
 					std::ofstream myfile(this->clients[index].get_body_struct().file_name.c_str());
 					if (myfile.is_open())
 					{
+						std::cout << GREEN << "File open" << RESET << std::endl;
 						key_pos = old_request.find(this->clients[index].get_body_struct().key);
-						std::cout << "file t7777lllllch pos = " << key_pos << std::endl;
 						int j = old_request.find("\r\n\r\n") + 4;
+						std::cout << "start from = " << j << std::endl;
+						std::cout << "end in  pos = " << key_pos - 6;
 						for (;j < key_pos - 6; j++)
 							myfile << old_request[j];
 						old_request.erase(old_request.begin(), old_request.begin() + j);
 					}
 					else
-						std::cout << "file maaaaat7777lllllch\n";
+						std::cout << RED << "File didn't open" << RESET << std::endl;
 				}
+				
 			}
-		// }
-		std::cout << "\n\n";
-		for (int j = 0; j < old_request.size(); j++)
-			std::cout << old_request[j];
-		std::cout << "\n\n";
+		}
+		// std::cout << "\n\n-------------\n";
+		// for (int j = 0; j < old_request.size(); j++)
+		// 	std::cout << old_request[j];
+		// std::cout << "\n\n--------------\n";
 		// std::find()
 	}
 
 	std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;
 	std::cout << "length dyal myreq = " << this->clients[index].get_request().size() << std::endl;
-	// if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
-	// {
-	// 	this->clients[index].set_post_boyd(true);
-	// 	this->clients[index].set_reqs_done(true);
-	// 	this->clients[index].set_length(-1);
-	// }
+	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
+	{
+		this->clients[index].set_post_boyd(true);
+		this->clients[index].set_reqs_done(true);
+		this->clients[index].set_length(-1);
+	}
 }
 
 void Server::handle_request(int i)
@@ -304,10 +319,10 @@ void Server::handle_request(int i)
 
 	this->clients[fds[i].fd].set_request(request);
 	
-	std::cout << " \n-----------------------request---------------------------\n";
-	for (int j = 0; j < clients[fds[i].fd].get_request().size(); j++)
-		std::cout << clients[fds[i].fd].get_request()[j];
-	std::cout << " ----------------------------------------------------------\n\n";
+	// std::cout << " \n-----------------------request---------------------------\n";
+	// for (int j = 0; j < clients[fds[i].fd].get_request().size(); j++)
+	// 	std::cout << clients[fds[i].fd].get_request()[j];
+	// std::cout << " ----------------------------------------------------------\n\n";
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 	{
@@ -318,10 +333,10 @@ void Server::handle_request(int i)
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())  /// check dyal length mkhdamch li kayn f lpars dyal post body
 		pars_post_req(fds[i].fd);
 
-	std::cout << " \n-----------------------request2---------------------------\n";
-	for (int j = 0; j < clients[fds[i].fd].get_request().size(); j++)
-		std::cout << clients[fds[i].fd].get_request()[j];
-	std::cout << " ----------------------------------------------------------\n\n";
+	// std::cout << " \n-----------------------request2---------------------------\n";
+	// for (int j = 0; j < clients[fds[i].fd].get_request().size(); j++)
+	// 	std::cout << clients[fds[i].fd].get_request()[j];
+	// std::cout << " ----------------------------------------------------------\n\n";
 
 	if (this->clients[fds[i].fd].get_post_boolen())
 	{
