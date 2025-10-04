@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/01 16:44:02 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/04 17:27:50 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
         if (it != headers.end())
             env.push_back("CONTENT_TYPE=" + it->second);
     }
+    // i need location root biiiiiiiiiig waaaaaaaaarniiiiiiiing ????
     env.push_back("SCRIPT_FILENAME=" + req.getAbsolutePath());// without file name, ask fatima zahraa
     env.push_back("SERVER_SOFTWARE=webserv/1.0");
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
@@ -67,8 +68,63 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
     // return envr;
 }
 
+int can_execute(config &conf, int index, Httprequest req)
+{
+    
+    for(std::vector<Location>::iterator it = conf.get_servs()[index].get_location().begin(); it != conf.get_servs()[index].get_location().end(); it++)
+    {
+        if(it->type == CGI)
+        {
+            if(it->cgi_enabled == false)
+                return(403);
+            //// chech if method vide if yes check global methods
+            std::vector<std::string>::iterator exist;
+            if(!it->methods.empty())
+                exist = std::find(it->methods.begin(), it->methods.end(), req.getMethod());
+            else
+                exist = std::find(conf.get_servs()[index].get_methods().begin(), it->methods.end(), req.getMethod());
+            if(exist == it->methods.end())
+                return(405);
+            //cgi_extension
+            std::string ext;
+            for(int i = req.getAbsolutePath().size() - 1; i >= 0; --i)
+            {
+                if(req.getAbsolutePath()[i] == '.')
+                    ext = req.getAbsolutePath().substr(i);
+            }
+            if(ext.empty())
+                return(403);
+            else
+            {
+                exist = std::find(it->cgi_extension.begin(), it->cgi_extension.end(), ext);
+                if(exist == it->cgi_extension.end())
+                return(403);
+            }
+            //cgi_handler or cgi_path
+            struct stat st;
+            if (stat(it->cgi_path.c_str(), &st) != 0) {
+                // std::cerr << "Error: " << it->cgi_path << " does not exist.\n";
+                return (500);
+            }
+            if (!S_ISREG(st.st_mode)) {
+                // std::cerr << "Error: " << it->cgi_path << " is not a regular file.\n";
+                return (500);
+            }
+            if (access(it->cgi_path.c_str(), X_OK | F_OK) != 0) {
+                // std::cerr << "Error: " << it->cgi_path << " is not executable.\n";
+                return (500);
+            }
+            /// a verifier
+            return(0);
+        }
+    }
+    return(1);
+}
+
 std::string HTTPCGI::execute(const std::string &script_path, const std::string &body)
 {
+    // if(can_execute(conf, index))
+    //     return;
     int pipefd[2];
     if (pipe(pipefd) == -1)
         return "500 Internal Server Error";
@@ -132,3 +188,9 @@ std::string HTTPCGI::execute(const std::string &script_path, const std::string &
     return output;
     
 }
+
+
+// bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg)
+// {
+    
+// }
