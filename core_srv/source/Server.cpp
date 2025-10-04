@@ -221,13 +221,12 @@ void Server::pars_post_req(int index)
 	{
 		std::cout << RED << "dkhl l not first time hahaahah " << RESET << std::endl;
 		size_t key_pos = 0;
-
 		old_request.clear();
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]); // check ila kan kaydir had for dima f first time o hadi dirha bra dyal if mra whda osaf;
 
-		while (true)
-		{
+		// while (true)
+		// {
 			key_pos = old_request.find(this->clients[index].get_body_struct().key);
 			std::cout << "KEY POS = " << key_pos << std::endl;
 			if (key_pos != std::string::npos)
@@ -256,16 +255,20 @@ void Server::pars_post_req(int index)
 					{
 						key_pos = old_request.find(this->clients[index].get_body_struct().key);
 						std::cout << "file t7777lllllch pos = " << key_pos << std::endl;
-						for (int j = old_request.find("\r\n\r\n") + 4; j < key_pos - 6; j++)
-						{
+						int j = old_request.find("\r\n\r\n") + 4;
+						for (;j < key_pos - 6; j++)
 							myfile << old_request[j];
-						}
+						old_request.erase(old_request.begin(), old_request.begin() + j);
 					}
 					else
 						std::cout << "file maaaaat7777lllllch\n";
 				}
 			}
-		}
+		// }
+		std::cout << "\n\n";
+		for (int j = 0; j < old_request.size(); j++)
+			std::cout << old_request[j];
+		std::cout << "\n\n";
 		// std::find()
 	}
 
