@@ -32,6 +32,11 @@ void ClientData::set_request(std::vector<char> reqs)
 {
 	this->request = reqs;
 }
+void ClientData::set_request(std::string reqs)
+{
+	this->request.clear();
+	this->request.insert(this->request.end(), reqs.begin(), reqs.end());
+}
 void ClientData::set_response(std::vector<char> resp)
 {
 	this->response = resp;
@@ -106,11 +111,16 @@ void    ClientData::requse_append(std::vector<char> append_req)
 }
 
 //              Clear
-void ClientData::clear()
+void ClientData::clean_client_data()
 {
-	this->srv_index = 0;
 	this->request.clear();
 	this->response.clear();
+	this->keep_alive = false;
+	this->reqst_is_done = false;
+	this->length = -1;
+	this->post_body_done = false;
+	this->ftime_pars = false;
+	this->post_info.imgs_is_done = false;
 }
 
 void ClientData::clean_request()

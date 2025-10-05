@@ -43,6 +43,7 @@ class ClientData
 		// Setters
 		void 				set_srv_index(int index);
 		void 				set_request(std::vector<char> reqs);
+		void				set_request(std::string reqs);
 		void 				set_response(std::vector<char> resp);
 		void 				set_keep_alive(bool kp_alive);
 		void 				set_reqs_done(bool reqst);
@@ -67,7 +68,7 @@ class ClientData
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
-		void 				clear();
+		void 				clean_client_data();
 		void 				clean_request();
 		void 				clean_response();
 };
