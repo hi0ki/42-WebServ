@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 
 
 #include "../../request/request.hpp"
@@ -22,6 +23,7 @@ class ClientData
 		int srv_index;
 		std::vector<char> request;
 		std::vector<char> response;
+		std::map<std::string, std::string> body_content;
 		bool keep_alive;
 		bool reqst_is_done;
 
@@ -56,7 +58,7 @@ class ClientData
 			return (req);
 		}
 		int 				get_srv_index() const;
-		std::vector<char> 	get_request() const;
+		std::vector<char> 	&get_request();
 		std::vector<char> 	get_response() const;
 		bool 				get_keep_alive() const;
 		bool				get_reqs_done() const;
@@ -65,6 +67,7 @@ class ClientData
 		bool   				get_post_boolen();
 		bool   				get_ftime_pars();
 		body_data   		&get_body_struct();
+		std::map<std::string, std::string> &get_body_content();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
