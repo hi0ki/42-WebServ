@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/30 12:13:27 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/04 16:54:23 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,14 +300,14 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 // if(loc.type == UNDEFINED)
                 //     loc.type = CGI;
             }
-            else if(spl[0] == "cgi_handler" && loc.return_r.red_url.empty())
-            {
-                loc.cgi_handler = spl[1];
-                if(loc.path.empty())
-                    loc.path = tmp[1];
-                if(loc.type == UNDEFINED)//why i use UNDEFINED
-                    loc.type = CGI;
-            }
+            // else if(spl[0] == "cgi_handler" && loc.return_r.red_url.empty())
+            // {
+            //     loc.cgi_handler = spl[1];
+            //     if(loc.path.empty())
+            //         loc.path = tmp[1];
+            //     if(loc.type == UNDEFINED)//why i use UNDEFINED
+            //         loc.type = CGI;
+            // }
             else if (spl[0] == "cgi_enabled")
             {
                 if (spl[1] == "on")
@@ -329,7 +329,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
-            else if (spl[0] == "cgi_path")
+            else if (spl[0] == "cgi_path")///// todo/// if not existe throw exception
             {
                 // check_semicolon(spl[1]);
                 if (spl[1].empty())
