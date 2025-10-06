@@ -103,7 +103,7 @@ body_data	&ClientData::get_body_struct()
 {
 	return (post_info);
 }
-std::map<std::string, std::string> &ClientData::get_body_content()
+std::map<std::string, std::string> &ClientData::get_body_map()
 {
 	return (body_content);
 }
