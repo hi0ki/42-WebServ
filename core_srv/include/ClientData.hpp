@@ -67,7 +67,7 @@ class ClientData
 		bool   				get_post_boolen();
 		bool   				get_ftime_pars();
 		body_data   		&get_body_struct();
-		std::map<std::string, std::string> &get_body_content();
+		std::map<std::string, std::string> &get_body_map();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
