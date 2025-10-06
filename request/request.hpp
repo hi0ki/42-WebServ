@@ -103,7 +103,7 @@
     };
 
     bool handelPOST(Httprequest &req, config &config);
-
+    Location findMatchingLocation(Httprequest &req, config &config);
 
    /*
     1/ is_location_have_redirection()
