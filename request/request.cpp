@@ -532,6 +532,7 @@ bool    handleMethod(Httprequest &req, config &config)
         check = handelGET(req, config);
     else if (meth == "POST")
     {
+        std::cout << "sbbbbr njjjjjrbbbbbbb \n";
         check = handelPOST(req, config);
     }
     else if (meth == "DELETE")

@@ -2,7 +2,6 @@
 
 ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false)
 {
-	get_body_struct().imgs_is_done = false;
 }
 
 ClientData::ClientData(const ClientData &obj)
@@ -124,7 +123,6 @@ void ClientData::clean_client_data()
 	this->length = -1;
 	this->post_body_done = false;
 	this->ftime_pars = false;
-	this->post_info.imgs_is_done = false;
 }
 
 void ClientData::clean_request()

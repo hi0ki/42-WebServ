@@ -185,7 +185,6 @@ void Server::accept_client(int i)
 	std::cout << GREEN << "---------------------------------------------" << RESET << std::endl;
 }
 
-
 void Server::pars_post_req(int index)
 {
 	std::string old_request;
@@ -197,7 +196,7 @@ void Server::pars_post_req(int index)
 		size_t find_index;
 		std::string body;
 
-		std::cout << "first time \n";
+		std::cout << YELLOW << "------------------ first Time -----------------" << RESET << std::endl;
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]);
 		find_index = old_request.find("\r\n\r\n");
@@ -205,93 +204,97 @@ void Server::pars_post_req(int index)
 			body = old_request.substr(find_index + 4);
 		new_request.insert(new_request.end(), body.begin(), body.end());
 		this->clients[index].set_ftime_pars(true);
+		this->clients[index].clean_request();
 		this->clients[index].set_request(new_request);
+		old_request.clear();
+		
+		request_length = this->clients[index].get_request().size();
 	}
 	if (!this->clients[index].get_body_struct().key.empty() && this->clients[index].get_request().size() == this->clients[index].get_length())
 	{
-		std::cout << RED << "dkhl l not first time hahaahah " << RESET << std::endl;
+		std::cout << YELLOW << "---------------- Not first Time ----------------" << RESET << std::endl;
 		size_t key_pos = 0;
+		size_t fname_pos = 0;
+
 		request_length = this->clients[index].get_request().size();
-		old_request.clear();
-		// for(int i = 0; i < this->clients[index].get_request().size(); i++)
-		// 	old_request.push_back(this->clients[index].get_request()[i]); // check ila kan kaydir had for dima f first time o hadi dirha bra dyal if mra whda osaf;
 		std::string old_request(
 			this->clients[index].get_request().begin(),
 			this->clients[index].get_request().end()
 		);
-		std::cout << "hahowa daz" << std::endl;
-		if (old_request.find(this->clients[index].get_body_struct().key + "--") == std::string::npos)
-		{
-			return ;
-		}
-		std::cout << GREEN << "---------------------------------" << RESET << std::endl; 
-		for (int x = 0; x < old_request.size(); x++)
-			std::cout << old_request[x];
-		std::cout << GREEN << "---------------------------------" << RESET << std::endl; 
 		while (true)
 		{
 			key_pos = old_request.find(this->clients[index].get_body_struct().key);
-			std::cout << "KEY POS = " << key_pos << std::endl;
 			if (key_pos != std::string::npos)
 			{
 				if (old_request[key_pos + this->clients[index].get_body_struct().key.size() + 1] == '-')
 				{
-					std::cout << RED << " raah mcha set l req -_________________-\n";
-					std::cout << key_pos + this->clients[index].get_body_struct().key.size() + 1 << std::endl;
-					old_request.erase(0, key_pos + this->clients[index].get_body_struct().key.size() + 1);
-					if (old_request.empty())
-						std::cout << "waaaaaaa aaaah\n";
-					this->clients[index].get_body_struct().imgs_is_done = true;
+					old_request.erase(0, key_pos + this->clients[index].get_body_struct().key.size() + 4);
+					this->clients[index].set_request(old_request);
+					std::cout << YELLOW << "-------- Final Request contetn --------" << std::endl;
+					std::cout << old_request;
+					std::cout << YELLOW << "---------------------------------------\n" << std::endl;
 					break ;
 				}
 				old_request.erase(0, this->clients[index].get_body_struct().key.size() + key_pos + 2);
-				size_t fname_pos = old_request.find("filename=\"");
-				std::cout << "FNAME POS = " << fname_pos << std::endl;
+				key_pos = old_request.find(this->clients[index].get_body_struct().key) - 6;
+				fname_pos = old_request.find("filename=\"");
 				if (fname_pos != std::string::npos)
 				{
+					std::cout << GREEN << "--- Image part ---" << RESET << std::endl;
 					fname_pos += 10;
 					this->clients[index].get_body_struct().file_name.clear();
 					for (; old_request[fname_pos] != '"'; fname_pos++)
 						this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
-					std::cout << "file name \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
-					// open the file and output on it
+					std::cout << "file name = \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
+					/////////////////////////////////////////// mhataj nzid path dyal upload osaf bach files imchiw ltma
 					std::ofstream myfile(this->clients[index].get_body_struct().file_name.c_str());
 					if (myfile.is_open())
 					{
-						std::cout << GREEN << "File open" << RESET << std::endl;
-						key_pos = old_request.find(this->clients[index].get_body_struct().key);
-						if (key_pos == std::string::npos)
-							key_pos = old_request.size();
-						else
-							key_pos -= 6;
-						int j = old_request.find("\r\n\r\n") + 4;
-						std::cout << "start from = " << j << std::endl;
-						std::cout << "end in  pos = " << key_pos << std::endl;
-						for (;j < key_pos; j++)
-							myfile << old_request[j];
-						std::cout << GREEN << "---------------------------------" << RESET << std::endl; 
-						for (int x = 0; x < old_request.size(); x++)
-							std::cout << old_request[x];
-						std::cout << GREEN << "---------------------------------" << RESET << std::endl; 
-						old_request.erase(old_request.begin(), old_request.begin() + j);
+						std::cout << "File opened" << std::endl;
+						int end = old_request.find("\r\n\r\n") + 4;
+						for (;end < key_pos; end++)
+							myfile << old_request[end];
+						old_request.erase(old_request.begin(), old_request.begin() + end);
 						myfile.close();
 					}
 					else
 						std::cout << RED << "File didn't open" << RESET << std::endl;
 				}
+				else
+				{
+					std::cout << GREEN << " --- Map body data ---" << RESET << std::endl;
+					fname_pos = old_request.find("name=\"");
+					std::string map_key;
+					std::string map_value;
+
+					if (fname_pos != std::string::npos)
+					{
+						fname_pos += 6;
+						for (; old_request[fname_pos] != '"'; fname_pos++)
+							map_key.push_back(old_request[fname_pos]);
+						int end = old_request.find("\r\n\r\n") + 4;
+						for (;end < key_pos; end++)
+							map_value.push_back(old_request[end]);
+						old_request.erase(old_request.begin(), old_request.begin() + end);
+						this->clients[index].get_body_map()[map_key] = map_value;
+						
+						std::cout << "map key = \"" << map_key << "\"" << std::endl;
+						std::cout << "map value +" << this->clients[index].get_body_map()[map_key]<< std::endl;
+
+						map_key.clear();
+						map_value.clear();
+					}
+				}
+			std::cout << BLUE << "\n--------- Contetn after edit ------------" << RESET << std::endl;
+			std::cout << old_request << std::endl;
+			std::cout << BLUE << "-----------------------------------------\n" << RESET << std::endl;
 			}
 			else 
 				break;
 		}
-		// std::cout << "\n\n-------------\n";
-		// for (int j = 0; j < old_request.size(); j++)
-		// 	std::cout << old_request[j];
-		// std::cout << "\n--------------\n";
 	}
 	if (request_length == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
 	{
-		std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;
-		std::cout << "length dyal myreq = " << this->clients[index].get_request().size() << std::endl;
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
 		this->clients[index].set_length(-1);
@@ -300,7 +303,6 @@ void Server::pars_post_req(int index)
 
 void Server::handle_request(int i)
 {
-	// mn hnaaaa
 	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
 	std::vector<char> request = this->clients[fds[i].fd].get_request();
 	char buffer[4096];
@@ -318,14 +320,13 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
-
 	this->clients[fds[i].fd].set_request(request);
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
 		pars_post_req(fds[i].fd);
-
 	if (this->clients[fds[i].fd].get_post_boolen())
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	if (this->clients[fds[i].fd].get_reqs_done())
