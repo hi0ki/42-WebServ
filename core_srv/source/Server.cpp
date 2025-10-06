@@ -247,7 +247,7 @@ void Server::pars_post_req(int index)
 						this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
 					std::cout << "file name = \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
 					/////////////////////////////////////////// mhataj nzid path dyal upload osaf bach files imchiw ltma
-					std::ofstream myfile(this->clients[index].get_body_struct().file_name.c_str());
+					std::ofstream myfile(this->clients[index].get_request_obj().getAbsolutePath() + "/" +  this->clients[index].get_body_struct().file_name.c_str());
 					if (myfile.is_open())
 					{
 						std::cout << "File opened" << std::endl;

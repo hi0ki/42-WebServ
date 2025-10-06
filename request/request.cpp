@@ -439,31 +439,38 @@ bool handelGET(Httprequest &req, config &config)
 }
 
 
-void    saveBodyToFile(Httprequest &req)
-{
-    // std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
-    // for(int i = 0; i < req.getBody().size(); i++)
-    // {
-    //     std::cout <<  req.getBody()[i] ;
-    // }
-    std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
-    if (!outfile.is_open())
-    {
-        //return 500
-        return ;
-    }
-    outfile.write(req.getBody().data(), req.getBody().size());
-    outfile.close();
-}
+// void    saveBodyToFile(Httprequest &req)
+// {
+//     // std::cout << "hyyyyyyy : " << req.getAbsolutePath() << std::endl;
+//     // for(int i = 0; i < req.getBody().size(); i++)
+//     // {
+//     //     std::cout <<  req.getBody()[i] ;
+//     // }
+//     std::ofstream outfile(req.getAbsolutePath().c_str(), std::ios::binary);
+//     if (!outfile.is_open())
+//     {
+//         //return 500
+//         return ;
+//     }
+//     outfile.write(req.getBody().data(), req.getBody().size());
+//     outfile.close();
+// }
 
 bool handelPOST(Httprequest &req, config &config)
 {
     //khesni nzid   cgi_enabled on; allowed methods
     char c = '\0';
+    std::cout << RED << req.getAbsolutePath() <<std::endl;
+    if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' )|| !pathExists(req.getAbsolutePath(), req, c))
+    {
+        req.setError(true);///
+        req.setStatus(404, "Not Found");
+        return false;
+    }
     if (isMethodAllowed(req, config))
     {
         req.setStatus(201, "Created");
-        saveBodyToFile(req);
+        // saveBodyToFile(req);
         return true;
     }
     if (pathExists(req.getAbsolutePath(), req, c) != true)
