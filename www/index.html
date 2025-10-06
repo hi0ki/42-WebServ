@@ -24,7 +24,7 @@
   </section>
 
   <section>
-    <h2>Upload Two Images (POST)</h2>
+    <h2>Upload Two Images and One Video (POST)</h2>
     <form id="uploadForm" enctype="multipart/form-data">
       <label>Image 1:</label>
       <input type="file" id="uploadInput1" name="image1" accept="image/*"><br><br>
@@ -32,7 +32,10 @@
       <label>Image 2:</label>
       <input type="file" id="uploadInput2" name="image2" accept="image/*"><br><br>
   
-      <button type="submit">Upload Both Images</button>
+      <label>Video:</label>
+      <input type="file" id="uploadVideo" name="video" accept="video/*"><br><br>
+  
+      <button type="submit">Upload Images and Video</button>
     </form>
     <pre id="uploadResult"></pre>
   </section>

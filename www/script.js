@@ -37,8 +37,10 @@ async function getData() {
   
   document.getElementById('uploadForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+  
     const fileInput1 = document.getElementById('uploadInput1');
     const fileInput2 = document.getElementById('uploadInput2');
+    const videoInput = document.getElementById('uploadVideo');
     const formData = new FormData();
   
     if (fileInput1.files[0]) {
@@ -46,6 +48,9 @@ async function getData() {
     }
     if (fileInput2.files[0]) {
       formData.append('image2', fileInput2.files[0]);
+    }
+    if (videoInput.files[0]) {
+      formData.append('video', videoInput.files[0]);
     }
   
     try {
