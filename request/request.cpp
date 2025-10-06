@@ -104,7 +104,7 @@ bool is_req_well_formed(Httprequest &req)
 
 Location findMatchingLocation(Httprequest &req, config &config) 
 {
-    std::cout << "dekhlat l find location\n";
+    // std::cout << "dekhlat l find location\n";
    std::vector<Location> locations = config.get_servs()[req.get_index()].get_location();
     static Location dummy; 
     Location best_match;
@@ -381,7 +381,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
             body = AutoindexPage(*this);
         else
         { 
-            std::cout << "mohm rani hna\n";
+            // std::cout << "mohm rani hna\n";
             std::ostringstream bodyStream;  
             bodyStream << file.rdbuf();
             body = bodyStream.str();
@@ -440,7 +440,7 @@ bool handelGET(Httprequest &req, config &config)
     //     req.setfullPath(req.getAbsolutePath());
     //if_location_has_cgi() the last thing
     req.setStatus(200, "OK");
-    std::cout << req.getAbsolutePath() << std::endl;
+    // std::cout << req.getAbsolutePath() << std::endl;
     return true;
 }
 
@@ -776,26 +776,26 @@ int Httprequest::request_pars(ClientData &client , config &config)
     //     parseChunkedBody(body ,client, a + 2);
     // else
     // {
-    std::cout << "method : " << method << std::endl;
-    std::cout << "path : " << path << std::endl;
-    std::cout << "Querry :" << QUERY_STRING << std::endl;
-    std::cout << "version : " << version << std::endl;
-    std::cout << "headers : \n";
-    for(std::map<std::string, std::string>::iterator i = headers.begin(); i != headers.end(); i++)
-    {
-        std::cout << i->first  << " : "  << i->second << std::endl;
-    }
+    // std::cout << "method : " << method << std::endl;
+    // std::cout << "path : " << path << std::endl;
+    // std::cout << "Querry :" << QUERY_STRING << std::endl;
+    // std::cout << "version : " << version << std::endl;
+    // std::cout << "headers : \n";
+    // for(std::map<std::string, std::string>::iterator i = headers.begin(); i != headers.end(); i++)
+    // {
+    //     std::cout << i->first  << " : "  << i->second << std::endl;
+    // }
     
     for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
 
-    for(int i = 0; i < body.size(); i++)
-    {
-     std::cout << "body : "<< body[i] << std::endl;
-    }
+    // for(int i = 0; i < body.size(); i++)
+    // {
+    //  std::cout << "body : "<< body[i] << std::endl;
+    // }
 
-    std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
-    std::cout << "size : " << path.size() << std::endl;
+    // std::cout << "path : [" << path << "]"<<  "   methos :"<< method<<std::endl; 
+    // std::cout << "size : " << path.size() << std::endl;
 
     if (checkAndApplyErrorPage(config, *this, client) == false)
     {
@@ -803,7 +803,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
         return 0;
     }
     // if (is_location_have_redirect(*this, config) == true) // hadi khesa tQa
-   
+   std::cout << "absolute path  1 : " << this->getAbsolutePath() << std::endl;
     std::cout << "waaaaaa\n";
     if (headers.find("Connection") != headers.end())
     {
@@ -818,7 +818,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     /*Look at the location’s config.Check if it has a redirection rule (e.g. return 301 ... or redirect ...).
     Return true (or a redirect config object) if yes, otherwise false.*/
     resolvePath(config, *this);
-    std::cout << "absolute path : " << this->getAbsolutePath() << std::endl;
+    std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config) == false)
     {
         std::cout << "ha ana hna \n";
