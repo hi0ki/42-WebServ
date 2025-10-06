@@ -67,7 +67,7 @@ int ClientData::get_srv_index() const
 {
 	return (srv_index);
 }
-std::vector<char> ClientData::get_request() const
+std::vector<char> &ClientData::get_request()
 {
 	return (request);
 }
@@ -102,6 +102,10 @@ bool ClientData::get_ftime_pars()
 body_data	&ClientData::get_body_struct()
 {
 	return (post_info);
+}
+std::map<std::string, std::string> &ClientData::get_body_content()
+{
+	return (body_content);
 }
 
 //              append
