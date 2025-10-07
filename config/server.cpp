@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/04 16:54:23 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 13:34:23 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,9 +132,9 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl.empty())
             {
                 it++;
-                continue;
                 if(it == end)
                 throw std::runtime_error(" '}' is missing ");
+                continue;
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
@@ -334,7 +334,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 // check_semicolon(spl[1]);
                 if (spl[1].empty())
                     throw std::runtime_error("cgi_path cannot be empty");
-                loc.cgi_handler = spl[1];  // tu avais déjà `cgi_handler`, tu peux utiliser `cgi_path` ou garder l'ancien
+                loc.path = spl[1];  // tu avais déjà `cgi_handler`, tu peux utiliser `cgi_path` ou garder l'ancien
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
@@ -363,7 +363,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 throw std::runtime_error(" '}' is missing ");
         }
         if ((loc.type == REDIRECT && loc.return_r.red_url.empty())
-            || (loc.type == CGI && (loc.cgi_handler.empty() || loc.root.empty())))
+            || (loc.type == CGI && (loc.path.empty() || loc.root.empty())))
             throw std::runtime_error("invalid location");    
     }
     else

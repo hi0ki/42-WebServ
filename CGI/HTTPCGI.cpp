@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 11:52:35 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 13:41:25 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
     {
         if(it->type == CGI)
         {
+            std::cout << RED << "waaaaaa dkhllllllll \n" << std::endl;
             if(it->cgi_enabled == false)
                 return(403);
             //// chech if method vide if yes check global methods
