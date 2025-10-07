@@ -411,11 +411,10 @@ std::string location_has_cgi(Httprequest &req, config &config)
 {
     std::string response = "";
     Location loc = findMatchingLocation(req, config);
-    if (!loc.cgi_enabled ) //|| loc.cgi_path.empty() || loc.cgi_extension.empty()
-        return response;
     HTTPCGI cgi(req, loc);
-    const std::string &body = "";
-    response = cgi.execute(req.getAbsolutePath() , body);
+    if (cgi.can_execute(config, req.get_index(), req))
+        return("") ;
+    response = cgi.execute(req.getAbsolutePath() , "");
     if (response != "")
     {
         req.setcgi_work(true);

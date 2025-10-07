@@ -1,5 +1,6 @@
 {
     "files.associations": {
+<<<<<<< HEAD
         "__bit_reference": "cpp",
         "__config": "cpp",
         "__debug": "cpp",
@@ -66,5 +67,8 @@
         "unordered_map": "cpp",
         "utility": "cpp",
         "vector": "cpp"
+=======
+        "iosfwd": "cpp"
+>>>>>>> master
     }
 }
