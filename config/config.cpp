@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 13:41:05 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 14:05:41 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,7 +175,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         {
             tmp.clear();
             break;
-        }
+        }   
         else if(!tmp.empty())
         {
             tmp.clear();
@@ -189,6 +189,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
     if(serv.get_IP().empty() || serv.get_root().empty())
         throw std::runtime_error("empty values");
     servs.push_back(serv);
+    
 }
 
 void config::parse_configFile()
@@ -220,8 +221,8 @@ void config::parse_configFile()
                 }
                 else
                 {
-                    set_server(++it, conf);   
-                    
+                    set_server(++it, conf); 
+                      
                 }       
             }
             else if (!tmp.empty())
@@ -353,7 +354,6 @@ void config::print_servers() // print server
                 }
                 std::cout << "\n";
             }
-
             ++l_it;
         }
 
