@@ -107,6 +107,7 @@ void Server::bind_socket(int srv_index)
 	if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
 		throw std::runtime_error("bind err");
 }
+
 void Server::listen_socket()
 {
 	if (listen(this->connection, SOMAXCONN) == -1)
@@ -130,7 +131,7 @@ void Server::start_connection()
 
 	while (true)
 	{
-		poll_var = poll(fds.data(), fds.size(), 0);
+		poll_var = poll(fds.data(), fds.size(), -1);
 		if (poll_var == -1)
 		{
 			// close all fds
@@ -176,62 +177,138 @@ void Server::accept_client(int i)
 	std::cout << "client fd = " << client_fd << std::endl;
 	std::cout << "server fd = " << fds[i].fd << std::endl;
 	std::cout << "server index = " << i << std::endl;
-	new_client.clear();
+	new_client.clean_client_data();
 	new_client.set_srv_index(i);
 	this->clients[client_fd] = new_client;
 	std::cout << "size = " << this->clients.size() << std::endl;
 	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
 	std::cout << GREEN << "---------------------------------------------" << RESET << std::endl;
 }
+
 void Server::pars_post_req(int index)
 {
-	std::vector<char> new_request;
 	std::string old_request;
-	std::string body;
-	size_t find_index;
-	static bool first_time;
+	size_t request_length;
 
-	if (!first_time)
+	if (!this->clients[index].get_ftime_pars())
 	{
-		std::cout << "first time \n";
+		std::vector<char> new_request;
+		size_t find_index;
+		std::string body;
+
+		std::cout << YELLOW << "------------------ first Time -----------------" << RESET << std::endl;
 		for(int i = 0; i < this->clients[index].get_request().size(); i++)
 			old_request.push_back(this->clients[index].get_request()[i]);
 		find_index = old_request.find("\r\n\r\n");
 		if (find_index != std::string::npos)
 			body = old_request.substr(find_index + 4);
 		new_request.insert(new_request.end(), body.begin(), body.end());
-		first_time = !first_time;
+		this->clients[index].set_ftime_pars(true);
+		this->clients[index].clean_request();
 		this->clients[index].set_request(new_request);
+		old_request.clear();
+		
+		request_length = this->clients[index].get_request().size();
 	}
-	else
-		this->clients[index].requse_append(new_request);
+	if (!this->clients[index].get_body_struct().key.empty() && this->clients[index].get_request().size() == this->clients[index].get_length())
+	{
+		std::cout << YELLOW << "---------------- Not first Time ----------------" << RESET << std::endl;
+		size_t key_pos = 0;
+		size_t fname_pos = 0;
 
-	std::cout << "length dyal req = " << this->clients[index].get_length() << std::endl;
-	std::cout << "length dyal myreq = " << this->clients[index].get_request().size() << std::endl;
-	if (this->clients[index].get_request().size() == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
+		request_length = this->clients[index].get_request().size();
+		std::string old_request(
+			this->clients[index].get_request().begin(),
+			this->clients[index].get_request().end()
+		);
+		while (true)
+		{
+			key_pos = old_request.find(this->clients[index].get_body_struct().key);
+			if (key_pos != std::string::npos)
+			{
+				if (old_request[key_pos + this->clients[index].get_body_struct().key.size() + 1] == '-')
+				{
+					old_request.erase(0, key_pos + this->clients[index].get_body_struct().key.size() + 4);
+					this->clients[index].set_request(old_request);
+					// std::cout << YELLOW << "-------- Final Request contetn --------" << std::endl;
+					// std::cout << old_request;
+					// std::cout << YELLOW << "---------------------------------------\n" << std::endl;
+					break ;
+				}
+				old_request.erase(0, this->clients[index].get_body_struct().key.size() + key_pos + 2);
+				key_pos = old_request.find(this->clients[index].get_body_struct().key) - 6;
+				fname_pos = old_request.find("filename=\"");
+				if (fname_pos != std::string::npos)
+				{
+					std::cout << GREEN << "--- Image part ---" << RESET << std::endl;
+					fname_pos += 10;
+					this->clients[index].get_body_struct().file_name.clear();
+					for (; old_request[fname_pos] != '"'; fname_pos++)
+						this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
+					std::cout << "file name = \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
+					std::ofstream myfile(this->clients[index].get_request_obj().getAbsolutePath() + "/" + this->clients[index].get_body_struct().file_name.c_str());
+					if (myfile.is_open())
+					{
+						std::cout << "File opened" << std::endl;
+						int end = old_request.find("\r\n\r\n") + 4;
+						for (;end < key_pos; end++)
+							myfile << old_request[end];
+						old_request.erase(old_request.begin(), old_request.begin() + end);
+						myfile.close();
+					}
+					else
+						std::cout << RED << "File didn't open" << RESET << std::endl;
+				}
+				else
+				{
+					std::cout << GREEN << " --- Map body data ---" << RESET << std::endl;
+					fname_pos = old_request.find("name=\"");
+					std::string map_key;
+					std::string map_value;
+
+					if (fname_pos != std::string::npos)
+					{
+						fname_pos += 6;
+						for (; old_request[fname_pos] != '"'; fname_pos++)
+							map_key.push_back(old_request[fname_pos]);
+						int end = old_request.find("\r\n\r\n") + 4;
+						for (;end < key_pos; end++)
+							map_value.push_back(old_request[end]);
+						old_request.erase(old_request.begin(), old_request.begin() + end);
+						this->clients[index].get_body_map()[map_key] = map_value;
+						
+						std::cout << "map key = \"" << map_key << "\"" << std::endl;
+						std::cout << "map value +" << this->clients[index].get_body_map()[map_key]<< std::endl;
+
+						map_key.clear();
+						map_value.clear();
+					}
+				}
+			// std::cout << BLUE << "\n--------- Contetn after edit ------------" << RESET << std::endl;
+			// std::cout << old_request << std::endl;
+			// std::cout << BLUE << "-----------------------------------------\n" << RESET << std::endl;
+			}
+			else 
+				break;
+		}
+	}
+	if (request_length == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
 	{
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
 		this->clients[index].set_length(-1);
 	}
-	// std::cout << "test = '>";
-	// for (int i = 0; i <= new_request.size(); i++)
-	// {
-	// 	std::cout << new_request[i] << " ";
-	// }
-	// std::cout << "<'" << std::endl;
-
 }
 
 void Server::handle_request(int i)
 {
-	// mn hnaaaa
 	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
 	std::vector<char> request = this->clients[fds[i].fd].get_request();
 	char buffer[4096];
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
 		request.insert(request.end(), buffer, buffer + bytesRead);
+		std::memset(buffer, 0, 4096);
 	}
 	else if (bytesRead == 0)
 	{
@@ -242,30 +319,20 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
-
 	this->clients[fds[i].fd].set_request(request);
-	
-	for (int j = 0; j < request.size(); j++)
-		std::cout << clients[fds[i].fd].get_request()[j];
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 
-	std::cout << this->clients[fds[i].fd].get_length() << std::endl;
-
-	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())  /// check dyal length mkhdamch li kayn f lpars dyal post body
+	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
 		pars_post_req(fds[i].fd);
 	if (this->clients[fds[i].fd].get_post_boolen())
-	{
-		std::cout << "dkhl lmra tanya l post" << std::endl;
- 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
-	}
+		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
 		std::cout << BLUE << "Request is done" << RESET << std::endl;
 		this->fds[i].events = POLLOUT;
 	}
-	std::memset(buffer, 0, 4096);
 }
 
 void Server::handle_response(int i)
@@ -284,9 +351,7 @@ void Server::handle_response(int i)
 		return ;
 	}
 	std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
-	this->clients[fds[i].fd].clean_request(); // don't remove it 
-	this->clients[fds[i].fd].clean_response(); // don't remove it 
-	// clear req obj
-	this->clients[fds[i].fd].get_request_obj().ft_clean();
-	this->fds[i].events = POLLIN; // don't remove it 
+	this->clients[fds[i].fd].clean_client_data();
+	this->clients[fds[i].fd].get_request_obj().ft_clean();	// clear req obj
+	this->fds[i].events = POLLIN; 							// don't remove it 
 }

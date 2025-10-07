@@ -1,0 +1,3 @@
+
+Docker Hub is like GitHub but only for Docker images.
+You can pull (download) and push (upload) images there.

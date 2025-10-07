@@ -1,6 +1,8 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) {}
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false)
+{
+}
 
 ClientData::ClientData(const ClientData &obj)
 {
@@ -29,6 +31,11 @@ void ClientData::set_request(std::vector<char> reqs)
 {
 	this->request = reqs;
 }
+void ClientData::set_request(std::string reqs)
+{
+	this->request.clear();
+	this->request.insert(this->request.end(), reqs.begin(), reqs.end());
+}
 void ClientData::set_response(std::vector<char> resp)
 {
 	this->response = resp;
@@ -49,13 +56,17 @@ void ClientData::set_post_boyd(bool body)
 {
 	this->post_body_done = body;
 }
+void ClientData::set_ftime_pars(bool first_time)
+{
+	this->ftime_pars = first_time;
+}
 
 //             Getters  
 int ClientData::get_srv_index() const
 {
 	return (srv_index);
 }
-std::vector<char> ClientData::get_request() const
+std::vector<char> &ClientData::get_request()
 {
 	return (request);
 }
@@ -83,6 +94,18 @@ bool ClientData::get_post_boolen()
 {
 	return (post_body_done);
 }
+bool ClientData::get_ftime_pars()
+{
+	return (ftime_pars);
+}
+body_data	&ClientData::get_body_struct()
+{
+	return (post_info);
+}
+std::map<std::string, std::string> &ClientData::get_body_map()
+{
+	return (body_content);
+}
 
 //              append
 void    ClientData::requse_append(std::vector<char> append_req)
@@ -91,11 +114,15 @@ void    ClientData::requse_append(std::vector<char> append_req)
 }
 
 //              Clear
-void ClientData::clear()
+void ClientData::clean_client_data()
 {
-	this->srv_index = 0;
 	this->request.clear();
 	this->response.clear();
+	this->keep_alive = false;
+	this->reqst_is_done = false;
+	this->length = -1;
+	this->post_body_done = false;
+	this->ftime_pars = false;
 }
 
 void ClientData::clean_request()
