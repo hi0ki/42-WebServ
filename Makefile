@@ -1,6 +1,6 @@
 C++ = c++ -Wall -Wextra -Werror
 
-Src = main1.cpp \
+Src = main.cpp \
 	core_srv/source/Server.cpp core_srv/source/ClientData.cpp\
 	config/config.cpp config/server.cpp \
 	request/request.cpp request/request_utils.cpp CGI/HTTPCGI.cpp\
