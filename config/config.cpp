@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/30 12:13:01 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 13:54:02 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,13 +163,22 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 3 || tmp[2] != "{")
                 throw std::runtime_error("location invalid");
             serv.pars_location(++it, tmp, conf.end());
+            // std::cout << " waaaa " << serv.get_location()[serv.get_location().size() - 1].methods.size() << "##############################"<< std::endl;
+            // for(std::vector<Location>::iterator it = serv.get_location().begin(); it != serv.get_location().end(); it++) 
+            // {
+            //     if(it->type == CGI)
+            //     {
+            //         std::cout << "hnaaaaa " <<it->methods.size() << std::endl;
+                    // exit(1);
+            //     }
+            // }
             //check if it == end and we dont foud }, if end throw exeption// if i need it
         }
         else if(!tmp.empty() && tmp[0] == "}")
         {
             tmp.clear();
             break;
-        }
+        }   
         else if(!tmp.empty())
         {
             tmp.clear();
@@ -183,6 +192,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
     if(serv.get_IP().empty() || serv.get_root().empty())
         throw std::runtime_error("empty values");
     servs.push_back(serv);
+    
 }
 
 void config::parse_configFile()
@@ -214,8 +224,8 @@ void config::parse_configFile()
                 }
                 else
                 {
-                    set_server(++it, conf);   
-                    
+                    set_server(++it, conf); 
+                      
                 }       
             }
             else if (!tmp.empty())
@@ -347,7 +357,6 @@ void config::print_servers() // print server
                 }
                 std::cout << "\n";
             }
-
             ++l_it;
         }
 

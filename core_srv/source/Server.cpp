@@ -35,6 +35,8 @@ uint32_t ip_convert(std::string ip)
 
 Server::Server(config &config) : myconfig(config)
 {
+
+	
 	this->server_start();
 	if (this->myconfig.get_servs().size() == 0)
 	{
