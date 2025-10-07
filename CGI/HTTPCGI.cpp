@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/04 17:27:50 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 11:51:55 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
     // return envr;
 }
 
-int can_execute(config &conf, int index, Httprequest req)
+int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
 {
     
     for(std::vector<Location>::iterator it = conf.get_servs()[index].get_location().begin(); it != conf.get_servs()[index].get_location().end(); it++)
