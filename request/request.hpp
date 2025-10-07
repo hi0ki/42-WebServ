@@ -22,7 +22,6 @@
             std::vector<char> body;
             std::map<std::string, std::string> headers;
             std::string absolutePath;
-            std::string fullPath;
             bool error; //fach kaykon path makeynech andlit biha wahed l cas odaba anzid f aya cas
             std::string redirectLocation;
             std::string server_name;
@@ -31,10 +30,12 @@
             bool Error_page_found; //fach kanelQa fconfig erro page kayen
 
             // std::string query;
+            bool cgi_work;
             int status_code;
             std::string status_text;
             bool check_autoindex;
             std::string QUERY_STRING;
+            std::string body_cgi;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -63,10 +64,6 @@
             unsigned int getStatus_code() const;
             std::string getStatus_text() const;
 
-
-
-            void setfullPath(const std::string &fullPath);
-            std::string getfullPath() const;
 
             void setError_page_found(const bool &Error);
             bool getError_page_found() const;
@@ -98,6 +95,15 @@
 
             //add by hanebaro
             std::string get_query_string() const;
+
+
+            void setcgi_work(bool cgi);
+            bool getcgi_work() const;
+
+   
+            void setBody_cgi(std::string body);
+            std::string getBody_cgi()const;
+            
 
     
     };
