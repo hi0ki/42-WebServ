@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
     "files.associations": {
         "iosfwd": "cpp",
@@ -67,4 +68,12 @@
         "utility": "cpp",
         "vector": "cpp"
     }
+=======
+{
+    "files.associations": {
+        "iosfwd": "cpp",
+        "string": "cpp"
+    },
+    "C_Cpp.default.compilerPath": ""
+>>>>>>> master
 }

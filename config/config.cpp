@@ -200,8 +200,13 @@ void config::parse_configFile()
     
     while(getline(File, ligne))
     {
+        // for linux version
+        // Remove trailing CR ("\r") to support files with Windows CRLF line endings
+        if (!ligne.empty() && ligne[ligne.size() - 1] == '\r')
+            ligne.erase(ligne.size() - 1);
+
         if(ligne == "\n")
-            continue;//je peut la suppr
+            continue; // je peut la suppr
         conf.push_back(ligne);
     }
     it = conf.begin();

@@ -1,4 +1,4 @@
-C++ = c++ -Wall -Wextra -Werror
+C++ = c++ #-Wall -Wextra -Werror
 
 Src = main.cpp \
 	core_srv/source/Server.cpp core_srv/source/ClientData.cpp\
