@@ -570,9 +570,7 @@ bool    handleMethod(Httprequest &req, config &config)
     if (meth == "GET")
         check = handelGET(req, config);
     else if (meth == "POST")
-    {
         check = handelPOST(req, config);
-    }
     else if (meth == "DELETE")
         check = handelDELETE(req, config);
     return check;
@@ -694,7 +692,8 @@ bool check_Error_pages(Httprequest &req, config &config)
     if (req.getError_page_found() == false)
     {
         std::cout << "wawwwwww3\n";
-        req.setAbsolutePath("/Users/felhafid/Desktop/hikii/defaults_errors/" +  uintToString(req.getStatus_code()) + ".html");
+        req.setAbsolutePath(getPWDwithWWW() + "/defaults_errors/" + uintToString(req.getStatus_code()) + ".html");
+        std::cout  << req.getAbsolutePath() << std::endl;
         std::cout << req.getStatus_code() << std::endl;
         return true;
         // req.setError(true);
@@ -810,7 +809,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     {
         std::cout << "khara\n";
         // client.set_post_boyd(true);
-        setAbsolutePath("/Users/felhafid/Desktop/hikii/defaults_errors/" + uintToString(this->getStatus_code()) + ".html");  
+        this->setAbsolutePath(getPWDwithWWW() + "/defaults_errors/" + uintToString(this->getStatus_code()) + ".html");
         return 0;
     }
     if (headers.find("Connection") != headers.end())
