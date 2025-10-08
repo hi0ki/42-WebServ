@@ -65,10 +65,11 @@ void Server::server_start()
 			this->listen_socket();
 
 			// add server fd to the container
+			fcntl(this->connection, F_SETFL, O_NONBLOCK);
 			pollfd pfd;
 			pfd.fd = this->connection;
 			pfd.events = POLLIN | POLLOUT; // give events both signs
-			pfd.revents = 0;	
+			pfd.revents = 0;
 			fds.push_back(pfd);
 			
 		}
@@ -182,6 +183,7 @@ void Server::accept_client(int i)
 	new_client.clean_client_data();
 	new_client.set_srv_index(i);
 	this->clients[client_fd] = new_client;
+	fcntl(client_fd, F_SETFL, O_NONBLOCK);
 	std::cout << "size = " << this->clients.size() << std::endl;
 	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
 	std::cout << GREEN << "---------------------------------------------" << RESET << std::endl;
@@ -189,42 +191,37 @@ void Server::accept_client(int i)
 
 void Server::pars_post_req(int index)
 {
-	std::string old_request;
 	size_t request_length;
 
 	if (!this->clients[index].get_ftime_pars())
 	{
-		std::vector<char> new_request;
-		size_t find_index;
-		std::string body;
+		std::vector<char>::iterator find_index;
 
 		std::cout << YELLOW << "------------------ first Time -----------------" << RESET << std::endl;
-		std::string old_request(
-			this->clients[index].get_request().begin(),
-			this->clients[index].get_request().end()
-		);
-		find_index = old_request.find("\r\n\r\n");
-		if (find_index != std::string::npos)
-			body = old_request.substr(find_index + 4);
-		new_request.insert(new_request.end(), body.begin(), body.end());
-		this->clients[index].set_ftime_pars(true);
-		this->clients[index].clean_request();
-		this->clients[index].set_request(new_request);
-		old_request.clear();
-		
+		find_index = std::search(this->clients[index].get_request().begin(), this->clients[index].get_request().end(),
+			std::begin("\r\n\r\n"), std::end("\r\n\r\n") - 1);
+		this->clients[index].get_request().erase(this->clients[index].get_request().begin(), find_index + 4);
 		request_length = this->clients[index].get_request().size();
+		this->clients[index].set_ftime_pars(true);
+
+		std::cout << GREEN << "------------------------" << RESET <<  std::endl;
+		std::cout << "size = " << request_length << std::endl;
+		for (int j = 0; j < this->clients[index].get_request().size() ; j++)
+			std::cout << this->clients[index].get_request()[j];
+		std::cout << GREEN << "------------------------" << RESET <<  std::endl;
+
 	}
 	if (!this->clients[index].get_body_struct().key.empty() && this->clients[index].get_request().size() == this->clients[index].get_length())
 	{
 		std::cout << YELLOW << "---------------- Not first Time ----------------" << RESET << std::endl;
 		size_t key_pos = 0;
 		size_t fname_pos = 0;
-
-		request_length = this->clients[index].get_request().size();
 		std::string old_request(
 			this->clients[index].get_request().begin(),
 			this->clients[index].get_request().end()
 		);
+
+		request_length = this->clients[index].get_request().size();
 		while (true)
 		{
 			key_pos = old_request.find(this->clients[index].get_body_struct().key);
@@ -252,8 +249,7 @@ void Server::pars_post_req(int index)
 					{
 						std::cout << "File opened" << std::endl;
 						int end = old_request.find("\r\n\r\n") + 4;
-						for (;end < key_pos; end++)
-							myfile << old_request[end];
+						myfile.write(&old_request[end], key_pos - end);
 						old_request.erase(old_request.begin(), old_request.begin() + end);
 						myfile.close();
 					}
@@ -301,11 +297,11 @@ void Server::pars_post_req(int index)
 void Server::handle_request(int i)
 {
 	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
-	std::vector<char> request = this->clients[fds[i].fd].get_request();
+	// std::vector<char> request = this->clients[fds[i].fd].get_request();
 	char buffer[4096];
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
-		request.insert(request.end(), buffer, buffer + bytesRead);
+		this->clients[fds[i].fd].get_request().insert(this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead);
 	}
 	else if (bytesRead == 0)
 	{
@@ -316,8 +312,7 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
-	this->clients[fds[i].fd].set_request(request);
-
+	// this->clients[fds[i].fd].set_request(request);
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
@@ -328,7 +323,6 @@ void Server::handle_request(int i)
 		std::cout << BLUE << "Request is done" << RESET << std::endl;
 		this->fds[i].events = POLLOUT;
 	}
-	// std::memset(buffer, 0, 4096);
 }
 
 void Server::handle_response(int i)
@@ -337,7 +331,7 @@ void Server::handle_response(int i)
 	std::string response = "";
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
 	std::cout << response << std::endl;
-	send(fds[i].fd, response.c_str(), response.size(), 0);// don't remove it 
+	send(fds[i].fd, response.c_str(), response.size(), 0);
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
@@ -348,6 +342,6 @@ void Server::handle_response(int i)
 	}
 	std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
 	this->clients[fds[i].fd].clean_client_data();
-	this->clients[fds[i].fd].get_request_obj().ft_clean();	// clear req obj
-	this->fds[i].events = POLLIN; 							// don't remove it 
+	this->clients[fds[i].fd].get_request_obj().ft_clean();
+	this->fds[i].events = POLLIN;
 }

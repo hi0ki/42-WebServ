@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <poll.h>
 #include <fstream>
+#include <fcntl.h>
 
 #include "../../config/config.hpp"
 #include "../../request/request.hpp"
