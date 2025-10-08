@@ -3,12 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/30 12:13:27 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 14:04:32 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "server.hpp"
 
@@ -61,7 +62,7 @@ std::string getPWDwithWWW() {
     char buffer[PATH_MAX];
     if (getcwd(buffer, sizeof(buffer)) != NULL) {
         std::string path(buffer);
-        path += "/www";   // on ajoute /www à la fin
+        // path += "/www";   // on ajoute /www à la fin
         return path;
     } else {
         perror("getcwd error");
@@ -132,9 +133,9 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl.empty())
             {
                 it++;
-                continue;
                 if(it == end)
                 throw std::runtime_error(" '}' is missing ");
+                continue;
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
@@ -300,14 +301,14 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 // if(loc.type == UNDEFINED)
                 //     loc.type = CGI;
             }
-            else if(spl[0] == "cgi_handler" && loc.return_r.red_url.empty())
-            {
-                loc.cgi_handler = spl[1];
-                if(loc.path.empty())
-                    loc.path = tmp[1];
-                if(loc.type == UNDEFINED)//why i use UNDEFINED
-                    loc.type = CGI;
-            }
+            // else if(spl[0] == "cgi_handler" && loc.return_r.red_url.empty())
+            // {
+            //     loc.cgi_handler = spl[1];
+            //     if(loc.path.empty())
+            //         loc.path = tmp[1];
+            //     if(loc.type == UNDEFINED)//why i use UNDEFINED
+            //         loc.type = CGI;
+            // }
             else if (spl[0] == "cgi_enabled")
             {
                 if (spl[1] == "on")
@@ -329,12 +330,12 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
-            else if (spl[0] == "cgi_path")
+            else if (spl[0] == "cgi_path")///// todo/// if not existe throw exception
             {
                 // check_semicolon(spl[1]);
                 if (spl[1].empty())
                     throw std::runtime_error("cgi_path cannot be empty");
-                loc.cgi_handler = spl[1];  // tu avais déjà `cgi_handler`, tu peux utiliser `cgi_path` ou garder l'ancien
+                loc.cgi_path = spl[1];  // tu avais déjà `cgi_handler`, tu peux utiliser `cgi_path` ou garder l'ancien
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
@@ -355,6 +356,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                     meth.push_back(spl[i]);
                 }
                 loc.methods = meth;
+                std::cout << "-------------------" << loc.methods.size() << std::endl;
             }
             else
                 throw std::runtime_error(spl[0] + "---invalid key in location");
@@ -363,12 +365,13 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 throw std::runtime_error(" '}' is missing ");
         }
         if ((loc.type == REDIRECT && loc.return_r.red_url.empty())
-            || (loc.type == CGI && (loc.cgi_handler.empty() || loc.root.empty())))
+            || (loc.type == CGI && (loc.cgi_path.empty() || loc.root.empty())))
             throw std::runtime_error("invalid location");    
     }
     else
         throw std::runtime_error("path invalid");
-    set_location(loc);
+    this->set_location(loc);
+    std::cout << location[location.size() - 1].methods.size() << "##############################"<< std::endl;
 }
 
 void server::pars_serv()
@@ -421,7 +424,7 @@ void server::set_errpage(ErrPage &errpage)
     error_page.push_back(errpage);
 }
 
-void server::set_location(Location &loc)
+void server::set_location(Location loc)
 {
     location.push_back(loc);
 }

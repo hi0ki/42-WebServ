@@ -18,3 +18,12 @@ int main(int ac, char **av)
     }
     return 1;
 }
+
+// for(std::vector<Location>::iterator it = myconfig.get_servs()[0].get_location().begin(); it != myconfig.get_servs()[0].get_location().end(); it++) 
+// 	{
+// 		if(it->type == CGI)
+//         {
+// 			std::cout << it->methods.size() << std::endl;
+// 		}
+// 	}
+// 	exit(1);
