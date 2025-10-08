@@ -199,8 +199,10 @@ void Server::pars_post_req(int index)
 		std::string body;
 
 		std::cout << YELLOW << "------------------ first Time -----------------" << RESET << std::endl;
-		for(int i = 0; i < this->clients[index].get_request().size(); i++)
-			old_request.push_back(this->clients[index].get_request()[i]);
+		std::string old_request(
+			this->clients[index].get_request().begin(),
+			this->clients[index].get_request().end()
+		);
 		find_index = old_request.find("\r\n\r\n");
 		if (find_index != std::string::npos)
 			body = old_request.substr(find_index + 4);
@@ -232,9 +234,6 @@ void Server::pars_post_req(int index)
 				{
 					old_request.erase(0, key_pos + this->clients[index].get_body_struct().key.size() + 4);
 					this->clients[index].set_request(old_request);
-					// std::cout << YELLOW << "-------- Final Request contetn --------" << std::endl;
-					// std::cout << old_request;
-					// std::cout << YELLOW << "---------------------------------------\n" << std::endl;
 					break ;
 				}
 				old_request.erase(0, this->clients[index].get_body_struct().key.size() + key_pos + 2);
@@ -280,15 +279,12 @@ void Server::pars_post_req(int index)
 						this->clients[index].get_body_map()[map_key] = map_value;
 						
 						std::cout << "map key = \"" << map_key << "\"" << std::endl;
-						std::cout << "map value +" << this->clients[index].get_body_map()[map_key]<< std::endl;
+						std::cout << "map value = " << this->clients[index].get_body_map()[map_key]<< std::endl;
 
 						map_key.clear();
 						map_value.clear();
 					}
 				}
-			// std::cout << BLUE << "\n--------- Contetn after edit ------------" << RESET << std::endl;
-			// std::cout << old_request << std::endl;
-			// std::cout << BLUE << "-----------------------------------------\n" << RESET << std::endl;
 			}
 			else 
 				break;
@@ -323,16 +319,11 @@ void Server::handle_request(int i)
 	}
 	this->clients[fds[i].fd].set_request(request);
 
-	for (int j = 0; this->clients[fds[i].fd].get_request().size() > j; j++)
-		std::cout << this->clients[fds[i].fd].get_request()[j];
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
-
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
 		pars_post_req(fds[i].fd);
-	if (this->clients[fds[i].fd].get_post_boolen())
-		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
 		std::cout << BLUE << "Request is done" << RESET << std::endl;

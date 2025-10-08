@@ -4,7 +4,6 @@
 #include <vector>
 #include <map>
 
-
 #include "../../request/request.hpp"
 #include "Server.hpp"
 
