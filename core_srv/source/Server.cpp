@@ -323,6 +323,9 @@ void Server::handle_request(int i)
 	}
 	this->clients[fds[i].fd].set_request(request);
 
+	for (int j = 0; this->clients[fds[i].fd].get_request().size() > j; j++)
+		std::cout << this->clients[fds[i].fd].get_request()[j];
+
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 

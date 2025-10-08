@@ -6,7 +6,7 @@
 /*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 13:54:02 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/07 14:05:41 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,15 +163,12 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 3 || tmp[2] != "{")
                 throw std::runtime_error("location invalid");
             serv.pars_location(++it, tmp, conf.end());
-            // std::cout << " waaaa " << serv.get_location()[serv.get_location().size() - 1].methods.size() << "##############################"<< std::endl;
-            // for(std::vector<Location>::iterator it = serv.get_location().begin(); it != serv.get_location().end(); it++) 
-            // {
-            //     if(it->type == CGI)
-            //     {
-            //         std::cout << "hnaaaaa " <<it->methods.size() << std::endl;
-                    // exit(1);
-            //     }
-            // }
+            if (serv.get_location()[serv.get_location().size()].type == CGI)
+            {
+            std::cout << " waaaa " << serv.get_location()[serv.get_location().size()].methods.size() << std::endl;
+                std::cout << "aaaaah " << std::endl;
+                // exit(1);
+            }
             //check if it == end and we dont foud }, if end throw exeption// if i need it
         }
         else if(!tmp.empty() && tmp[0] == "}")
