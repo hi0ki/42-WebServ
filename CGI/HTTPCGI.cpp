@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/08 12:44:34 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/08 14:17:06 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,70 +71,216 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
 
 int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
 {
-    
-    for(std::vector<Location>::iterator it = conf.get_servs()[index].get_location().begin(); it != conf.get_servs()[index].get_location().end(); it++)
-    {
-        if(it->type == CGI)
-        {
-            std::cout << RED << "waaaaaa dkhllllllll \n" << std::endl;
+    const std::vector<Location>& locations = conf.get_servs()[index].get_location();
+    // for(size_t i = 0; i < locations.size(); i++)
+    // {
+    //     if(locations[i].type == CGI)
+    //     {
+    //         std::cout << RED << "waaaaaa dkhllllllll \n" << std::endl;
             
-            if(it->cgi_enabled == false)
-                return(403);
-            //// chech if method vide if yes check global methods
-            std::vector<std::string>::iterator exist;
-                // exit(1);
-            std::cout << "heeeeeeeereeeeeee if     " << it->cgi_path << std::endl;
-            if(it->methods.size() != 0)
-            {
+    //         if(locations[i].cgi_enabled == false)
+    //             return(403);
+    //         //// chech if method vide if yes check global methods
+    //         std::vector<std::string>::iterator exist;
+            
+    //             // exit(1);
+    //             std::cout << RED << "------------------------------------------if     " << locations[i].methods.size() << std::endl;
+    //         if(locations[i].methods.size())
+    //         {
+    //             std::cout << "heeeeeeeereeeeeee if     " << locations[i].cgi_path << std::endl;
                 
-                exist = std::find(it->methods.begin(), it->methods.end(), req.getMethod());
-            }
-            else if (conf.get_servs()[index].get_methods().size())
-            {
-                std::cout << "heeeeeeeereeeeeee else     " << std::endl;
-                exist = std::find(conf.get_servs()[index].get_methods().begin(), it->methods.end(), req.getMethod());
-                std::cout << "heeeeeeeereeeeeee else     " << std::endl;
+    //             exist = std::find(locations[i].methods.begin(), locations[i].methods.end(), req.getMethod());
+    //         }
+    //         else if (conf.get_servs()[index].get_methods().size())
+    //         {
+    //             std::cout << "heeeeeeeereeeeeee else     " << std::endl;
+    //             exist = std::find(conf.get_servs()[index].get_methods().begin(), locations[i].methods.end(), req.getMethod());
+    //             std::cout << "heeeeeeeereeeeeee else     " << std::endl;
             
-            }
-            if(exist == it->methods.end())
+    //         }
+    //         if(exist == locations[i].methods.end())
+    //         {
+    //             std::cout << "heeeeeeeereeeeeee else     " << std::endl;
+    //             return(405);
+    //         }
+    //         //cgi_extension
+    //         std::string ext;
+    //         for(int i = req.getAbsolutePath().size() - 1; i >= 0; --i)
+    //         {
+    //             if(req.getAbsolutePath()[i] == '.')
+    //                 ext = req.getAbsolutePath().substr(i);
+    //         }
+    //         if(ext.empty())
+    //             return(403);
+    //         else
+    //         {
+    //             exist = std::find(locations[i].cgi_extension.begin(), locations[i].cgi_extension.end(), ext);
+    //             if(exist == locations[i].cgi_extension.end())
+    //             return(403);
+    //         }
+    //         //cgi_handler or cgi_path
+    //         struct stat st;
+    //         if (stat(locations[i].cgi_path.c_str(), &st) != 0) {
+    //             // std::cerr << "Error: " << locations[i].cgi_path << " does not exist.\n";
+    //             return (500);
+    //         }
+    //         if (!S_ISREG(st.st_mode)) {
+    //             // std::cerr << "Error: " << locations[i].cgi_path << " is not a regular file.\n";
+    //             return (500);
+    //         }
+    //         if (access(locations[i].cgi_path.c_str(), X_OK | F_OK) != 0) {
+    //             // std::cerr << "Error: " << locations[i].cgi_path << " is not executable.\n";
+    //             return (500);
+    //         }
+    //         /// a verifier
+    //         return(0);
+    //     }
+    // }
+    // for(std::vector<Location>::iterator it = conf.get_servs()[index].get_location().begin(); it != conf.get_servs()[index].get_location().end(); it++)
+    // {
+        
+    // }
+
+
+
+
+    // Code corrigé avec tous les bugs fixés
+
+    for(size_t i = 0; i < locations.size(); i++)
+    {
+        if(locations[i].type == CGI)
+        {
+            std::cout << RED << "CGI Location found!" << RESET << std::endl;
+            
+            // 1. Check if CGI is enabled
+            if(locations[i].cgi_enabled == false)
             {
-                std::cout << "heeeeeeeereeeeeee else     " << std::endl;
-                return(405);
+                std::cout << RED << "CGI not enabled" << RESET << std::endl;
+                return 403;
             }
-            //cgi_extension
+            
+            // 2. Check if HTTP method is allowed
+            std::vector<std::string>::const_iterator exist1;
+            std::vector<std::string> methods_to_check;
+
+            if (!locations[i].methods.empty())
+            {
+                std::cout << "in location" << std::endl;
+                methods_to_check = locations[i].methods;
+            }
+            else if (!conf.get_servs()[index].get_methods().empty())
+            {
+                std::cout << "in global serv" << std::endl;
+                methods_to_check = conf.get_servs()[index].get_methods(); // ✅ copie locale
+            }
+
+            if (!methods_to_check.empty())
+            {
+                std::vector<std::string>::const_iterator exist =
+                    std::find(methods_to_check.begin(), methods_to_check.end(), req.getMethod());
+
+                if (exist == methods_to_check.end())
+                {
+                    std::cout << RED << "Method " << req.getMethod() << " not allowed" << RESET << std::endl;
+                    return 405;
+                }
+                else
+                {
+                    std::cout << GREEN << "Method " << req.getMethod() << " is allowed" << RESET << std::endl;
+                }
+            }
+
+            
+            // 3. Check file extension
             std::string ext;
-            for(int i = req.getAbsolutePath().size() - 1; i >= 0; --i)
+            std::string path = req.getAbsolutePath();
+            
+            // ✅ FIX 3: Utiliser size_t au lieu de int pour éviter les warnings
+            for(size_t j = path.size(); j > 0; --j)
             {
-                if(req.getAbsolutePath()[i] == '.')
-                    ext = req.getAbsolutePath().substr(i);
+                if(path[j - 1] == '.')
+                {
+                    ext = path.substr(j - 1);
+                    break;  // ✅ FIX 4: Ajouter break pour sortir dès qu'on trouve
+                }
             }
+            
+            std::cout << "File extension: " << ext << std::endl;
+            
             if(ext.empty())
-                return(403);
-            else
             {
-                exist = std::find(it->cgi_extension.begin(), it->cgi_extension.end(), ext);
-                if(exist == it->cgi_extension.end())
-                return(403);
+                std::cout << RED << "No file extension found" << RESET << std::endl;
+                return 403;
             }
-            //cgi_handler or cgi_path
+            
+            // Check if extension is allowed
+            if(locations[i].cgi_extension.size() > 0)
+            {
+                exist1 = std::find(locations[i].cgi_extension.begin(), 
+                                locations[i].cgi_extension.end(), 
+                                ext);
+                
+                if(exist1 == locations[i].cgi_extension.end())
+                {
+                    std::cout << RED << "Extension " << ext << " not allowed" << RESET << std::endl;
+                    return 403;
+                }
+                else
+                {
+                    std::cout << GREEN << "Extension " << ext << " is allowed" << RESET << std::endl;
+                }
+            }
+            
+            // 4. Check interpreter (cgi_handler or cgi_path)
+            // ✅ FIX 5: Vérifier que cgi_path n'est pas vide
+            if(locations[i].cgi_path.empty())
+            {
+                std::cout << RED << "No CGI interpreter path configured" << RESET << std::endl;
+                return 500;
+            }
+            
+            std::cout << "Checking interpreter: " << locations[i].cgi_path << std::endl;
+            
             struct stat st;
-            if (stat(it->cgi_path.c_str(), &st) != 0) {
-                // std::cerr << "Error: " << it->cgi_path << " does not exist.\n";
-                return (500);
+            if (stat(locations[i].cgi_path.c_str(), &st) != 0)
+            {
+                std::cout << RED << "Interpreter does not exist: " << locations[i].cgi_path << RESET << std::endl;
+                return 500;
             }
-            if (!S_ISREG(st.st_mode)) {
-                // std::cerr << "Error: " << it->cgi_path << " is not a regular file.\n";
-                return (500);
+            
+            if (!S_ISREG(st.st_mode))
+            {
+                std::cout << RED << "Interpreter is not a regular file: " << locations[i].cgi_path << RESET << std::endl;
+                return 500;
             }
-            if (access(it->cgi_path.c_str(), X_OK | F_OK) != 0) {
-                // std::cerr << "Error: " << it->cgi_path << " is not executable.\n";
-                return (500);
+            
+            if (access(locations[i].cgi_path.c_str(), X_OK) != 0)
+            {
+                std::cout << RED << "Interpreter is not executable: " << locations[i].cgi_path << RESET << std::endl;
+                return 500;
             }
-            /// a verifier
-            return(0);
+            
+            // 5. Check if script file exists and is readable
+            if (access(req.getAbsolutePath().c_str(), F_OK) != 0)
+            {
+                std::cout << RED << "CGI script not found: " << req.getAbsolutePath() << RESET << std::endl;
+                return 404;
+            }
+            
+            if (access(req.getAbsolutePath().c_str(), R_OK) != 0)
+            {
+                std::cout << RED << "CGI script not readable: " << req.getAbsolutePath() << RESET << std::endl;
+                return 403;
+            }
+            
+            std::cout << GREEN << "All CGI checks passed!" << RESET << std::endl;
+            return 0;  // ✅ Success!
         }
     }
-    return(1);
+    // Si on arrive ici, aucune location CGI trouvée
+    return 404;
+
+    // return(1);
 }
 
 std::string HTTPCGI::execute(const std::string &script_path, const std::string &body)

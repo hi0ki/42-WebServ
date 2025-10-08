@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 14:05:41 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/08 13:40:03 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,10 +163,11 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 3 || tmp[2] != "{")
                 throw std::runtime_error("location invalid");
             serv.pars_location(++it, tmp, conf.end());
-            if (serv.get_location()[serv.get_location().size()].type == CGI)
+            if (serv.get_location()[serv.get_location().size() - 1].type == CGI)
             {
-            std::cout << " waaaa " << serv.get_location()[serv.get_location().size()].methods.size() << std::endl;
-                std::cout << "aaaaah " << std::endl;
+                std::cout << RED << " waaaa " << serv.get_location()[serv.get_location().size() - 1].methods.size() << serv.get_location()[serv.get_location().size() - 1].cgi_path << std::endl;
+                
+                // std::cout << "aaaaah " << std::endl;
                 // exit(1);
             }
             //check if it == end and we dont foud }, if end throw exeption// if i need it
@@ -188,8 +189,27 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
     }
     if(serv.get_IP().empty() || serv.get_root().empty())
         throw std::runtime_error("empty values");
-    servs.push_back(serv);
     
+    servs.push_back(serv);
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods.size() << std::endl;
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].type << std::endl;
+    
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[0] << std::endl;
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[1] << std::endl;
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[2] << std::endl;
+    // const std::vector<Location>& locations = servs[servs.size() - 1].get_location();
+    // for(size_t i = 0; i < locations.size(); i++)
+    // {
+    //     if (locations[i].type == CGI)
+    //     {
+    //         std::cout << "Type: " << locations[i].type << std::endl;
+    //         std::cout << "Methods size: " << locations[i].methods.size() << std::endl;
+            
+    //         for(size_t j = 0; j < locations[i].methods.size(); j++) {
+    //             std::cout << "  Method: " << locations[i].methods[j] << std::endl;
+    //         }
+    //     }
+    // }
 }
 
 void config::parse_configFile()

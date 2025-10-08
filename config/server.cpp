@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 14:04:32 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/08 14:06:30 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -359,7 +359,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 std::cout << "-------------------" << loc.methods.size() << std::endl;
             }
             else
-                throw std::runtime_error(spl[0] + "---invalid key in location");
+                throw std::runtime_error(spl[0] + "invalid key in location");
             it++;
             if(it == end)
                 throw std::runtime_error(" '}' is missing ");
@@ -371,7 +371,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
     else
         throw std::runtime_error("path invalid");
     this->set_location(loc);
-    std::cout << location[location.size() - 1].methods.size() << "##############################"<< std::endl;
+    // std::cout << location[location.size() - 1].methods.size() << "##############################"<< std::endl;
 }
 
 void server::pars_serv()
