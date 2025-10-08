@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:01:17 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/01 16:28:42 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 11:47:58 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,5 +23,7 @@ class HTTPCGI
         HTTPCGI(Httprequest &req, const Location &loc);
         void cgi_env(Httprequest &req, const Location &loc);
         //function to execute
-        std::string execute(const std::string &script_path, const std::string &body = "");
+        // bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg);
+        int can_execute(config &conf, int index, Httprequest req);
+        std::string execute(const std::string &script_path, const std::string &body);
 };

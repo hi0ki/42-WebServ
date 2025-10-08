@@ -10,12 +10,14 @@ Httprequest::Httprequest()
         // std::string query;
     this->error = false;
     this->absolutePath = "";
-    this->fullPath = "";
     this->status_code = 0;
     this->status_text = "";
     this->QUERY_STRING = "";
     this->check_autoindex = false;
     this->forceGetOnError = false;
+    this->cgi_work = false;
+    this->body_cgi = "";
+    this->redirectLocation = "";
 }
 
 void Httprequest::setMethod(const std::string &method)
@@ -82,16 +84,6 @@ void    Httprequest::setStatus(int status_code, std::string status_text)
 {
     this->status_code = status_code;
     this->status_text = status_text;
-}
-
-void Httprequest::setfullPath(const std::string &fullPath)
-{
-    this->fullPath = fullPath;
-}
-
-std::string Httprequest::getfullPath() const
-{
-    return (this->fullPath);
 }
 
 void Httprequest::setError_page_found(const bool &Error)
@@ -172,4 +164,24 @@ void Httprequest::setForceGetOnError(bool forceGetOnError)
 bool Httprequest::getForceGetOnError()const
 {
     return this->forceGetOnError;
+}
+
+void    Httprequest::setcgi_work(bool cgi)
+{
+    cgi_work = cgi;
+}
+bool Httprequest::getcgi_work() const
+{
+    return cgi_work;
+}
+
+
+void Httprequest::setBody_cgi(std::string body)
+{
+    body_cgi = body;
+}
+            
+std::string Httprequest::getBody_cgi()const
+{
+    return body_cgi;
 }
