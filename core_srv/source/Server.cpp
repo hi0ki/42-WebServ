@@ -306,7 +306,6 @@ void Server::handle_request(int i)
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
 		request.insert(request.end(), buffer, buffer + bytesRead);
-		std::memset(buffer, 0, 4096);
 	}
 	else if (bytesRead == 0)
 	{
