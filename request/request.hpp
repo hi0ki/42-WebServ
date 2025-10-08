@@ -34,6 +34,7 @@
             int status_code;
             std::string status_text;
             bool check_autoindex;
+            std::string QUERY_STRING;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -95,11 +96,14 @@
             void setForceGetOnError(bool forceGetOnError);
             bool getForceGetOnError()const;
 
+            //add by hanebaro
+            std::string get_query_string() const;
+
     
     };
 
     bool handelPOST(Httprequest &req, config &config);
-
+    Location findMatchingLocation(Httprequest &req, config &config);
 
    /*
     1/ is_location_have_redirection()

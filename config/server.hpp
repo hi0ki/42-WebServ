@@ -3,17 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/09/19 13:52:08 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/09/30 12:14:05 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 
 #pragma once
 #include <iostream>
 #include <vector>
+#include <unistd.h>   // getcwd
+#include <limits.h>   // PATH_MAX
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"  
@@ -25,13 +28,22 @@ struct ErrPage
     std::string red_page;
 };
 
+struct return_red
+{
+    int err;
+    std::string red_url ;
+};
+
 struct Location {
     std::string path;              // ex: "/blog" ou "/api"
     LocationType type;             // type de la location
     std::string root;              // pour STATIC, CGI, UPLOAD
     std::string index;             // pour STATIC
     std::string cgi_handler;       // pour CGI (ex: "/usr/bin/php-cgi")
-    std::string redirect_url;      // pour REDIRECT (ex: "https://monsite.com/new")
+    bool cgi_enabled;
+    std::vector<std::string> cgi_extension;
+    std::string cgi_path;
+    return_red return_r;      // pour REDIRECT (ex: "https://monsite.com/new")
     size_t max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
     std::vector<std::string> limit_except;//fatimazahra zadtha
      //client_max_body_size 5M;  
@@ -85,3 +97,4 @@ class server
 };
 void check_semicolon(std::string &str);
 std::vector<std::string> split(const std::string &str, char c);
+std::string getPWDwithWWW();
