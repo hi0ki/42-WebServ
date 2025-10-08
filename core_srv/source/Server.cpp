@@ -306,7 +306,6 @@ void Server::handle_request(int i)
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
 		request.insert(request.end(), buffer, buffer + bytesRead);
-		std::memset(buffer, 0, 4096);
 	}
 	else if (bytesRead == 0)
 	{
@@ -329,6 +328,7 @@ void Server::handle_request(int i)
 		std::cout << BLUE << "Request is done" << RESET << std::endl;
 		this->fds[i].events = POLLOUT;
 	}
+	// std::memset(buffer, 0, 4096);
 }
 
 void Server::handle_response(int i)
