@@ -14,6 +14,7 @@
 
 #pragma once
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <unistd.h>   // getcwd
 #include <limits.h>   // PATH_MAX
