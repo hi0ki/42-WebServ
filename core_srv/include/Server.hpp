@@ -11,7 +11,7 @@
 #include <fstream>
 
 #include "../../config/config.hpp"
-#include "../../request/request.hpp"
+#include "../../request/Request.hpp"
 #include "ClientData.hpp"
 
 #define RESET   "\033[0m"
