@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPCGI.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:01:17 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 11:47:58 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/08 17:18:16 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #include<iostream>
 #include<vector>
 
-#include "../request/request.hpp"
+#include "../request/Request.hpp"
 class HTTPCGI
 {
     private:
