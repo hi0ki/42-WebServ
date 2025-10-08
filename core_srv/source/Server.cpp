@@ -230,9 +230,9 @@ void Server::pars_post_req(int index)
 				{
 					old_request.erase(0, key_pos + this->clients[index].get_body_struct().key.size() + 4);
 					this->clients[index].set_request(old_request);
-					std::cout << YELLOW << "-------- Final Request contetn --------" << std::endl;
-					std::cout << old_request;
-					std::cout << YELLOW << "---------------------------------------\n" << std::endl;
+					// std::cout << YELLOW << "-------- Final Request contetn --------" << std::endl;
+					// std::cout << old_request;
+					// std::cout << YELLOW << "---------------------------------------\n" << std::endl;
 					break ;
 				}
 				old_request.erase(0, this->clients[index].get_body_struct().key.size() + key_pos + 2);
@@ -246,8 +246,7 @@ void Server::pars_post_req(int index)
 					for (; old_request[fname_pos] != '"'; fname_pos++)
 						this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
 					std::cout << "file name = \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
-					/////////////////////////////////////////// mhataj nzid path dyal upload osaf bach files imchiw ltma
-					std::ofstream myfile(this->clients[index].get_body_struct().file_name.c_str());
+					std::ofstream myfile(this->clients[index].get_request_obj().getAbsolutePath() + "/" + this->clients[index].get_body_struct().file_name.c_str());
 					if (myfile.is_open())
 					{
 						std::cout << "File opened" << std::endl;
@@ -285,9 +284,9 @@ void Server::pars_post_req(int index)
 						map_value.clear();
 					}
 				}
-			std::cout << BLUE << "\n--------- Contetn after edit ------------" << RESET << std::endl;
-			std::cout << old_request << std::endl;
-			std::cout << BLUE << "-----------------------------------------\n" << RESET << std::endl;
+			// std::cout << BLUE << "\n--------- Contetn after edit ------------" << RESET << std::endl;
+			// std::cout << old_request << std::endl;
+			// std::cout << BLUE << "-----------------------------------------\n" << RESET << std::endl;
 			}
 			else 
 				break;
