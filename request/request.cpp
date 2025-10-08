@@ -756,6 +756,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     //     return 0;
     // }
     client.set_request(removeExtraSpaces(client.get_request()));
+    
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
     std::cout << tmp;
