@@ -30,7 +30,6 @@
             bool Error_page_found; //fach kanelQa fconfig erro page kayen
 
             // std::string query;
-            bool cgi_work;
             int status_code;
             std::string status_text;
             bool check_autoindex;
@@ -97,19 +96,18 @@
             std::string get_query_string() const;
 
 
-            void setcgi_work(bool cgi);
-            bool getcgi_work() const;
-
-   
             void setBody_cgi(std::string body);
             std::string getBody_cgi()const;
             
+
 
     
     };
 
     bool handelPOST(Httprequest &req, config &config);
     Location findMatchingLocation(Httprequest &req, config &config);
+    std::string uintToString(unsigned int value);
+    std::string AutoindexPage(Httprequest &req);
 
    /*
     1/ is_location_have_redirection()
