@@ -6,7 +6,7 @@
 /*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 13:32:09 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/07 14:04:32 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,9 +133,9 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl.empty())
             {
                 it++;
-                continue;
                 if(it == end)
                 throw std::runtime_error(" '}' is missing ");
+                continue;
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;

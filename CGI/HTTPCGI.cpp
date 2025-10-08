@@ -6,7 +6,7 @@
 /*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 12:35:15 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/07 14:03:25 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
     {
         if(it->type == CGI)
         {
+            std::cout << RED << "waaaaaa dkhllllllll \n" << std::endl;
             
             if(it->cgi_enabled == false)
                 return(403);
