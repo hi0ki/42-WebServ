@@ -6,9 +6,10 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 11:51:55 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/08 12:44:34 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "HTTPCGI.hpp"
 
@@ -59,11 +60,11 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
     envr.push_back(NULL); // fin du tableau
 
     // 🔹 Print pour debug
-    std::cout << "---- CGI ENV ----" << std::endl;
-    for (size_t i = 0; i < env.size(); i++) {
-        std::cout << env[i] << std::endl;
-    }
-    std::cout << "-----------------" << std::endl;
+    // std::cout << "---- CGI ENV ----" << std::endl;
+    // for (size_t i = 0; i < env.size(); i++) {
+    //     std::cout << env[i] << std::endl;
+    // }
+    // std::cout << "-----------------" << std::endl;
 
     // return envr;
 }
@@ -75,16 +76,31 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
     {
         if(it->type == CGI)
         {
+            std::cout << RED << "waaaaaa dkhllllllll \n" << std::endl;
+            
             if(it->cgi_enabled == false)
                 return(403);
             //// chech if method vide if yes check global methods
             std::vector<std::string>::iterator exist;
-            if(!it->methods.empty())
+                // exit(1);
+            std::cout << "heeeeeeeereeeeeee if     " << it->cgi_path << std::endl;
+            if(it->methods.size() != 0)
+            {
+                
                 exist = std::find(it->methods.begin(), it->methods.end(), req.getMethod());
-            else
+            }
+            else if (conf.get_servs()[index].get_methods().size())
+            {
+                std::cout << "heeeeeeeereeeeeee else     " << std::endl;
                 exist = std::find(conf.get_servs()[index].get_methods().begin(), it->methods.end(), req.getMethod());
+                std::cout << "heeeeeeeereeeeeee else     " << std::endl;
+            
+            }
             if(exist == it->methods.end())
+            {
+                std::cout << "heeeeeeeereeeeeee else     " << std::endl;
                 return(405);
+            }
             //cgi_extension
             std::string ext;
             for(int i = req.getAbsolutePath().size() - 1; i >= 0; --i)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
+/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/04 16:53:30 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/07 13:24:10 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ class server
         void set_index(std::string nindex);
         void set_autoindex(std::string nindex);
         void set_errpage(ErrPage &errpage);//push_back
-        void set_location(Location &loc);
+        void set_location(Location loc);
         std::vector<Location> get_location() const;
         std::vector<ErrPage> get_errpage();
         std::string get_name();
