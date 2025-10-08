@@ -17,6 +17,7 @@ Httprequest::Httprequest()
     this->forceGetOnError = false;
     this->cgi_work = false;
     this->body_cgi = "";
+    this->redirectLocation = "";
 }
 
 void Httprequest::setMethod(const std::string &method)

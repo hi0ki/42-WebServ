@@ -100,7 +100,7 @@ bool is_req_well_formed(Httprequest &req)
     }
     if (!checkBodySize(req))
         return false;
-    // std::cout << "dazet shiha mn errors\n";
+    std::cout << "dazet shiha mn errors\n";
     //if =>Request body larger han client max body size in config file
     return true;
 }
@@ -135,8 +135,8 @@ Location findMatchingLocation(Httprequest &req, config &config)
     }
     if (best_match.path.size())
         return best_match;
-    // if (req.getError() == false)
-    //     req.setStatus(404, "Not Found");
+    if (req.getError() == false && req.getError_page_found() == false)
+        req.setStatus(404, "Not Found");   ///
     return dummy;
 }
 
@@ -192,16 +192,18 @@ void resolvePath(config &config, Httprequest &req)
     Location loc = findMatchingLocation(req, config);
     if (loc.root != "")
     {
-        if (req.getPath().find("www/errors", 0) != std::string::npos)
+        // if (req.getPath().find("www/errors", 0) != std::string::npos)
+        //     req.setAbsolutePath(loc.root + req.getPath());
+        // else
             req.setAbsolutePath(loc.root + req.getPath());
-        else
-            req.setAbsolutePath(loc.root + "www" + req.getPath());
         return ;
     }
-    if (req.getPath().find("www/errors", 0) != std::string::npos)
+    // if (req.getPath().find("www/errors", 0) != std::string::npos)
+    //     req.setAbsolutePath(config.get_servs()[req.get_index()].get_root() + req.getPath());
+    // else
         req.setAbsolutePath(config.get_servs()[req.get_index()].get_root() + req.getPath());
-    else
-        req.setAbsolutePath(config.get_servs()[req.get_index()].get_root()+ "www" + req.getPath());
+
+    
 }
 
 bool resolve_index(Httprequest &req, config &config)
@@ -295,6 +297,8 @@ std::string AutoindexPage(Httprequest &req)
 bool isMethodAllowed(Httprequest &req, config &config)
 {
     Location loc = findMatchingLocation(req, config);
+    std::cout << req.getPath()<< std::endl;
+    std::cout << "5555555555\n";
     std::string meth = req.getMethod();
     if (loc.methods.empty() && config.get_servs()[req.get_index()].get_methods().empty())
         return true;
@@ -617,10 +621,14 @@ void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
 bool is_location_have_redirect(Httprequest &req, config &config)
 {
     //Ensure the status is valid (commonly 301, 302, 303, 307, 308).
+    std::cout << "ana hna\n";
     Location loc = findMatchingLocation(req, config);
+    std::cout << req.getPath() <<  "  " << loc.path << std::endl; 
+
     if (loc.type == REDIRECT)
     {
         req.setStatus(301, "Moved Permanently");
+        req.setRedirectLocation(loc.return_r.red_url);
         return true;
     }
     return false;
@@ -654,9 +662,9 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
                 std::cout << "hasab tawaQo3i dekhlat hna\n";
                 req.setError_page_found(true);
                 std::cout << req.getStatus_code() << "\n";
-                req.setPath("www" + config.get_servs()[req.get_index()].get_errpage()[i].red_page);
+                req.setPath("/www" + config.get_servs()[req.get_index()].get_errpage()[i].red_page);
                 resolvePath(config, req);
-                std::cout << req.getAbsolutePath() << std::endl;
+                std::cout <<  " 1 "<< req.getAbsolutePath() << std::endl;
                 if (fileExists(req.getAbsolutePath()) == false)
                     return false;
                 return true;
@@ -675,7 +683,7 @@ bool check_Error_pages(Httprequest &req, config &config)
         if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
         {
             req.setError_page_found(true);
-            req.setPath("www" + config.get_servs()[req.get_index()].get_errpage()[i].red_page);
+            req.setPath("/www" + config.get_servs()[req.get_index()].get_errpage()[i].red_page);
             resolvePath(config, req);
             if (!fileExists(req.getAbsolutePath()) || !isMethodAllowed(req, config))
                 req.setError_page_found(false);
@@ -795,8 +803,11 @@ int Httprequest::request_pars(ClientData &client , config &config)
             }
         }
     }
+    std::cout << "111111111\n";
+    this->setPath("/www" + this->getPath());
     if (checkAndApplyErrorPage(config, *this, client) == false)
     {
+        std::cout << "khara\n";
         // client.set_post_boyd(true);
         setAbsolutePath("/Users/felhafid/Desktop/hikii/defaults_errors/" + uintToString(this->getStatus_code()) + ".html");  
         return 0;
@@ -811,10 +822,13 @@ int Httprequest::request_pars(ClientData &client , config &config)
         else if (val == "keep-alive")
             client.set_keep_alive(true);
     }
-    // if ()
-    /*Look at the location’s config.Check if it has a redirection rule (e.g. return 301 ... or redirect ...).
-    Return true (or a redirect config object) if yes, otherwise false.*/
+    std::cout << "2222222222\n";
+
+    std::cout << "333333333\n";
+    
     resolvePath(config, *this);
+    // if (is_location_have_redirect(*this, config))
+    //     return 0;
     std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config) == false)
     {
@@ -854,6 +868,7 @@ void Httprequest::ft_clean()
     this->Error_page_found = false;
     this->cgi_work = false;
     this->body_cgi = "";
+    this->redirectLocation = "";
 
 }
 
