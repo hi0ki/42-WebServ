@@ -2,5 +2,6 @@
     "files.associations": {
         "iosfwd": "cpp",
         "string": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": ""
 }
