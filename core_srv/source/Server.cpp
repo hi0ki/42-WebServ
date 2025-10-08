@@ -216,6 +216,8 @@ void Server::pars_post_req(int index)
 		std::cout << YELLOW << "---------------- Not first Time ----------------" << RESET << std::endl;
 		size_t key_pos = 0;
 		size_t fname_pos = 0;
+		std::string boundry = this->clients[index].get_body_struct().key;
+		size_t boundry_size = boundry.size();
 		std::string old_request(
 			this->clients[index].get_request().begin(),
 			this->clients[index].get_request().end()
@@ -224,17 +226,17 @@ void Server::pars_post_req(int index)
 		request_length = this->clients[index].get_request().size();
 		while (true)
 		{
-			key_pos = old_request.find(this->clients[index].get_body_struct().key);
+			key_pos = old_request.find(boundry);
 			if (key_pos != std::string::npos)
 			{
-				if (old_request[key_pos + this->clients[index].get_body_struct().key.size() + 1] == '-')
+				if (old_request[key_pos + boundry_size + 1] == '-')
 				{
-					old_request.erase(0, key_pos + this->clients[index].get_body_struct().key.size() + 4);
+					old_request.erase(0, key_pos + boundry_size + 4);
 					this->clients[index].set_request(old_request);
 					break ;
 				}
-				old_request.erase(0, this->clients[index].get_body_struct().key.size() + key_pos + 2);
-				key_pos = old_request.find(this->clients[index].get_body_struct().key) - 6;
+				old_request.erase(0, boundry_size + key_pos + 2);
+				key_pos = old_request.find(boundry) - 6;
 				fname_pos = old_request.find("filename=\"");
 				if (fname_pos != std::string::npos)
 				{
@@ -297,7 +299,6 @@ void Server::pars_post_req(int index)
 void Server::handle_request(int i)
 {
 	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
-	// std::vector<char> request = this->clients[fds[i].fd].get_request();
 	char buffer[4096];
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
@@ -312,7 +313,6 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
-	// this->clients[fds[i].fd].set_request(request);
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
