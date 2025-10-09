@@ -1,4 +1,4 @@
- #include "../include/Server.hpp"
+#include "../include/Server.hpp"
 #include "../../config/server.hpp"
 
 #include <unistd.h>
