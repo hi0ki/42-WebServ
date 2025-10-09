@@ -15,9 +15,16 @@ Httprequest::Httprequest()
     this->QUERY_STRING = "";
     this->check_autoindex = false;
     this->forceGetOnError = false;
-    this->cgi_work = false;
     this->body_cgi = "";
     this->redirectLocation = "";
+}
+
+
+std::string uintToString(unsigned int value)
+{
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
 }
 
 void Httprequest::setMethod(const std::string &method)
@@ -166,16 +173,6 @@ bool Httprequest::getForceGetOnError()const
     return this->forceGetOnError;
 }
 
-void    Httprequest::setcgi_work(bool cgi)
-{
-    cgi_work = cgi;
-}
-bool Httprequest::getcgi_work() const
-{
-    return cgi_work;
-}
-
-
 void Httprequest::setBody_cgi(std::string body)
 {
     body_cgi = body;
@@ -184,4 +181,9 @@ void Httprequest::setBody_cgi(std::string body)
 std::string Httprequest::getBody_cgi()const
 {
     return body_cgi;
+}
+
+std::string Httprequest::get_query_string() const
+{
+    return (QUERY_STRING);
 }

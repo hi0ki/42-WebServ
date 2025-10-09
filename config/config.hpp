@@ -37,6 +37,7 @@
 
 #pragma once
 #include <iostream>
+#include <algorithm>
 #include <fstream>
 #include "server.hpp"
 #include <vector>
