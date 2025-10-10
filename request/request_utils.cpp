@@ -17,6 +17,7 @@ Httprequest::Httprequest()
     this->forceGetOnError = false;
     this->body_cgi = "";
     this->redirectLocation = "";
+    this->is_deleted = false;
 }
 
 
@@ -186,4 +187,19 @@ std::string Httprequest::getBody_cgi()const
 std::string Httprequest::get_query_string() const
 {
     return (QUERY_STRING);
+}
+
+void Httprequest::set_query_string(std::string query)
+{
+    QUERY_STRING = query;
+}
+
+void Httprequest::set_is_deleted(bool is_deleted)
+{
+    this->is_deleted = is_deleted;
+}
+            
+bool Httprequest::get_is_deleted() const
+{
+    return is_deleted;
 }

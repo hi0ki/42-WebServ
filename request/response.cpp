@@ -8,7 +8,7 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
 
     std::string contentType = "";
     std::string filePath = req.getAbsolutePath();
-    if (filePath.find(".html") != std::string::npos)
+    if (filePath.find(".html") != std::string::npos || req.get_check_autoindex())
         contentType = "text/html";
     else if (filePath.find(".css") != std::string::npos)
         contentType = "text/css";
@@ -36,14 +36,13 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
 
 std::string Httprequest::buildHttpResponse(bool keep_alive) 
 {
-    std::cout << "wlh mnf mal had lekhra\n";
-    std::cout << this->getStatus_code() << std::endl;
+    std::cout <<  "fresponse status code " << this->getStatus_code() << std::endl;
     std::string response;
     std::string body;
     std::string statusLine;
     std::ifstream file(this->getAbsolutePath().c_str(), std::ios::binary);
     std::cout << this->getAbsolutePath() << "   here\n"; 
-    if (!this->get_check_autoindex() && !file.is_open()) {
+    if (!get_is_deleted() && getStatus_code() != 301 && !get_check_autoindex() && !file.is_open()) {
         statusLine = "HTTP/1.1 404 Not Found\r\n";
         body = "<html><body><h1>404 Not Found</h1></body></html>";
     }
@@ -71,6 +70,5 @@ std::string Httprequest::buildHttpResponse(bool keep_alive)
     // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
     // response += "\r\n";
     response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
-    // std::cout << "response :"<< response<< std::endl; // print response
     return response;
 }

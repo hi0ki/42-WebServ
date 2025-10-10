@@ -35,6 +35,7 @@
             bool check_autoindex;
             std::string QUERY_STRING;
             std::string body_cgi;
+            bool is_deleted;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -94,10 +95,15 @@
 
             //add by hanebaro
             std::string get_query_string() const;
+            void set_query_string(std::string query);
 
 
             void setBody_cgi(std::string body);
             std::string getBody_cgi()const;
+
+
+            void set_is_deleted(bool is_delted);
+            bool get_is_deleted() const;
             
 
 
