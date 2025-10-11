@@ -325,6 +325,14 @@ void Server::handle_request(int i)
 	}
 }
 
+/*
+
+
+	nzid time out l pool li tkon chi 75s 
+	ndir send tsift buffer b buffer machi kolchi fmera
+
+*/
+
 void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
@@ -332,10 +340,8 @@ void Server::handle_response(int i)
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
 	// std::cout << response << std::endl;
 	std::cout << "size = " << response.size() << std::endl;
-	if (send(fds[i].fd, response.c_str(), response.size(), 0) < 0)
-	{
-		std::cout << RED << "seeeeend khsraaaaat " << std::endl;
-	}
+	size_t send_size = send(fds[i].fd, response.c_str(), response.size(), 0);
+	std::cout << "size send = " << send_size << std::endl;
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
