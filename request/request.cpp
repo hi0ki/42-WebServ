@@ -29,17 +29,19 @@ bool is_valid_url(const std::string &uri)
     return true;
 }
 
-bool checkBodySize(Httprequest &req)
-{
-    if (req.getBody().size() > 5242880)
-    {
-        req.setStatus(413, "Request Entity Too Large");
-        return false;
+long long stringToLongLong(const std::string& str) {
+    try {
+        return std::stoll(str); // convert string to long long
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "Invalid input: not a number\n";
+        return 0;
+    } catch (const std::out_of_range& e) {
+        std::cerr << "Input out of range for long long\n";
+        return 0;
     }
-    return true;
 }
 
-bool is_req_well_formed(Httprequest &req)
+bool is_req_well_formed(Httprequest &req, config &config)
 {
     if(req.getPath().find("//") != std::string::npos)
     {
@@ -67,8 +69,6 @@ bool is_req_well_formed(Httprequest &req)
         req.setStatus(414, "Request-URI Too Long");
         return false;
     }
-    if (!checkBodySize(req))
-        return false;
     std::cout << " dzeet shiha\n";
     return true;
 }
@@ -349,9 +349,18 @@ bool handelGET(Httprequest &req, config &config)
     return true;
 }
 
-bool handelPOST(Httprequest &req, config &config)
+
+bool handelPOST(Httprequest &req, config &config, ClientData &client)
 {
     char c = '\0';
+    long long number_MB = stringToLongLong(req.getHeaders()["Content-Length"]) / (1024 * 1024);
+    Location loc = findMatchingLocation(req, config);
+    if (number_MB >= loc.max_upload_size)
+    {
+        client.set_length(-1);
+        req.setStatus(413, "Request Entity Too Large");
+        return false;
+    }
     if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) || !pathExists(req.getAbsolutePath(), req, c))
     {
         req.setError(true);///
@@ -469,14 +478,14 @@ bool handelDELETE(Httprequest &req, config &config)
     return true;
 }
 
-bool    handleMethod(Httprequest &req, config &config)
+bool    handleMethod(Httprequest &req, config &config, ClientData &client)
 {
     std::string meth = req.getMethod();
     bool check = false;
     if (meth == "GET")
         check = handelGET(req, config);
     else if (meth == "POST")
-        check = handelPOST(req, config);
+        check = handelPOST(req, config, client);
     else if (meth == "DELETE")
         check = handelDELETE(req, config);
     return check;
@@ -546,7 +555,7 @@ bool isValidMethod(Httprequest &req)
 
 bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client)
 {
-    if (!is_req_well_formed(req) || findMatchingLocation(req, config).path.empty() || !isValidMethod(req))
+    if (!is_req_well_formed(req, config) || findMatchingLocation(req, config).path.empty() || !isValidMethod(req))
     {
         std::cout << RED <<"found\n" << RESET << std::endl;
         client.set_reqs_done(true);//
@@ -574,7 +583,7 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
     return true;
 }
 
-bool check_Error_pages(Httprequest &req, config &config)
+bool check_Error_pages(Httprequest &req, config &config, ClientData &client)
 {
     std::cout << "ha ana hna \n";
     std::cout << req.getStatus_code() <<std::endl;
@@ -598,7 +607,7 @@ bool check_Error_pages(Httprequest &req, config &config)
     if (findMatchingLocation(req, config).path.empty())
         return false;
     resolvePath(config, req);
-    handleMethod(req, config);
+    handleMethod(req, config, client);
     return true;
 }
 
@@ -713,9 +722,10 @@ int Httprequest::request_pars(ClientData &client , config &config)
     resolvePath(config, *this);
     if (is_location_have_redirect(*this, config))
         return 0;
+    
     std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
-    if (handleMethod(*this, config) == false)
-        check_Error_pages(*this, config);
+    if (handleMethod(*this, config, client) == false)
+        check_Error_pages(*this, config, client);
     return 0;
 }
 
