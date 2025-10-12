@@ -746,6 +746,8 @@ void Httprequest::ft_clean()
     this->body_cgi = "";
     this->redirectLocation = "";
     this->is_deleted = false;
+    // this->lenght = 0;
+    this->file_opened = false;
 }
 
   

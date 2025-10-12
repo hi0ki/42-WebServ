@@ -56,41 +56,124 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     return s;
 }
 
-std::string Httprequest::buildHttpResponse(bool keep_alive) 
+void readFileBody(Httprequest &req, ClientData &client)
 {
-    std::cout <<  "fresponse status code " << this->getStatus_code() << std::endl;
+
+}
+
+// std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client) 
+// {
+//     std::cout <<  "fresponse status code " << this->getStatus_code() << std::endl;
+//     std::string response;
+//     std::string body;
+//     std::string statusLine;
+//     std::ifstream file(this->getAbsolutePath().c_str(), std::ios::binary);
+//     std::cout << this->getAbsolutePath() << "   here\n"; 
+//     if (!get_is_deleted() && getStatus_code() != 301 && !get_check_autoindex() && !file.is_open()) {
+//         statusLine = "HTTP/1.1 404 Not Found\r\n";
+//         body = "<html><body><h1>404 Not Found</h1></body></html>";
+//     }
+//     else{
+//         statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
+//         if (this->get_check_autoindex())
+//             body = AutoindexPage(*this);
+//         else
+//         {
+//             if (this->getBody_cgi() != "")
+//                 body = this->getBody_cgi(); 
+//             else
+//             {
+//                 if (this->method ==  "POST" && this->getStatus_code() == 201)
+//                     body = "Upload Success\nFile uploaded successfully!";
+//                 if (client.get_ftime_resp() && method == "GET")
+//                 {
+//                     char buffer[BUFFER_SIZE];
+//                     file.read(buffer, BUFFER_SIZE);
+//                     client.set_resp_length(file.gcount());
+//                     std::cout << "lenght of response == " << client.get_resp_length() << std::endl;
+//                     if (client.get_resp_length() == BUFFER_SIZE)
+//                        file.close();
+//                     // std::ostringstream bodyStream;  
+//                     // bodyStream << file.rdbuf();
+//                     // body = bodyStream.str();
+//                 }
+
+//             }
+//         }
+//     }
+//     if (!client.get_ftime_resp())
+//     {
+//         response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
+//         client.set_ftime_resp(true);
+//     }
+//     else
+//         response = body;
+//     return response;
+// }
+
+long long getFileSize(const std::string &path)
+{
+    std::ifstream file(path.c_str(), std::ios::binary);
+    if (!file.is_open())
+        return -1; // file not found or permission error
+
+    file.seekg(0, std::ios::end);               // move to end
+    std::ifstream::pos_type size = file.tellg(); // get current position (file size)
+    file.close();                                // close the file
+    return static_cast<long long>(size);
+}
+
+std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client) 
+{
+    // std::cout <<  "fresponse status code " << this->getStatus_code() << getAbsolutePath() << std::endl;
     std::string response;
     std::string body;
     std::string statusLine;
-    std::ifstream file(this->getAbsolutePath().c_str(), std::ios::binary);
-    std::cout << this->getAbsolutePath() << "   here\n"; 
-    if (!get_is_deleted() && getStatus_code() != 301 && !get_check_autoindex() && !file.is_open()) {
-        statusLine = "HTTP/1.1 404 Not Found\r\n";
-        body = "<html><body><h1>404 Not Found</h1></body></html>";
-    }
-    else{
-        statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
-        if (this->get_check_autoindex())
-            body = AutoindexPage(*this);
-        else
-        {
-            if (this->getBody_cgi() != "")
-                body = this->getBody_cgi(); 
-            else
-            {
-                std::ostringstream bodyStream;  
-                bodyStream << file.rdbuf();
-                body = bodyStream.str();
-                if (this->method ==  "POST" && this->getStatus_code() == 201)
-                {
-                    body = "Upload Success\nFile uploaded successfully!";
-                }
+    long long body_size;
 
+    if (method == "GET" && !this->get_check_autoindex() && this->getBody_cgi() == "")
+    {
+        if (!this->file_opened)
+        {
+            client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
+            if (!client.getFile().is_open()) {
+                statusLine = "HTTP/1.1 404 Not Found\r\n";
+                body = "<html><body><h1>404 Not Found</h1></body></html>";
+            }
+            this->file_opened = true;
+            if (client.get_resp_length() == 0)
+            {
+                client.getFile().seekg(0, std::ios::end);               // move to end
+                std::ifstream::pos_type size = client.getFile().tellg();
+                client.getFile().close();
+                client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
+                body_size = static_cast<long long>(size);
+                client.set_header_length(body_size);
+            }
+        }
+        if (client.get_ftime_resp())
+        {
+            char buffer[BUFFER_SIZE];
+            client.getFile().read(buffer, BUFFER_SIZE);
+            body = std::string(buffer, client.getFile().gcount());
+            client.set_resp_length(body.length());
+            if (client.getFile().eof())
+            {
+                std::cout << RED << "End of file, closing\n";
+                client.getFile().close();
+                client.set_header_length(-1);
             }
         }
     }
-    // response = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text();
-    // response += "\r\n";
-    response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
+    statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
+    if (!client.get_ftime_resp())
+    {
+        response = statusLine + buildHeaders(*this, body_size, keep_alive) + body;
+        client.set_ftime_resp(true);
+    }
+    else
+        response = body;
     return response;
+
 }
+

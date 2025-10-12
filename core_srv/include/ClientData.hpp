@@ -30,8 +30,11 @@ class ClientData
 		body_data post_info;
 
 		//response vars
+			long long header_length;
 			long long resp_length;
 			bool ftime_resp;
+			std::ifstream file;
+			
 		// time;
 		/*
 		
@@ -55,6 +58,7 @@ class ClientData
 		void 				set_ftime_pars(bool first_time);
 		void 				set_ftime_resp(bool first_time);
 		void 				set_resp_length(long long length);
+		void 				set_header_length(long long length);
 		//      Getters
 		Httprequest			&get_obj_req()
 		{
@@ -73,10 +77,16 @@ class ClientData
 		std::map<std::string, std::string> &get_body_map();
 		bool   				get_ftime_resp();
 		long long			get_resp_length();
+		long long			get_header_length();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
 		void 				clean_client_data();
 		void 				clean_request();
 		void 				clean_response();
+		std::ifstream &getFile() 
+		{
+			return file; 
+		}
+	
 };

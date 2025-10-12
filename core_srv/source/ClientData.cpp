@@ -1,7 +1,7 @@
 #include "../include/ClientData.hpp"
 
 ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , 
-	ftime_pars(false) , ftime_resp(false), resp_length(0)
+	ftime_pars(false) , ftime_resp(false), resp_length(0), header_length(-1)
 {
 
 }
@@ -70,6 +70,10 @@ void 	ClientData::set_resp_length(long long length)
 {
 	this->resp_length += length;
 }
+void 	ClientData::set_header_length(long long length)
+{
+	this->header_length = length;
+}
 //             Getters  
 int ClientData::get_srv_index() const
 {
@@ -123,6 +127,10 @@ long long	ClientData::get_resp_length()
 {
 	return (resp_length);
 }
+long long	ClientData::get_header_length()
+{
+	return (header_length);
+}
 
 //              append
 void    ClientData::requse_append(std::vector<char> append_req)
@@ -140,6 +148,10 @@ void ClientData::clean_client_data()
 	this->length = -1;
 	this->post_body_done = false;
 	this->ftime_pars = false;
+	this->resp_length = 0;
+	this->header_length = 0;
+	this->ftime_resp = false;
+	this->file.clear();
 }
 
 void ClientData::clean_request()
