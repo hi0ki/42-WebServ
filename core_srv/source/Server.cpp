@@ -6,15 +6,6 @@
 
 
 /*
-	0 -try to work in map with i nothe fd : impossible
-	1 -move the fds vector to the class : ✅
-	2 -split the code : ✅
-	3 -handle multi servers : ✅
-	4 -read the request and store it in vector : ✅
-	6 -handle errs and the proccess keep working : ✅
-	7 - check if keep alive or u need to close the client : waiting for request and response
-	8 - problem = khsni nkhli client bla manms7hom o ib9a khdam server ✅
-	8 - init the clientdata class : ✅
 	infos:
 		(pay attention to differences between HTTP versions)
 		the virtual host
@@ -134,7 +125,9 @@ void Server::start_connection()
 
 	while (true)
 	{
-		poll_var = poll(fds.data(), fds.size(), -1);
+		poll_var = poll(fds.data(), fds.size(), TIME_OUT);
+		if (poll_var == 0)
+			std::cout << RED << "Timeout" << RESET << std::endl;
 		if (poll_var == -1)
 		{
 			// close all fds
@@ -314,6 +307,9 @@ void Server::handle_request(int i)
 		return ;
 	}
 
+	// for (int j = 0; j < this->clients[fds[i].fd].get_request().size() ; j++)
+	// 	std::cout << this->clients[fds[i].fd].get_request()[j] << std::endl;
+
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
@@ -329,7 +325,7 @@ void Server::handle_request(int i)
 
 
 	nzid time out l pool li tkon chi 75s 
-	ndir send tsift buffer b buffer machi kolchi fmera
+	ndir send tsift buffer b buffer machi kolchi fmera : adirha fatim zhra 
 
 */
 
