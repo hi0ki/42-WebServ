@@ -8,7 +8,7 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
 
     std::string contentType = "";
     std::string filePath = req.getAbsolutePath();
-    if (filePath.find(".html") != std::string::npos || req.get_check_autoindex())
+    if (filePath.find(".html") != std::string::npos || req.get_check_autoindex() || filePath.find(".htm") != std::string::npos)
         contentType = "text/html";
     else if (filePath.find(".css") != std::string::npos)
         contentType = "text/css";
@@ -18,6 +18,28 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
         contentType = "image/png";
     else if (filePath.find(".jpg") != std::string::npos || filePath.find(".jpeg") != std::string::npos)
         contentType = "image/jpeg";
+    else if (filePath.find(".gif") != std::string::npos)
+        contentType = "image/gif";
+    else if (filePath.find(".svg") != std::string::npos)
+        contentType = "image/svg+xml";
+    else if (filePath.find(".json") != std::string::npos)
+        contentType = "application/json";
+    else if (filePath.find(".pdf") != std::string::npos)
+        contentType = "application/pdf";
+    else if (filePath.find(".txt") != std::string::npos)
+        contentType = "text/plain";
+    else if (filePath.find(".mp3") != std::string::npos)
+        contentType = "audio/mpeg";
+    else if (filePath.find(".wav") != std::string::npos)
+        contentType = "audio/wav";
+    else if (filePath.find(".ogg") != std::string::npos)
+        contentType = "audio/ogg";
+    else if (filePath.find(".mp4") != std::string::npos)
+        contentType = "video/mp4";
+    else if (filePath.find(".webm") != std::string::npos)
+        contentType = "video/webm";
+    else if (filePath.find(".avi") != std::string::npos)
+        contentType = "video/x-msvideo";
     else
         contentType = "text/plain";
     s = "Server: " + req.get_servername() + "\r\n";
