@@ -1,7 +1,9 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false)
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , 
+	ftime_pars(false) , ftime_resp(false), resp_length(0)
 {
+
 }
 
 ClientData::ClientData(const ClientData &obj)
@@ -60,7 +62,14 @@ void ClientData::set_ftime_pars(bool first_time)
 {
 	this->ftime_pars = first_time;
 }
-
+void 	ClientData::set_ftime_resp(bool first_time)
+{
+	this->ftime_resp = first_time;
+}
+void 	ClientData::set_resp_length(long long length)
+{
+	this->resp_length += length;
+}
 //             Getters  
 int ClientData::get_srv_index() const
 {
@@ -105,6 +114,14 @@ body_data	&ClientData::get_body_struct()
 std::map<std::string, std::string> &ClientData::get_body_map()
 {
 	return (body_content);
+}
+bool   		ClientData::get_ftime_resp()
+{
+	return (ftime_resp);
+}
+long long	ClientData::get_resp_length()
+{
+	return (resp_length);
 }
 
 //              append

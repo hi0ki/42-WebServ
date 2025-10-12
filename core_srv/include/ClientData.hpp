@@ -28,6 +28,10 @@ class ClientData
 		bool post_body_done;
 		bool ftime_pars;
 		body_data post_info;
+
+		//response vars
+			long long resp_length;
+			bool ftime_resp;
 		// time;
 		/*
 		
@@ -49,6 +53,8 @@ class ClientData
 		void 				set_length(int new_length);
 		void 				set_post_boyd(bool body);
 		void 				set_ftime_pars(bool first_time);
+		void 				set_ftime_resp(bool first_time);
+		void 				set_resp_length(long long length);
 		//      Getters
 		Httprequest			&get_obj_req()
 		{
@@ -65,6 +71,8 @@ class ClientData
 		bool   				get_ftime_pars();
 		body_data   		&get_body_struct();
 		std::map<std::string, std::string> &get_body_map();
+		bool   				get_ftime_resp();
+		long long			get_resp_length();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
