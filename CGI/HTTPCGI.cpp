@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/08 14:17:06 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/10 16:01:29 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,24 +239,24 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
                 return 500;
             }
             
-            std::cout << "Checking interpreter: " << locations[i].cgi_path << std::endl;
+            std::cout << "Checking interpreter: " << locations[i].cgi_path[0] << std::endl;///// d ici 
             
             struct stat st;
-            if (stat(locations[i].cgi_path.c_str(), &st) != 0)
+            if (stat(locations[i].cgi_path[0].c_str(), &st) != 0)
             {
-                std::cout << RED << "Interpreter does not exist: " << locations[i].cgi_path << RESET << std::endl;
+                std::cout << RED << "Interpreter does not exist: " << locations[i].cgi_path[0] << RESET << std::endl;
                 return 500;
             }
             
             if (!S_ISREG(st.st_mode))
             {
-                std::cout << RED << "Interpreter is not a regular file: " << locations[i].cgi_path << RESET << std::endl;
+                std::cout << RED << "Interpreter is not a regular file: " << locations[i].cgi_path[0] << RESET << std::endl;
                 return 500;
             }
             
-            if (access(locations[i].cgi_path.c_str(), X_OK) != 0)
+            if (access(locations[i].cgi_path[0].c_str(), X_OK) != 0)
             {
-                std::cout << RED << "Interpreter is not executable: " << locations[i].cgi_path << RESET << std::endl;
+                std::cout << RED << "Interpreter is not executable: " << locations[i].cgi_path[0] << RESET << std::endl;// jusqu a ici
                 return 500;
             }
             

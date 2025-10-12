@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/08 14:06:30 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/10 15:52:13 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -323,19 +323,34 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             else if (spl[0] == "cgi_extension")
             {
+
+
                 // check_semicolon(spl[1]);
-                if (spl[1].empty() || spl[1][0] != '.')
-                    throw std::runtime_error("invalid cgi_extension: " + spl[1]);
-                loc.cgi_extension.push_back(spl[1]);
+                if (spl.size() < 2)
+                    throw std::runtime_error("invalid cgi_extension: no extension provided");
+
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (spl[i].empty() || spl[i][0] != '.')
+                        throw std::runtime_error("invalid cgi_extension: " + spl[i]);
+                    loc.cgi_extension.push_back(spl[i]);
+                }
+
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
             else if (spl[0] == "cgi_path")///// todo/// if not existe throw exception
             {
                 // check_semicolon(spl[1]);
-                if (spl[1].empty())
-                    throw std::runtime_error("cgi_path cannot be empty");
-                loc.cgi_path = spl[1];  // tu avais déjà `cgi_handler`, tu peux utiliser `cgi_path` ou garder l'ancien
+                if (spl.size() < 2)
+                    throw std::runtime_error("cgi_path: no path provided");
+
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (spl[i].empty())
+                        throw std::runtime_error("cgi_path cannot be empty");
+                    loc.cgi_path.push_back(spl[i]);
+                }
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }

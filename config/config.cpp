@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/08 13:40:03 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/10 16:07:48 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,14 +163,6 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 3 || tmp[2] != "{")
                 throw std::runtime_error("location invalid");
             serv.pars_location(++it, tmp, conf.end());
-            if (serv.get_location()[serv.get_location().size() - 1].type == CGI)
-            {
-                std::cout << RED << " waaaa " << serv.get_location()[serv.get_location().size() - 1].methods.size() << serv.get_location()[serv.get_location().size() - 1].cgi_path << std::endl;
-                
-                // std::cout << "aaaaah " << std::endl;
-                // exit(1);
-            }
-            //check if it == end and we dont foud }, if end throw exeption// if i need it
         }
         else if(!tmp.empty() && tmp[0] == "}")
         {
@@ -232,17 +224,21 @@ void config::parse_configFile()
         tmp = split(*it, ' ');
         try
         {
-            if(!tmp.empty() && tmp[0] == "server" && tmp[1] == "{")//check server
+            if(!tmp.empty() && tmp.size() == 2 && tmp[0] == "server" && tmp[1] == "{")//check server
             {
                     
                 if(tmp.size() >= 3)
                 {
-                    throw std::runtime_error("##content invalid");
+                    throw std::runtime_error("content invalid");
                 }
                 else
                 {
-                    set_server(++it, conf); 
-                      
+                    set_server(++it, conf);
+                    tmp.clear();
+                    tmp = split(*(it + 1), ' ');
+                    if(*it == "}" && tmp[0] == "server" && tmp[1] == "{")
+                        throw std::runtime_error("content invalid");
+                          
                 }       
             }
             else if (!tmp.empty())
