@@ -202,8 +202,8 @@ void config::parse_configFile()
     {
         // for linux version
         // Remove trailing CR ("\r") to support files with Windows CRLF line endings
-        // if (!ligne.empty() && ligne[ligne.size() - 1] == '\r')
-        //     ligne.erase(ligne.size() - 1);
+        if (!ligne.empty() && ligne[ligne.size() - 1] == '\r')
+            ligne.erase(ligne.size() - 1);
 
         if(ligne == "\n")
             continue; // je peut la suppr
