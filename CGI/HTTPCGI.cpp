@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/13 16:58:18 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/13 20:34:33 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -321,11 +321,101 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
     // return(1);
 }
 
-std::string HTTPCGI::execute(const std::string &script_path, const std::string &body)
-{
+// std::string HTTPCGI::execute(const std::string &script_path, const std::string &body, ClientData &client)// delete body
+// {
     
-    // if(can_execute(conf, index))
-    //     return;
+//     // if(can_execute(conf, index))
+//     //     return;
+//     std::map<std::string, std::string> post_data = client.get_body_map();
+//     int pipefd[2];
+//     if (pipe(pipefd) == -1)
+//         return "500 Internal Server Error";
+
+//     pid_t pid = fork();
+//     if (pid < 0)
+//         return "500 Internal Server Error";
+//     if (pid == 0)
+//     {
+//         // Rediriger stdout vers pipe (sortie CGI → parent)
+//         dup2(pipefd[1], STDOUT_FILENO);
+//         close(pipefd[0]);
+//         close(pipefd[1]);
+
+//         // Si POST → donner body via STDIN
+//         if (!body.empty())
+//         {
+//             int input_pipe[2];
+//             pipe(input_pipe);
+//             pid_t writer = fork();
+//             if (writer == 0) {
+//                 close(input_pipe[0]);
+//                 write(input_pipe[1], body.c_str(), body.size());//change the body with file 
+//                 close(input_pipe[1]);
+//                 _exit(0);
+//             }
+//             close(input_pipe[1]);
+//             dup2(input_pipe[0], STDIN_FILENO);
+//             close(input_pipe[0]);
+//         }
+//         // Préparer argv pour execve
+//         char *argv[] = {
+//             strdup(script_path.c_str()), // programme
+//             NULL
+//         };
+
+//         // char *argv[] = {
+//         //     strdup("/usr/bin/python3"),                 // argv[0] = programme
+//         //     strdup("/var/www/html/cgi/hello.py"),       // argv[1] = script
+//         //     NULL
+//         // };
+
+//         // Exécuter le script CGI
+//         execve(argv[0], argv, envr.data());
+//         perror("execve"); // si execve échoue
+//         _exit(1);
+//     }
+//     close(pipefd[1]);
+//     std::string output;
+//     char buffer[4096];
+//     ssize_t n;
+//     while ((n = read(pipefd[0], buffer, sizeof(buffer))) > 0)
+//     {
+//         output.append(buffer, n);
+//     }
+//     close(pipefd[0]);
+
+//     int status;
+//     waitpid(pid, &status, 0);
+
+//     return output;
+    
+// }
+
+
+
+std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
+{
+    std::map<std::string, std::string> post_data = client.get_body_map();
+    std::string post_file = "/tmp/cgi_post_data.txt";
+
+    // Step 1: Build the POST data string "key=value&key=value&..."
+    std::string post_content;
+    for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
+    {
+        if (!post_content.empty())
+            post_content += "&";
+        post_content += it->first + "=" + it->second;
+    }
+
+    // Step 2: Save to a file
+    std::ofstream out(post_file.c_str());
+    if (out.is_open())
+    {
+        out << post_content;
+        out.close();
+    }
+
+    // Step 3: Create a pipe for CGI output
     int pipefd[2];
     if (pipe(pipefd) == -1)
         return "500 Internal Server Error";
@@ -333,22 +423,34 @@ std::string HTTPCGI::execute(const std::string &script_path, const std::string &
     pid_t pid = fork();
     if (pid < 0)
         return "500 Internal Server Error";
+
     if (pid == 0)
     {
-        // Rediriger stdout vers pipe (sortie CGI → parent)
+        // --- CHILD PROCESS ---
+
+        // Redirect CGI stdout → pipe
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[0]);
         close(pipefd[1]);
 
-        // Si POST → donner body via STDIN
-        if (!body.empty())
+        // --- Handle POST data ---
+        if (!post_data.empty())
         {
             int input_pipe[2];
             pipe(input_pipe);
             pid_t writer = fork();
-            if (writer == 0) {
+            if (writer == 0)
+            {
                 close(input_pipe[0]);
-                write(input_pipe[1], body.c_str(), body.size());
+                int fd = open(post_file.c_str(), O_RDONLY);
+                if (fd != -1)
+                {
+                    char buffer[4096];
+                    ssize_t bytes;
+                    while ((bytes = read(fd, buffer, sizeof(buffer))) > 0)
+                        write(input_pipe[1], buffer, bytes);
+                    close(fd);
+                }
                 close(input_pipe[1]);
                 _exit(0);
             }
@@ -356,39 +458,34 @@ std::string HTTPCGI::execute(const std::string &script_path, const std::string &
             dup2(input_pipe[0], STDIN_FILENO);
             close(input_pipe[0]);
         }
-        // Préparer argv pour execve
+
+        // --- Prepare argv for execve ---
         char *argv[] = {
-            strdup(script_path.c_str()), // programme
+            strdup(script_path.c_str()), // script path
             NULL
         };
 
-        // char *argv[] = {
-        //     strdup("/usr/bin/python3"),                 // argv[0] = programme
-        //     strdup("/var/www/html/cgi/hello.py"),       // argv[1] = script
-        //     NULL
-        // };
-
-        // Exécuter le script CGI
+        // --- Execute CGI script ---
         execve(argv[0], argv, envr.data());
-        perror("execve"); // si execve échoue
+        perror("execve"); // if execve fails
         _exit(1);
     }
+
+    // --- PARENT PROCESS ---
     close(pipefd[1]);
     std::string output;
     char buffer[4096];
     ssize_t n;
     while ((n = read(pipefd[0], buffer, sizeof(buffer))) > 0)
-    {
         output.append(buffer, n);
-    }
     close(pipefd[0]);
 
     int status;
     waitpid(pid, &status, 0);
 
     return output;
-    
 }
+
 
 
 // bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg)

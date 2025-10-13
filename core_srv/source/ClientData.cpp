@@ -1,7 +1,9 @@
 #include "../include/ClientData.hpp"
 
-ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false)
+ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , 
+	ftime_pars(false) , ftime_resp(false), resp_length(0), header_length(-1)
 {
+
 }
 
 ClientData::ClientData(const ClientData &obj)
@@ -60,7 +62,18 @@ void ClientData::set_ftime_pars(bool first_time)
 {
 	this->ftime_pars = first_time;
 }
-
+void 	ClientData::set_ftime_resp(bool first_time)
+{
+	this->ftime_resp = first_time;
+}
+void 	ClientData::set_resp_length(long long length)
+{
+	this->resp_length += length;
+}
+void 	ClientData::set_header_length(long long length)
+{
+	this->header_length = length;
+}
 //             Getters  
 int ClientData::get_srv_index() const
 {
@@ -106,6 +119,18 @@ std::map<std::string, std::string> &ClientData::get_body_map()
 {
 	return (body_content);
 }
+bool   		ClientData::get_ftime_resp()
+{
+	return (ftime_resp);
+}
+long long	ClientData::get_resp_length()
+{
+	return (resp_length);
+}
+long long	ClientData::get_header_length()
+{
+	return (header_length);
+}
 
 //              append
 void    ClientData::requse_append(std::vector<char> append_req)
@@ -123,6 +148,10 @@ void ClientData::clean_client_data()
 	this->length = -1;
 	this->post_body_done = false;
 	this->ftime_pars = false;
+	this->resp_length = 0;
+	this->header_length = -1;
+	this->ftime_resp = false;
+	this->file.clear();
 }
 
 void ClientData::clean_request()

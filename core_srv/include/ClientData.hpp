@@ -4,8 +4,7 @@
 #include <vector>
 #include <map>
 
-
-#include "../../request/request.hpp"
+#include "../../request/Request.hpp"
 #include "Server.hpp"
 
 typedef struct s_body_data
@@ -29,6 +28,13 @@ class ClientData
 		bool post_body_done;
 		bool ftime_pars;
 		body_data post_info;
+
+		//response vars
+			long long header_length;
+			long long resp_length;
+			bool ftime_resp;
+			std::ifstream file;
+			
 		// time;
 		/*
 		
@@ -50,6 +56,9 @@ class ClientData
 		void 				set_length(int new_length);
 		void 				set_post_boyd(bool body);
 		void 				set_ftime_pars(bool first_time);
+		void 				set_ftime_resp(bool first_time);
+		void 				set_resp_length(long long length);
+		void 				set_header_length(long long length);
 		//      Getters
 		Httprequest			&get_obj_req()
 		{
@@ -66,10 +75,18 @@ class ClientData
 		bool   				get_ftime_pars();
 		body_data   		&get_body_struct();
 		std::map<std::string, std::string> &get_body_map();
+		bool   				get_ftime_resp();
+		long long			get_resp_length();
+		long long			get_header_length();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
 		void 				clean_client_data();
 		void 				clean_request();
 		void 				clean_response();
+		std::ifstream &getFile() 
+		{
+			return file; 
+		}
+	
 };

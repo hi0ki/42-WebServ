@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/13 16:36:10 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/13 17:42:55 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ std::string getPWDwithWWW() {
     char buffer[PATH_MAX];
     if (getcwd(buffer, sizeof(buffer)) != NULL) {
         std::string path(buffer);
-        // path += "/www";   // on ajoute /www à la fin
+        path += "/www";   // on ajoute /www à la fin
         return path;
     } else {
         perror("getcwd error");

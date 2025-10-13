@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/10 15:26:38 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/13 17:36:09 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #pragma once
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <unistd.h>   // getcwd
 #include <limits.h>   // PATH_MAX

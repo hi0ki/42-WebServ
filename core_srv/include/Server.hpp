@@ -9,9 +9,10 @@
 #include <unistd.h>
 #include <poll.h>
 #include <fstream>
+#include <fcntl.h>
 
 #include "../../config/config.hpp"
-#include "../../request/request.hpp"
+#include "../../request/Request.hpp"
 #include "ClientData.hpp"
 
 #define RESET   "\033[0m"
@@ -43,4 +44,4 @@ class Server
         //          Utils
         void pars_post_req(int index);
     
-}; 
+};
