@@ -125,7 +125,7 @@ void Server::start_connection()
 
 	while (true)
 	{
-		poll_var = poll(fds.data(), fds.size(), 0);
+		poll_var = poll(fds.data(), fds.size(), -1);
 		if (poll_var == -1)
 		{
 			// close all fds
@@ -318,6 +318,14 @@ void Server::handle_request(int i)
 		this->fds[i].events = POLLOUT;
 	}
 }
+
+/*
+
+
+	nzid time out l pool li tkon chi 75s 
+	ndir send tsift buffer b buffer machi kolchi fmera
+
+*/
 
 void Server::handle_response(int i)
 {
