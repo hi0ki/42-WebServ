@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Webserv Test Page</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🚀 Webserv Test</h1>
+
+  <section>
+    <h2>GET Test</h2>
+    <button onclick="getData()">Send GET Request</button>
+    <pre id="getResult"></pre>
+  </section>
+
+  <section>
+    <h2>POST Test (Text)</h2>
+    <form id="postForm">
+      <input type="text" id="postInput" placeholder="Enter some data">
+      <button type="submit">Send POST Request</button>
+    </form>
+    <pre id="postResult"></pre>
+  </section>
+
+  <section>
+    <h2>Upload Two Images and One Video (POST)</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <label>Image 1:</label>
+      <input type="file" id="uploadInput1" name="image1" accept="image/*"><br><br>
+  
+      <label>Image 2:</label>
+      <input type="file" id="uploadInput2" name="image2" accept="image/*"><br><br>
+  
+      <label>Video:</label>
+      <input type="file" id="uploadVideo" name="video" accept="video/*"><br><br>
+  
+      <button type="submit">Upload Images and Video</button>
+    </form>
+    <pre id="uploadResult"></pre>
+  </section>
+
+  <section>
+    <h2>DELETE Test</h2>
+    <button onclick="deleteData()">Send DELETE Request</button>
+    <pre id="deleteResult"></pre>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
