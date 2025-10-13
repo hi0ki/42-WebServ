@@ -330,7 +330,6 @@ void Server::handle_response(int i)
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]);
-	// std::cout << response << std::endl;
 	send(fds[i].fd, response.c_str(), response.size(), 0);
 	if (this->clients[fds[i].fd].get_resp_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
@@ -346,5 +345,5 @@ void Server::handle_response(int i)
 		this->clients[fds[i].fd].clean_client_data();
 		this->clients[fds[i].fd].get_request_obj().ft_clean();
 		this->fds[i].events = POLLIN;
-	}
+	}	
 }

@@ -149,7 +149,7 @@ void ClientData::clean_client_data()
 	this->post_body_done = false;
 	this->ftime_pars = false;
 	this->resp_length = 0;
-	this->header_length = 0;
+	this->header_length = -1;
 	this->ftime_resp = false;
 	this->file.clear();
 }

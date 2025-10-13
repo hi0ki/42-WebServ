@@ -111,21 +111,10 @@ void readFileBody(Httprequest &req, ClientData &client)
 //     return response;
 // }
 
-long long getFileSize(const std::string &path)
-{
-    std::ifstream file(path.c_str(), std::ios::binary);
-    if (!file.is_open())
-        return -1; // file not found or permission error
-
-    file.seekg(0, std::ios::end);               // move to end
-    std::ifstream::pos_type size = file.tellg(); // get current position (file size)
-    file.close();                                // close the file
-    return static_cast<long long>(size);
-}
 
 std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client) 
 {
-    // std::cout <<  "fresponse status code " << this->getStatus_code() << getAbsolutePath() << std::endl;
+    std::cout <<  "fresponse status code " << this->getStatus_code() << getAbsolutePath() << std::endl;
     std::string response;
     std::string body;
     std::string statusLine;
@@ -159,12 +148,20 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
             client.set_resp_length(body.length());
             if (client.getFile().eof())
             {
-                std::cout << RED << "End of file, closing\n";
+                std::cout << RED << "End of file, closing\n" << RESET;
                 client.getFile().close();
                 client.set_header_length(-1);
             }
         }
     }
+    if (this->get_check_autoindex())
+        body = AutoindexPage(*this);
+    else if (this->getBody_cgi() != "")
+        body = this->getBody_cgi(); 
+    else if (this->method ==  "POST" && this->getStatus_code() == 201)
+        body = "Upload Success\nFile uploaded successfully!";
+    if (this->get_check_autoindex() || this->getBody_cgi() != "" || this->getStatus_code() == 201)
+        body_size = body.size();
     statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
     if (!client.get_ftime_resp())
     {
@@ -173,7 +170,11 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
     }
     else
         response = body;
+    std::cout << response << std::endl;
     return response;
-
 }
 
+
+
+//testi b post eadi etiha hello
+//mara mara katekhroj bouhda f post image

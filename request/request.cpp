@@ -321,8 +321,8 @@ bool handelGET(Httprequest &req, config &config)
     }
     if (c == 'D')
     {
-        if (!isUriEndsWithSlash(req.getPath(), req))
-            return false;
+        // if (!isUriEndsWithSlash(req.getPath(), req))
+        //     return false;
         if (resolve_index(req, config) == false)
             t_f = findIndexFile(req);
         if (t_f == false)
@@ -381,32 +381,21 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
     if (c == 'D')
     {  
         bool t_f = true;
-        if (!isUriEndsWithSlash(req.getPath(), req))
-            return false;
+        // if (!isUriEndsWithSlash(req.getPath(), req))
+        //     return false;
         if (resolve_index(req, config) == false)
             t_f = findIndexFile(req);
         if (t_f == false)
         {
-            if(config.get_servs()[req.get_index()].get_autoindex() == true)
-            {
-                //khesni nzid auto index ela kol location
-                req.setStatus(200, "OK");
-                AutoindexPage(req);
-                return true;
-            }
-            else
-            {
-                req.setStatus(403, "Forbidden");
-                return false;
-            }
+            req.setStatus(403, "Forbidden");
+            return false;
         }
     }
-    if (req.getError_page_found() == false && location_has_cgi(req, config))
+    if (req.getError_page_found() == false && loc.type == CGI)
     {
-        return true;
-        std::cout << "its true\n";
+        if (!location_has_cgi(req, config))////
+            return true;
     }
-    //run cgi on requested file with POST REQUEST_METHOD Returtn Code Depend on cgi
     req.setStatus(403, "Forbidden");
     return false;
 }
@@ -559,11 +548,7 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
     {
         std::cout << RED <<"found\n" << RESET << std::endl;
         client.set_reqs_done(true);//
-        if (req.getMethod() == "POST" || req.getMethod() == "DELETE")
-        {
-            req.setMethod("GET");
-            req.setForceGetOnError(true);
-        }
+        req.setMethod("GET");
         std::cout << req.getStatus_code() << "\n";
         for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
         {
@@ -586,6 +571,7 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
 bool check_Error_pages(Httprequest &req, config &config, ClientData &client)
 {
     std::cout << "ha ana hna \n";
+    req.setMethod("GET");
     std::cout << req.getStatus_code() <<std::endl;
     for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
     {
@@ -604,6 +590,7 @@ bool check_Error_pages(Httprequest &req, config &config, ClientData &client)
         req.setAbsolutePath(s + "/defaults_errors/" + uintToString(req.getStatus_code()) + ".html");  
         return true;
     }
+     std::cout << " ***"<< req.getStatus_code() <<std::endl;
     if (findMatchingLocation(req, config).path.empty())
         return false;
     resolvePath(config, req);
@@ -746,7 +733,6 @@ void Httprequest::ft_clean()
     this->body_cgi = "";
     this->redirectLocation = "";
     this->is_deleted = false;
-    // this->lenght = 0;
     this->file_opened = false;
 }
 
