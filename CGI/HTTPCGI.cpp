@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/10 16:01:29 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/13 16:58:18 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,34 +231,72 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
                 }
             }
             
-            // 4. Check interpreter (cgi_handler or cgi_path)
-            // ✅ FIX 5: Vérifier que cgi_path n'est pas vide
-            if(locations[i].cgi_path.empty())
+            // // 4. Check interpreter (cgi_handler or cgi_path)
+            // // ✅ FIX 5: Vérifier que cgi_path n'est pas vide
+            // if(locations[i].cgi_path.empty())
+            // {
+            //     std::cout << RED << "No CGI interpreter path configured" << RESET << std::endl;
+            //     return 500;
+            // }
+            
+            // std::cout << "Checking interpreter: " << locations[i].cgi_path[0] << std::endl;///// d ici 
+            
+            // struct stat st;
+            // if (stat(locations[i].cgi_path[0].c_str(), &st) != 0)
+            // {
+            //     std::cout << RED << "Interpreter does not exist: " << locations[i].cgi_path[0] << RESET << std::endl;
+            //     return 500;
+            // }
+            
+            // if (!S_ISREG(st.st_mode))
+            // {
+            //     std::cout << RED << "Interpreter is not a regular file: " << locations[i].cgi_path[0] << RESET << std::endl;
+            //     return 500;
+            // }
+            
+            // if (access(locations[i].cgi_path[0].c_str(), X_OK) != 0)
+            // {
+            //     std::cout << RED << "Interpreter is not executable: " << locations[i].cgi_path[0] << RESET << std::endl;// jusqu a ici
+            //     return 500;
+            // }
+
+
+
+            // 4. Check interpreters (cgi_handler or cgi_path)
+            if (locations[i].cgi_path.empty())
             {
                 std::cout << RED << "No CGI interpreter path configured" << RESET << std::endl;
                 return 500;
             }
-            
-            std::cout << "Checking interpreter: " << locations[i].cgi_path[0] << std::endl;///// d ici 
-            
-            struct stat st;
-            if (stat(locations[i].cgi_path[0].c_str(), &st) != 0)
+
+            for (size_t j = 0; j < locations[i].cgi_path.size(); ++j)
             {
-                std::cout << RED << "Interpreter does not exist: " << locations[i].cgi_path[0] << RESET << std::endl;
-                return 500;
+                const std::string &path = locations[i].cgi_path[j];
+                std::cout << "Checking interpreter: " << path << std::endl;
+
+                struct stat st;
+                if (stat(path.c_str(), &st) != 0)
+                {
+                    std::cout << RED << "Interpreter does not exist: " << path << RESET << std::endl;
+                    return 500;
+                }
+
+                if (!S_ISREG(st.st_mode))
+                {
+                    std::cout << RED << "Interpreter is not a regular file: " << path << RESET << std::endl;
+                    return 500;
+                }
+
+                if (access(path.c_str(), X_OK) != 0)
+                {
+                    std::cout << RED << "Interpreter is not executable: " << path << RESET << std::endl;
+                    return 500;
+                }
             }
+
+            std::cout << GREEN << "All CGI interpreters are valid and executable." << RESET << std::endl;
+
             
-            if (!S_ISREG(st.st_mode))
-            {
-                std::cout << RED << "Interpreter is not a regular file: " << locations[i].cgi_path[0] << RESET << std::endl;
-                return 500;
-            }
-            
-            if (access(locations[i].cgi_path[0].c_str(), X_OK) != 0)
-            {
-                std::cout << RED << "Interpreter is not executable: " << locations[i].cgi_path[0] << RESET << std::endl;// jusqu a ici
-                return 500;
-            }
             
             // 5. Check if script file exists and is readable
             if (access(req.getAbsolutePath().c_str(), F_OK) != 0)
@@ -285,6 +323,7 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
 
 std::string HTTPCGI::execute(const std::string &script_path, const std::string &body)
 {
+    
     // if(can_execute(conf, index))
     //     return;
     int pipefd[2];

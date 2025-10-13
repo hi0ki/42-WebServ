@@ -414,7 +414,11 @@ std::string location_has_cgi(Httprequest &req, config &config)
     HTTPCGI cgi(req, loc);
     if (cgi.can_execute(config, req.get_index(), req))
         return("") ;
-    response = cgi.execute(req.getAbsolutePath() , "");
+    std::cout << "myyyyyyyyy" << req.getBody()[0] << std::endl;
+    std::string body_str(req.getBody().begin(), req.getBody().end());
+    std::cout << "###########" << body_str << "rrrrrrrr"<< std::endl;
+    exit(1);
+    response = cgi.execute(req.getAbsolutePath() , body_str);
     if (response != "")
     {
         req.setcgi_work(true);
@@ -750,7 +754,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     client.set_request(removeExtraSpaces(client.get_request()));
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
-    std::cout << tmp;
+    // std::cout << tmp;
     if (client.get_request()[0] != 'P')
     {
         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
@@ -782,7 +786,10 @@ int Httprequest::request_pars(ClientData &client , config &config)
     if (method == "POST" && headers.find("Content-Length") != headers.end())
         client.set_length(atoi(headers["Content-Length"].c_str()));
     for(unsigned int i = a + 2; i < client.get_request().size(); i++)
+    {
+            std::cout << client.get_request()[i] ;
             body.push_back(client.get_request()[i]);
+    }
     if (method == "POST")
     {
         if (headers.find("Content-Type") != headers.end())

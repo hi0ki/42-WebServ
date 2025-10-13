@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 // Indiquer le type de contenu
 header("Content-Type: text/html");
