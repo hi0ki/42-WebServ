@@ -28,12 +28,7 @@ class ClientData
 		bool post_body_done;
 		bool ftime_pars;
 		body_data post_info;
-		// time;
-		/*
-		
-		This needs a Client class that stores things like:
-			timestamp of last activity.
-		*/
+		time_t last_activity;
 	public:
 		ClientData();
 		ClientData(const ClientData &obj);
@@ -71,4 +66,7 @@ class ClientData
 		void 				clean_client_data();
 		void 				clean_request();
 		void 				clean_response();
+		//		time_t
+		void update_activity();
+		time_t get_last_activity() const;
 };

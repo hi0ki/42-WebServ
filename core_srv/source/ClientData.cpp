@@ -2,6 +2,7 @@
 
 ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , ftime_pars(false)
 {
+	this->last_activity = time(NULL);
 }
 
 ClientData::ClientData(const ClientData &obj)
@@ -132,4 +133,13 @@ void ClientData::clean_request()
 void ClientData::clean_response()
 {
 	this->response.clear();
+}
+
+// 			time_t
+void ClientData::update_activity(){
+	this->last_activity = time(NULL);
+}
+time_t ClientData::get_last_activity() const
+{
+	return (last_activity);
 }

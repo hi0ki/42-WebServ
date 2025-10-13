@@ -125,9 +125,7 @@ void Server::start_connection()
 
 	while (true)
 	{
-		poll_var = poll(fds.data(), fds.size(), TIME_OUT);
-		if (poll_var == 0)
-			std::cout << RED << "Timeout" << RESET << std::endl;
+		poll_var = poll(fds.data(), fds.size(), 0);
 		if (poll_var == -1)
 		{
 			// close all fds
@@ -295,7 +293,10 @@ void Server::handle_request(int i)
 	char buffer[4096];
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
-		this->clients[fds[i].fd].get_request().insert(this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead);
+		this->clients[fds[i].fd].get_request().insert(
+			this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead
+		);
+		this->clients[fds[i].fd].update_activity();
 	}
 	else if (bytesRead == 0)
 	{
@@ -306,9 +307,6 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
-
-	// for (int j = 0; j < this->clients[fds[i].fd].get_request().size() ; j++)
-	// 	std::cout << this->clients[fds[i].fd].get_request()[j] << std::endl;
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
@@ -321,23 +319,13 @@ void Server::handle_request(int i)
 	}
 }
 
-/*
-
-
-	nzid time out l pool li tkon chi 75s 
-	ndir send tsift buffer b buffer machi kolchi fmera : adirha fatim zhra 
-
-*/
-
 void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
-	std::string response = "";
+	std::string response;
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
-	// std::cout << response << std::endl;
-	std::cout << "size = " << response.size() << std::endl;
 	size_t send_size = send(fds[i].fd, response.c_str(), response.size(), 0);
-	std::cout << "size send = " << send_size << std::endl;
+	this->clients[fds[i].fd].update_activity();
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
