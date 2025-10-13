@@ -12,6 +12,8 @@
     #include "../config/server.hpp"
     #include "../config/config.hpp"
 
+    #define BUFFER_SIZE 4096 
+
     class ClientData;
 
     class Httprequest {
@@ -35,6 +37,8 @@
             bool check_autoindex;
             std::string QUERY_STRING;
             std::string body_cgi;
+            bool is_deleted;
+            bool file_opened;;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -72,8 +76,8 @@
             void setRedirectLocation(const std::string &uri);
             std::string getRedirectLocation() const;
 
-            std::string buildHttpResponse(bool keep_alive);
-
+            
+            std::string buildHttpResponse(bool keep_alive, ClientData &client);
 
             // clean
             void ft_clean();
@@ -94,17 +98,24 @@
 
             //add by hanebaro
             std::string get_query_string() const;
+            void set_query_string(std::string query);
 
 
             void setBody_cgi(std::string body);
             std::string getBody_cgi()const;
+
+
+            void set_is_deleted(bool is_delted);
+            bool get_is_deleted() const;
+
+
+
             
 
 
     
     };
 
-    bool handelPOST(Httprequest &req, config &config);
     Location findMatchingLocation(Httprequest &req, config &config);
     std::string uintToString(unsigned int value);
     std::string AutoindexPage(Httprequest &req);

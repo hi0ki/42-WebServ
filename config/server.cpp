@@ -62,7 +62,7 @@ std::string getPWDwithWWW() {
     char buffer[PATH_MAX];
     if (getcwd(buffer, sizeof(buffer)) != NULL) {
         std::string path(buffer);
-        // path += "/www";   // on ajoute /www à la fin
+        path += "/www";   // on ajoute /www à la fin
         return path;
     } else {
         perror("getcwd error");

@@ -134,7 +134,7 @@ void Server::start_connection()
 
 	while (true)
 	{
-		poll_var = poll(fds.data(), fds.size(), -1);
+		poll_var = poll(fds.data(), fds.size(), 0);
 		if (poll_var == -1)
 		{
 			// close all fds
@@ -329,10 +329,9 @@ void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
-	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive());
-	std::cout << response << std::endl;
+	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]);
 	send(fds[i].fd, response.c_str(), response.size(), 0);
-	if (!this->clients[fds[i].fd].get_keep_alive())
+	if (this->clients[fds[i].fd].get_resp_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
 		close(fds[i].fd);
@@ -340,8 +339,11 @@ void Server::handle_response(int i)
 		this->fds.erase(fds.begin() + i);
 		return ;
 	}
-	std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
-	this->clients[fds[i].fd].clean_client_data();
-	this->clients[fds[i].fd].get_request_obj().ft_clean();
-	this->fds[i].events = POLLIN;
+	else if (this->clients[fds[i].fd].get_header_length() == -1)
+	{
+		std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
+		this->clients[fds[i].fd].clean_client_data();
+		this->clients[fds[i].fd].get_request_obj().ft_clean();
+		this->fds[i].events = POLLIN;
+	}	
 }

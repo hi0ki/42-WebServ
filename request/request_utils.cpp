@@ -1,4 +1,4 @@
-#include "request.hpp"
+#include "Request.hpp"
 #include "../core_srv/include/ClientData.hpp" 
 
 Httprequest::Httprequest()
@@ -17,6 +17,9 @@ Httprequest::Httprequest()
     this->forceGetOnError = false;
     this->body_cgi = "";
     this->redirectLocation = "";
+    this->is_deleted = false;
+    // this->lenght = 0;
+    this->file_opened = false;
 }
 
 
@@ -187,3 +190,37 @@ std::string Httprequest::get_query_string() const
 {
     return (QUERY_STRING);
 }
+
+void Httprequest::set_query_string(std::string query)
+{
+    QUERY_STRING = query;
+}
+
+void Httprequest::set_is_deleted(bool is_deleted)
+{
+    this->is_deleted = is_deleted;
+}
+            
+bool Httprequest::get_is_deleted() const
+{
+    return is_deleted;
+}
+
+// void Httprequest::set_lenght(long long len)
+// {
+//     lenght = len;
+// }
+// long long Httprequest::get_lenght() const
+// {
+//     return lenght;
+// }
+
+// bool Httprequest::get_file_opened() const
+// {
+// 	return file_opened;
+// }
+
+// void Httprequest::set_file_opened(bool is_opened)
+// {
+// 	this->file_opened = is_opened;
+// }

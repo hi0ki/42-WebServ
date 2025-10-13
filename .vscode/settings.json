@@ -1,6 +1,9 @@
 {
     "files.associations": {
+<<<<<<< HEAD
         "iosfwd": "cpp",
+=======
+>>>>>>> 7a969aef591814af57064d706a69ad41e76d6b2a
         "string": "cpp",
         "__bit_reference": "cpp",
         "__config": "cpp",
