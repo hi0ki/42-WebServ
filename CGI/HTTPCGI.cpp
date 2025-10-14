@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/13 20:34:33 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/14 11:30:24 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,7 +156,8 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
             if(locations[i].cgi_enabled == false)
             {
                 std::cout << RED << "CGI not enabled" << RESET << std::endl;
-                return 403;
+                req.setStatus(403, "Forbidden");
+                return (1);
             }
             
             // 2. Check if HTTP method is allowed
@@ -182,7 +183,8 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
                 if (exist == methods_to_check.end())
                 {
                     std::cout << RED << "Method " << req.getMethod() << " not allowed" << RESET << std::endl;
-                    return 405;
+                    req.setStatus(405, "Method Not Allowed");
+                    return (1);
                 }
                 else
                 {
@@ -210,7 +212,8 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
             if(ext.empty())
             {
                 std::cout << RED << "No file extension found" << RESET << std::endl;
-                return 403;
+                req.setStatus(403, "Forbidden");
+                return (1);
             }
             
             // Check if extension is allowed
@@ -223,7 +226,8 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
                 if(exist1 == locations[i].cgi_extension.end())
                 {
                     std::cout << RED << "Extension " << ext << " not allowed" << RESET << std::endl;
-                    return 403;
+                    req.setStatus(403, "Forbidden");
+                    return (1);
                 }
                 else
                 {
@@ -266,7 +270,8 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
             if (locations[i].cgi_path.empty())
             {
                 std::cout << RED << "No CGI interpreter path configured" << RESET << std::endl;
-                return 500;
+                req.setStatus(500, "Internal Server Error");
+                return (1);
             }
 
             for (size_t j = 0; j < locations[i].cgi_path.size(); ++j)
@@ -278,19 +283,22 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
                 if (stat(path.c_str(), &st) != 0)
                 {
                     std::cout << RED << "Interpreter does not exist: " << path << RESET << std::endl;
-                    return 500;
+                    req.setStatus(500, "Internal Server Error");
+                    return (1);
                 }
 
                 if (!S_ISREG(st.st_mode))
                 {
                     std::cout << RED << "Interpreter is not a regular file: " << path << RESET << std::endl;
-                    return 500;
+                    req.setStatus(500, "Internal Server Error");
+                    return (1);
                 }
 
                 if (access(path.c_str(), X_OK) != 0)
                 {
                     std::cout << RED << "Interpreter is not executable: " << path << RESET << std::endl;
-                    return 500;
+                    req.setStatus(500, "Internal Server Error");
+                    return (1);
                 }
             }
 
@@ -302,21 +310,24 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
             if (access(req.getAbsolutePath().c_str(), F_OK) != 0)
             {
                 std::cout << RED << "CGI script not found: " << req.getAbsolutePath() << RESET << std::endl;
-                return 404;
+                req.setStatus(404, "Not Found");
+                return (1);
             }
             
             if (access(req.getAbsolutePath().c_str(), R_OK) != 0)
             {
                 std::cout << RED << "CGI script not readable: " << req.getAbsolutePath() << RESET << std::endl;
-                return 403;
+                req.setStatus(403, "Forbidden");
+                return (1);
             }
             
             std::cout << GREEN << "All CGI checks passed!" << RESET << std::endl;
-            return 0;  // ✅ Success!
+            return (0);  // ✅ Success!
         }
     }
     // Si on arrive ici, aucune location CGI trouvée
-    return 404;
+    req.setStatus(404, "Not Found");
+    return (1);
 
     // return(1);
 }
