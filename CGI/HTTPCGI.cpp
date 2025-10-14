@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPCGI.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/14 17:37:58 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/14 20:56:00 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
     }
     // Conversion en `char*` pour execve
     // std::vector<char*> envr;
-    for (size_t i = 0; i < envr.size(); i++)
+    for (size_t i = 0; i < env.size(); i++)
     {
         envr.push_back(strdup(env[i].c_str())); // strdup car execve attend des pointeurs valides
     }
