@@ -45,6 +45,8 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     s = "Server: " + req.get_servername() + "\r\n";
     if (req.getStatus_code() == 301)
         s += "Location: " + req.getRedirectLocation() + "\r\n" ;
+    if (!req.getCookie().empty())
+        s += "Set-Cookie: " + req.getHeaders()["Cookie"] + "\r\n";
     s += "Content-Type: " + contentType + "\r\n";
     s += "Content-Length: " + uintToString(contentLength) + "\r\n";
     s += "Connection: " ;
@@ -60,57 +62,6 @@ void readFileBody(Httprequest &req, ClientData &client)
 {
 
 }
-
-// std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client) 
-// {
-//     std::cout <<  "fresponse status code " << this->getStatus_code() << std::endl;
-//     std::string response;
-//     std::string body;
-//     std::string statusLine;
-//     std::ifstream file(this->getAbsolutePath().c_str(), std::ios::binary);
-//     std::cout << this->getAbsolutePath() << "   here\n"; 
-//     if (!get_is_deleted() && getStatus_code() != 301 && !get_check_autoindex() && !file.is_open()) {
-//         statusLine = "HTTP/1.1 404 Not Found\r\n";
-//         body = "<html><body><h1>404 Not Found</h1></body></html>";
-//     }
-//     else{
-//         statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
-//         if (this->get_check_autoindex())
-//             body = AutoindexPage(*this);
-//         else
-//         {
-//             if (this->getBody_cgi() != "")
-//                 body = this->getBody_cgi(); 
-//             else
-//             {
-//                 if (this->method ==  "POST" && this->getStatus_code() == 201)
-//                     body = "Upload Success\nFile uploaded successfully!";
-//                 if (client.get_ftime_resp() && method == "GET")
-//                 {
-//                     char buffer[BUFFER_SIZE];
-//                     file.read(buffer, BUFFER_SIZE);
-//                     client.set_resp_length(file.gcount());
-//                     std::cout << "lenght of response == " << client.get_resp_length() << std::endl;
-//                     if (client.get_resp_length() == BUFFER_SIZE)
-//                        file.close();
-//                     // std::ostringstream bodyStream;  
-//                     // bodyStream << file.rdbuf();
-//                     // body = bodyStream.str();
-//                 }
-
-//             }
-//         }
-//     }
-//     if (!client.get_ftime_resp())
-//     {
-//         response = statusLine + buildHeaders(*this, body.size(), keep_alive)+  body;
-//         client.set_ftime_resp(true);
-//     }
-//     else
-//         response = body;
-//     return response;
-// }
-
 
 std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client) 
 {
@@ -175,6 +126,3 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
 }
 
 
-
-//testi b post eadi etiha hello
-//mara mara katekhroj bouhda f post image

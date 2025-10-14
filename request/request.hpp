@@ -38,7 +38,8 @@
             std::string QUERY_STRING;
             std::string body_cgi;
             bool is_deleted;
-            bool file_opened;;
+            bool file_opened;
+            std::map<std::string, std::string> cookie;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -108,6 +109,8 @@
             void set_is_deleted(bool is_delted);
             bool get_is_deleted() const;
 
+            void setCookie(const std::map<std::string, std::string> &Cookie);
+            std::map<std::string, std::string>& getCookie();
 
 
             

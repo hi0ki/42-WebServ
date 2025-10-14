@@ -342,13 +342,45 @@ bool handelGET(Httprequest &req, config &config)
     }
     Location loc = findMatchingLocation(req, config);
     if (req.getError_page_found() == false && loc.type == CGI)
-        location_has_cgi(req, config);
-        
+    {
+        if (location_has_cgi(req, config))
+            return true;
+        return false;
+    }  
     if (req.getError_page_found() == false)
         req.setStatus(200, "OK");
     return true;
 }
 
+bool check_fileExtension(std::string Path, Httprequest &req, config &config)
+{
+    std::string ext;
+    Location loc = findMatchingLocation(req, config);
+    for(size_t j = Path.size(); j > 0; --j)
+    {
+        if(Path[j - 1] == '.')
+        {
+            ext = Path.substr(j - 1);
+            break;  
+        }
+    }
+    if(ext.empty())
+    {
+        req.setStatus(403, "Forbidden");
+        return (false);
+    }
+    if(loc.cgi_extension.size() > 0)
+    {
+       std::vector<std::string>::iterator exist1 = std::find(loc.cgi_extension.begin(), loc.cgi_extension.end(), ext);
+                
+        if(exist1 == loc.cgi_extension.end())
+        {
+            req.setStatus(403, "Forbidden");
+            return (false);
+        }
+    }
+    return true;
+}
 
 bool handelPOST(Httprequest &req, config &config, ClientData &client)
 {
@@ -361,43 +393,45 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
         req.setStatus(413, "Request Entity Too Large");
         return false;
     }
+    if ((pathExists(req.getAbsolutePath(), req, c)) && c == 'F' && loc.type == CGI)
+    {
+        if (check_fileExtension(req.getPath(), req, config) && req.getError_page_found() == false)
+        {
+            if (!location_has_cgi(req, config))////
+                return false;//
+        }
+    }
     if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) || !pathExists(req.getAbsolutePath(), req, c))
     {
         req.setError(true);///
         req.setStatus(404, "Not Found");
         return false;
     }
-    if (isMethodAllowed(req, config))
-    {
-        req.setStatus(201, "Created");
-        return true;
-    }
-    if (pathExists(req.getAbsolutePath(), req, c) != true)
-    {
-        req.setError(true);///
-        req.setStatus(404, "Not Found");
+    if (!isMethodAllowed(req, config))
         return false;
-    }
-    if (c == 'D')
-    {  
-        bool t_f = true;
-        // if (!isUriEndsWithSlash(req.getPath(), req))
-        //     return false;
-        if (resolve_index(req, config) == false)
-            t_f = findIndexFile(req);
-        if (t_f == false)
-        {
-            req.setStatus(403, "Forbidden");
-            return false;
-        }
-    }
-    if (req.getError_page_found() == false && loc.type == CGI)
-    {
-        if (!location_has_cgi(req, config))////
-            return true;
-    }
-    req.setStatus(403, "Forbidden");
-    return false;
+    req.setStatus(201, "Created");
+    // if (pathExists(req.getAbsolutePath(), req, c) != true)
+    // {
+    //     req.setError(true);///
+    //     req.setStatus(404, "Not Found");
+    //     return false;
+    // }
+    // if (c == 'D')
+    // {  
+    //     bool t_f = true;
+    //     // if (!isUriEndsWithSlash(req.getPath(), req))
+    //     //     return false;
+    //     if (resolve_index(req, config) == false)
+    //         t_f = findIndexFile(req);
+    //     if (t_f == false)
+    //     {
+    //         req.setStatus(403, "Forbidden");
+    //         return false;
+    //     }
+    // }
+  
+    // req.setStatus(403, "Forbidden");
+    return true;
 }
 
 bool isDirectoryEmpty(std::string path) 
@@ -658,6 +692,25 @@ void connection_header(Httprequest &req, ClientData &client)
     }
 }
 
+std::string removeSpaces(const std::string &str)
+{
+    std::string result;
+    bool found = false;
+    for (int i = 0 ; i < str.size(); ++i)
+    {
+        if (str[i] == '"')
+        {
+            found = !found;
+            i++;//
+        }
+        if (!(str[i] == ' ' && !found && i > 1 && (str[i - 1] == '=' || str[i + 1] == '=' || str[i - 1] == ';' || str[i + 1] == ';')))
+           result += str[i];
+        if (((str[i] == '=' && str[i + 1] == '=') || (str[i] == ';' && str[i + 1] == ';')) && !found)
+            i++;
+    }
+    return result;
+}
+
 int Httprequest::request_pars(ClientData &client , config &config)
 {
     std::string tmp;
@@ -698,6 +751,25 @@ int Httprequest::request_pars(ClientData &client , config &config)
     }
     for(unsigned int i = a + 2; i < client.get_request().size(); i++)
             body.push_back(client.get_request()[i]);
+    if (headers.find("Cookie") != headers.end())
+    {
+        tmp = headers["Cookie"];
+        tmp = removeSpaces(tmp);
+        for(int i = 0; i < tmp.size(); i++)
+        {
+            size_t a = tmp.find("=", i);
+            if (a == std::string::npos || tmp.size() < 2)
+                break;
+            cookie[tmp.substr(i, a - i)] = tmp.substr(a + 1, tmp.find(";", a) - (a + 1));
+            i = tmp.find(";", a);
+            if (i == std::string::npos)
+                break;
+        }
+    }
+    // for(std::map<std::string, std::string>::iterator it = cookie.begin(); it != cookie.end(); it++)//print hader
+    // {
+    //     std::cout << it->first << " : " << it->second << std::endl;
+    // }
     post_content(*this, client);
     if (checkAndApplyErrorPage(config, *this, client) == false)
     {
@@ -734,6 +806,7 @@ void Httprequest::ft_clean()
     this->redirectLocation = "";
     this->is_deleted = false;
     this->file_opened = false;
+    this->cookie.clear();
 }
 
   
