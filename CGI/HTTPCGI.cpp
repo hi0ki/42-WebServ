@@ -6,7 +6,7 @@
 /*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/14 17:37:58 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/14 20:30:44 by felhafid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
     }
     // Conversion en `char*` pour execve
     // std::vector<char*> envr;
-    for (size_t i = 0; i < envr.size(); i++)
+    for (size_t i = 0; i < env.size(); i++)
     {
         envr.push_back(strdup(env[i].c_str())); // strdup car execve attend des pointeurs valides
     }
@@ -69,82 +69,9 @@ void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
     // return envr;
 }
 
-int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
+int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
 {
     const std::vector<Location>& locations = conf.get_servs()[index].get_location();
-    // for(size_t i = 0; i < locations.size(); i++)
-    // {
-    //     if(locations[i].type == CGI)
-    //     {
-    //         std::cout << RED << "waaaaaa dkhllllllll \n" << std::endl;
-            
-    //         if(locations[i].cgi_enabled == false)
-    //             return(403);
-    //         //// chech if method vide if yes check global methods
-    //         std::vector<std::string>::iterator exist;
-            
-    //             // exit(1);
-    //             std::cout << RED << "------------------------------------------if     " << locations[i].methods.size() << std::endl;
-    //         if(locations[i].methods.size())
-    //         {
-    //             std::cout << "heeeeeeeereeeeeee if     " << locations[i].cgi_path << std::endl;
-                
-    //             exist = std::find(locations[i].methods.begin(), locations[i].methods.end(), req.getMethod());
-    //         }
-    //         else if (conf.get_servs()[index].get_methods().size())
-    //         {
-    //             std::cout << "heeeeeeeereeeeeee else     " << std::endl;
-    //             exist = std::find(conf.get_servs()[index].get_methods().begin(), locations[i].methods.end(), req.getMethod());
-    //             std::cout << "heeeeeeeereeeeeee else     " << std::endl;
-            
-    //         }
-    //         if(exist == locations[i].methods.end())
-    //         {
-    //             std::cout << "heeeeeeeereeeeeee else     " << std::endl;
-    //             return(405);
-    //         }
-    //         //cgi_extension
-    //         std::string ext;
-    //         for(int i = req.getAbsolutePath().size() - 1; i >= 0; --i)
-    //         {
-    //             if(req.getAbsolutePath()[i] == '.')
-    //                 ext = req.getAbsolutePath().substr(i);
-    //         }
-    //         if(ext.empty())
-    //             return(403);
-    //         else
-    //         {
-    //             exist = std::find(locations[i].cgi_extension.begin(), locations[i].cgi_extension.end(), ext);
-    //             if(exist == locations[i].cgi_extension.end())
-    //             return(403);
-    //         }
-    //         //cgi_handler or cgi_path
-    //         struct stat st;
-    //         if (stat(locations[i].cgi_path.c_str(), &st) != 0) {
-    //             // std::cerr << "Error: " << locations[i].cgi_path << " does not exist.\n";
-    //             return (500);
-    //         }
-    //         if (!S_ISREG(st.st_mode)) {
-    //             // std::cerr << "Error: " << locations[i].cgi_path << " is not a regular file.\n";
-    //             return (500);
-    //         }
-    //         if (access(locations[i].cgi_path.c_str(), X_OK | F_OK) != 0) {
-    //             // std::cerr << "Error: " << locations[i].cgi_path << " is not executable.\n";
-    //             return (500);
-    //         }
-    //         /// a verifier
-    //         return(0);
-    //     }
-    // }
-    // for(std::vector<Location>::iterator it = conf.get_servs()[index].get_location().begin(); it != conf.get_servs()[index].get_location().end(); it++)
-    // {
-        
-    // }
-
-
-
-
-    // Code corrigé avec tous les bugs fixés
 
     for(size_t i = 0; i < locations.size(); i++)
     {
@@ -234,37 +161,6 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
                     std::cout << GREEN << "Extension " << ext << " is allowed" << RESET << std::endl;
                 }
             }
-            
-            // // 4. Check interpreter (cgi_handler or cgi_path)
-            // // ✅ FIX 5: Vérifier que cgi_path n'est pas vide
-            // if(locations[i].cgi_path.empty())
-            // {
-            //     std::cout << RED << "No CGI interpreter path configured" << RESET << std::endl;
-            //     return 500;
-            // }
-            
-            // std::cout << "Checking interpreter: " << locations[i].cgi_path[0] << std::endl;///// d ici 
-            
-            // struct stat st;
-            // if (stat(locations[i].cgi_path[0].c_str(), &st) != 0)
-            // {
-            //     std::cout << RED << "Interpreter does not exist: " << locations[i].cgi_path[0] << RESET << std::endl;
-            //     return 500;
-            // }
-            
-            // if (!S_ISREG(st.st_mode))
-            // {
-            //     std::cout << RED << "Interpreter is not a regular file: " << locations[i].cgi_path[0] << RESET << std::endl;
-            //     return 500;
-            // }
-            
-            // if (access(locations[i].cgi_path[0].c_str(), X_OK) != 0)
-            // {
-            //     std::cout << RED << "Interpreter is not executable: " << locations[i].cgi_path[0] << RESET << std::endl;// jusqu a ici
-            //     return 500;
-            // }
-
-
 
             // 4. Check interpreters (cgi_handler or cgi_path)
             if (locations[i].cgi_path.empty())
@@ -331,78 +227,6 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest req)
 
     // return(1);
 }
-
-// std::string HTTPCGI::execute(const std::string &script_path, const std::string &body, ClientData &client)// delete body
-// {
-    
-//     // if(can_execute(conf, index))
-//     //     return;
-//     std::map<std::string, std::string> post_data = client.get_body_map();
-//     int pipefd[2];
-//     if (pipe(pipefd) == -1)
-//         return "500 Internal Server Error";
-
-//     pid_t pid = fork();
-//     if (pid < 0)
-//         return "500 Internal Server Error";
-//     if (pid == 0)
-//     {
-//         // Rediriger stdout vers pipe (sortie CGI → parent)
-//         dup2(pipefd[1], STDOUT_FILENO);
-//         close(pipefd[0]);
-//         close(pipefd[1]);
-
-//         // Si POST → donner body via STDIN
-//         if (!body.empty())
-//         {
-//             int input_pipe[2];
-//             pipe(input_pipe);
-//             pid_t writer = fork();
-//             if (writer == 0) {
-//                 close(input_pipe[0]);
-//                 write(input_pipe[1], body.c_str(), body.size());//change the body with file 
-//                 close(input_pipe[1]);
-//                 _exit(0);
-//             }
-//             close(input_pipe[1]);
-//             dup2(input_pipe[0], STDIN_FILENO);
-//             close(input_pipe[0]);
-//         }
-//         // Préparer argv pour execve
-//         char *argv[] = {
-//             strdup(script_path.c_str()), // programme
-//             NULL
-//         };
-
-//         // char *argv[] = {
-//         //     strdup("/usr/bin/python3"),                 // argv[0] = programme
-//         //     strdup("/var/www/html/cgi/hello.py"),       // argv[1] = script
-//         //     NULL
-//         // };
-
-//         // Exécuter le script CGI
-//         execve(argv[0], argv, envr.data());
-//         perror("execve"); // si execve échoue
-//         _exit(1);
-//     }
-//     close(pipefd[1]);
-//     std::string output;
-//     char buffer[4096];
-//     ssize_t n;
-//     while ((n = read(pipefd[0], buffer, sizeof(buffer))) > 0)
-//     {
-//         output.append(buffer, n);
-//     }
-//     close(pipefd[0]);
-
-//     int status;
-//     waitpid(pid, &status, 0);
-
-//     return output;
-    
-// }
-
-
 
 std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
 {

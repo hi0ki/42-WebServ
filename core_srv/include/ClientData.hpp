@@ -23,6 +23,8 @@ class ClientData
 		std::map<std::string, std::string> body_content;
 		bool keep_alive;
 		bool reqst_is_done;
+		std::map<std::string, std::string> session_data;
+		std::string sesssion_id;
 
 		int length;
 		bool post_body_done;
@@ -87,6 +89,10 @@ class ClientData
 		std::ifstream &getFile() 
 		{
 			return file; 
+		}
+		std::map<std::string, std::string> getSession_data() const
+		{
+			return this->session_data;
 		}
 	
 };
