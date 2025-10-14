@@ -3,7 +3,7 @@
 ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , 
 	ftime_pars(false) , ftime_resp(false), resp_length(0), header_length(-1)
 {
-
+	this->last_activity = time(NULL);
 }
 
 ClientData::ClientData(const ClientData &obj)
@@ -131,6 +131,10 @@ long long	ClientData::get_header_length()
 {
 	return (header_length);
 }
+std::ifstream 		&ClientData::getFile()
+{
+	return file; 
+}
 
 //              append
 void    ClientData::requse_append(std::vector<char> append_req)
@@ -161,4 +165,14 @@ void ClientData::clean_request()
 void ClientData::clean_response()
 {
 	this->response.clear();
+}
+
+//				time_t
+void ClientData::update_activity()
+{
+	this->last_activity = time(NULL);
+}
+time_t ClientData::get_last_activity() const
+{
+	return this->last_activity;
 }

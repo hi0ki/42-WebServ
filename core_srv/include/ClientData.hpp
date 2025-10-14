@@ -34,8 +34,9 @@ class ClientData
 			long long resp_length;
 			bool ftime_resp;
 			std::ifstream file;
-			
-		// time;
+		
+		// time_T
+		time_t last_activity;
 		/*
 		
 		This needs a Client class that stores things like:
@@ -78,15 +79,15 @@ class ClientData
 		bool   				get_ftime_resp();
 		long long			get_resp_length();
 		long long			get_header_length();
+		std::ifstream 		&getFile();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
 		void 				clean_client_data();
 		void 				clean_request();
 		void 				clean_response();
-		std::ifstream &getFile() 
-		{
-			return file; 
-		}
-	
+
+		//		time_t
+		void update_activity();
+		time_t get_last_activity() const;
 };

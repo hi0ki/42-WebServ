@@ -736,4 +736,3 @@ void Httprequest::ft_clean()
     this->file_opened = false;
 }
 
-  

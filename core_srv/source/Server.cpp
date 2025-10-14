@@ -6,15 +6,6 @@
 
 
 /*
-	0 -try to work in map with i nothe fd : impossible
-	1 -move the fds vector to the class : ✅
-	2 -split the code : ✅
-	3 -handle multi servers : ✅
-	4 -read the request and store it in vector : ✅
-	6 -handle errs and the proccess keep working : ✅
-	7 - check if keep alive or u need to close the client : waiting for request and response
-	8 - problem = khsni nkhli client bla manms7hom o ib9a khdam server ✅
-	8 - init the clientdata class : ✅
 	infos:
 		(pay attention to differences between HTTP versions)
 		the virtual host
@@ -35,17 +26,17 @@ uint32_t ip_convert(std::string ip)
 
 Server::Server(config &config) : myconfig(config)
 {
-
-	
 	this->server_start();
 	if (this->myconfig.get_servs().size() == 0)
 	{
-		throw std::runtime_error("No server find\n" );
+		throw std::runtime_error("No server find\n");
 		return ;
 	}
-	std::cout << GREEN << "---------------------------------------" << std::endl;
-	std::cout << "-----------Servers listening-----------" << std::endl;
-	std::cout << "---------------------------------------\n" << RESET<< std::endl;
+	std::cout << GREEN << "#####################################" << std::endl;
+	std::cout << "#                                   #" << std::endl;
+	std::cout << "#         Servers listening         #" << std::endl;
+	std::cout << "#                                   #" << std::endl;
+	std::cout << "#####################################" << RESET<< std::endl;
 	this->start_connection();
 }
 
@@ -302,7 +293,10 @@ void Server::handle_request(int i)
 	char buffer[4096];
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
-		this->clients[fds[i].fd].get_request().insert(this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead);
+		this->clients[fds[i].fd].get_request().insert(
+			this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead
+		);
+		this->clients[fds[i].fd].update_activity();
 	}
 	else if (bytesRead == 0)
 	{
@@ -325,13 +319,22 @@ void Server::handle_request(int i)
 	}
 }
 
+/*
+
+
+	nzid time out l pool li tkon chi 75s 
+	ndir send tsift buffer b buffer machi kolchi fmera
+
+*/
+
 void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
-	std::string response = "";
+	std::string response;
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]);
 	send(fds[i].fd, response.c_str(), response.size(), 0);
-	if (this->clients[fds[i].fd].get_resp_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
+	this->clients[fds[i].fd].update_activity();
+	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
 		close(fds[i].fd);
