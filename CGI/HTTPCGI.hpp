@@ -29,6 +29,6 @@ class HTTPCGI
         void cgi_env(Httprequest &req, const Location &loc);
         //function to execute
         // bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg);
-        int can_execute(config &conf, int index, Httprequest req);
+        int can_execute(config &conf, int index, Httprequest &req);
         std::string execute(const std::string &script_path, ClientData &client);
 };

@@ -29,6 +29,7 @@ class Server
         std::vector<pollfd> fds;
         std::map<int, ClientData> clients;
         config &myconfig;
+        std::map<std::string, std::map<std::string, std::string> > sessions;
     public:
         //          for socket fun               //        for sockaddr_in
         Server(config &config);
@@ -43,5 +44,22 @@ class Server
             void handle_response(int i);
         //          Utils
         void pars_post_req(int index);
-    
+        //          getter
+        std::map<std::string, std::string> get_session(std::string id)
+        {
+            return sessions[id];
+        }
+        void set_session_data(std::string id, std::map<std::string, std::string> data)
+        {
+            this->sessions[id] = data;
+        }
+
+        /*std::string generateSessionId()
+{
+    std::string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    std::string id;
+    for (int i = 0; i < 16; ++i)
+        id += chars[rand() % chars.size()];
+    return id;
+}*/
 };

@@ -311,7 +311,7 @@ bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
 {
     Location loc = findMatchingLocation(req, config);
     HTTPCGI cgi(req, loc);
-    if (cgi.can_execute(config, req.get_index(), req))
+    if (cgi.can_execute(config, req.get_index(), req)) 
         return false ;
     std::string body_str(req.getBody().begin(), req.getBody().end());
     std::string response = cgi.execute(req.getAbsolutePath(), client);
@@ -415,9 +415,20 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
     {
         if (check_fileExtension(req.getPath(), req, config) && req.getError_page_found() == false)
         {
-            if (!location_has_cgi(req, config, client))////
+            if (!location_has_cgi(req, config, client))
+            {
+                ////
+                std::cout << "helloolllll "<< req.getStatus_code() <<"\n";
+
                 return false;//
+            }
+            req.setStatus(200, "OK");
+            return true;
+            
         }
+        return false;
+
+
     }
     if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) || !pathExists(req.getAbsolutePath(), req, c))
     {
@@ -447,7 +458,8 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
     //         return false;
     //     }
     // }
-  
+    // if (req.getError_page_found() == false)
+    //     req.setStatus(200, "OK");
     // req.setStatus(403, "Forbidden");
     return true;
 }
@@ -828,3 +840,17 @@ void Httprequest::ft_clean()
 }
 
   
+  //std::map<std::string, std::map<std::string, std::string> > sessions;
+/*You open a website → your browser talks to your server (Webserv).
+HTTP normally forgets everything — it doesn’t “remember” who you are.
+
+So cookies and sessions are used together to make the server remember you*/
+
+/*std::string generateSessionId()
+{
+    std::string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    std::string id;
+    for (int i = 0; i < 16; ++i)
+        id += chars[rand() % chars.size()];
+    return id;
+}*/
