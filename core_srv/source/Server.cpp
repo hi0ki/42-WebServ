@@ -118,6 +118,21 @@ bool Server::is_server(int fd)
 	return false;
 }
 
+bool check_timeout(time_t last_activity)
+{
+	time_t now  = time(NULL);
+
+	std::cout << "teeeeest " << std::endl;
+
+	double diff = difftime(now, last_activity);
+	std::cout << "diff = " << diff << std::endl;
+	if (diff > TIME_OUT)
+	{
+		std::cout << "waaaa \n" << std::endl;
+	}
+	return true;
+}
+
 void Server::start_connection()
 {
 	int poll_var;
@@ -138,10 +153,16 @@ void Server::start_connection()
 				if (is_server(fds[i].fd) == true)
 					this->accept_client(i);
 				else
+				{
+					check_timeout(this->clients[fds[i].fd].get_last_activity());
 					this->handle_request(i);
+				}
 			}
 			else if (fds[i].revents & POLLOUT)
+			{
+							check_timeout(this->clients[fds[i].fd].get_last_activity());
 				this->handle_response(i);
+			}
 		}
 	}
 }
@@ -287,6 +308,7 @@ void Server::pars_post_req(int index)
 	}
 }
 
+
 void Server::handle_request(int i)
 {
 	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
@@ -318,14 +340,6 @@ void Server::handle_request(int i)
 		this->fds[i].events = POLLOUT;
 	}
 }
-
-/*
-
-
-	nzid time out l pool li tkon chi 75s 
-	ndir send tsift buffer b buffer machi kolchi fmera
-
-*/
 
 void Server::handle_response(int i)
 {

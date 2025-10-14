@@ -156,6 +156,7 @@ void ClientData::clean_client_data()
 	this->header_length = -1;
 	this->ftime_resp = false;
 	this->file.clear();
+	this->last_activity = time(NULL);
 }
 
 void ClientData::clean_request()
