@@ -21,7 +21,7 @@
 #define YELLOW  "\033[33m"
 #define BLUE    "\033[34m"
 
-#define TIME_OUT 5000
+#define TIME_OUT 60
 
 
 class Server

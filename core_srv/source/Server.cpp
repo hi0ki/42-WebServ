@@ -122,13 +122,11 @@ bool check_timeout(time_t last_activity)
 {
 	time_t now  = time(NULL);
 
-	std::cout << "teeeeest " << std::endl;
-
 	double diff = difftime(now, last_activity);
-	std::cout << "diff = " << diff << std::endl;
-	if (diff > TIME_OUT)
+	if (diff >= TIME_OUT)
 	{
-		std::cout << "waaaa \n" << std::endl;
+		std::cout << "diff = " << diff << std::endl;
+		return false;
 	}
 	return true;
 }
@@ -148,19 +146,25 @@ void Server::start_connection()
 		}
 		for (int i = 0; i < fds.size(); i++)
 		{
+			if (!is_server(fds[i].fd) && !check_timeout(this->clients[fds[i].fd].get_last_activity()))
+			{
+				std::cerr << RED << "[" << fds[i].fd << "]" << " : Client TimeOut" << RESET << std::endl;
+				close(fds[i].fd);
+				this->clients.erase(fds[i].fd);
+				this->fds.erase(fds.begin() + i);
+				i--;
+			}
 			if (fds[i].revents & POLLIN)
 			{
 				if (is_server(fds[i].fd) == true)
 					this->accept_client(i);
 				else
 				{
-					check_timeout(this->clients[fds[i].fd].get_last_activity());
 					this->handle_request(i);
 				}
 			}
 			else if (fds[i].revents & POLLOUT)
 			{
-							check_timeout(this->clients[fds[i].fd].get_last_activity());
 				this->handle_response(i);
 			}
 		}
@@ -311,18 +315,19 @@ void Server::pars_post_req(int index)
 
 void Server::handle_request(int i)
 {
-	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
+	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl; // khas itbdl
 	char buffer[4096];
+
+	this->clients[fds[i].fd].update_activity();
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
 		this->clients[fds[i].fd].get_request().insert(
 			this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead
 		);
-		this->clients[fds[i].fd].update_activity();
 	}
 	else if (bytesRead == 0)
 	{
-		std::cerr << RED << "[" << fds[i].fd << "]" << " : Client disconnected: fd " << fds[i].fd << RESET << std::endl;
+		std::cerr << RED << "[" << fds[i].fd << "]" << " : Client disconnected: fd " << fds[i].fd << RESET << std::endl; // khas itbdl
 		close(fds[i].fd);
 		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
@@ -343,11 +348,12 @@ void Server::handle_request(int i)
 
 void Server::handle_response(int i)
 {
-	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
+	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl; // khas itbdl
 	std::string response;
+
+	this->clients[fds[i].fd].update_activity();
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]);
 	send(fds[i].fd, response.c_str(), response.size(), 0);
-	this->clients[fds[i].fd].update_activity();
 	if (!this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
