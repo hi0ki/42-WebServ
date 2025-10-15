@@ -45,21 +45,25 @@ class Server
         //          Utils
         void pars_post_req(int index);
         //          getter
-        std::map<std::string, std::string> get_session(std::string id)
+        std::map<std::string, std::string> &get_session(const std::string &id)
         {
             return sessions[id];
         }
-        void set_session_data(std::string id, std::map<std::string, std::string> data)
+        void set_session_data(const std::string &id, const std::map<std::string, std::string> &data)
         {
-            this->sessions[id] = data;
+            std::map<std::string, std::string> &session = sessions[id]; // get existing or create new
+
+            for (std::map<std::string, std::string>::const_iterator it = data.begin(); it != data.end(); ++it)
+                session[it->first] = it->second; // update or add
         }
 
-        /*std::string generateSessionId()
-{
-    std::string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-    std::string id;
-    for (int i = 0; i < 16; ++i)
-        id += chars[rand() % chars.size()];
-    return id;
-}*/
 };
+
+// std::string generateSessionId()
+// {
+//     std::string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+//     std::string id;
+//     for (int i = 0; i < 16; ++i)
+//         id += chars[rand() % chars.size()];
+//     return id;
+// }

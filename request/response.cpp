@@ -2,7 +2,7 @@
 #include "../core_srv/include/ClientData.hpp" 
 #include "../CGI/HTTPCGI.hpp"
 
-std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive)
+std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive, ClientData &client)
 {
     std::string s;
 
@@ -45,8 +45,23 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     s = "Server: " + req.get_servername() + "\r\n";
     if (req.getStatus_code() == 301)
         s += "Location: " + req.getRedirectLocation() + "\r\n" ;
-    if (!req.getCookie().empty())
-        s += "Set-Cookie: " + req.getHeaders()["Cookie"] + "\r\n";
+    if (!client.getSession_data().empty())
+    {
+        s += "Set-Cookie: ";
+        size_t size = 0;
+        for (std::map<std::string, std::string>::iterator it = client.getSession_data().begin(); it != client.getSession_data().end(); ++it)
+        {
+            if (it->first != "sessionId")
+            {
+                s += it->first + "=" + it->second;
+                if (size + 1 != client.getSession_data().size())
+                    s += "; ";
+                else
+                    s += "\r\n";
+            }
+            size++;
+        }
+    }
     s += "Content-Type: " + contentType + "\r\n";
     s += "Content-Length: " + uintToString(contentLength) + "\r\n";
     s += "Connection: " ;
@@ -116,7 +131,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
     statusLine = "HTTP/1.1 " + uintToString(this->getStatus_code()) + " " + this->getStatus_text() + "\r\n";
     if (!client.get_ftime_resp())
     {
-        response = statusLine + buildHeaders(*this, body_size, keep_alive) + body;
+        response = statusLine + buildHeaders(*this, body_size, keep_alive, client) + body;
         client.set_ftime_resp(true);
     }
     else

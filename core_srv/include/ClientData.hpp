@@ -61,6 +61,10 @@ class ClientData
 		void 				set_ftime_resp(bool first_time);
 		void 				set_resp_length(long long length);
 		void 				set_header_length(long long length);
+		void 				set_sessionID(std::string id)
+		{
+			this->sesssion_id = id;
+		}
 		//      Getters
 		Httprequest			&get_obj_req()
 		{
@@ -80,6 +84,10 @@ class ClientData
 		bool   				get_ftime_resp();
 		long long			get_resp_length();
 		long long			get_header_length();
+		std::string			get_sessionID()
+		{
+			return (sesssion_id);
+		}
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear
@@ -90,9 +98,25 @@ class ClientData
 		{
 			return file; 
 		}
-		std::map<std::string, std::string> getSession_data() const
+
+		void setSession_data(const std::string &key, const std::string &value) 
+		{
+			// std::cout <<  "key : " << key  << "Value :" << value << std::endl;
+         	session_data[key] = value;
+			// std::cout <<  "seesion key : " << session_data[key] << std::endl;
+
+    	}
+		void setSession_data(const std::map<std::string, std::string> &data) 
+		{
+			// std::cout <<  "key : " << key  << "Value :" << value << std::endl;
+         	this->session_data = data;
+			// std::cout <<  "seesion key : " << session_data[key] << std::endl;
+
+    	}
+		std::map<std::string, std::string>& getSession_data()
 		{
 			return this->session_data;
 		}
+
 	
 };
