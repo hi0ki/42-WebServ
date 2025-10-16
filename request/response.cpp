@@ -84,7 +84,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
     std::string response;
     std::string body;
     std::string statusLine;
-    long long body_size;
+    long long body_size = 0;
 
     if (method == "GET" && !this->get_check_autoindex() && this->getBody_cgi() == "")
     {

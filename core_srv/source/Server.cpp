@@ -1,6 +1,7 @@
 #include "../include/Server.hpp"
 #include "../../config/server.hpp"
 
+
 #include <unistd.h>
 #include <sstream>
 
@@ -293,6 +294,19 @@ void Server::pars_post_req(int index)
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
 		this->clients[index].set_length(-1);
+		// post cgi case
+		// this->clients[index].
+		// cgi
+		if (this->clients[index].get_request_obj().getcgi_allowed())
+		{
+			// std::cout << "daaazt" << std::endl;
+			this->clients[index].get_request_obj().setBody_cgi(
+					this->clients[index].get_cgi().execute(
+						this->clients[index].get_request_obj().getAbsolutePath(), 
+						this->clients[index].get_body_map()
+					)
+			);
+		}
 	}
 }
 
@@ -316,19 +330,15 @@ void Server::handle_request(int i)
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 	{
+		std::cout << "3awd dkhl\n";
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 		set_session_data(this->clients[fds[i].fd].get_sessionID(), this->clients[fds[i].fd].getSession_data());
-		// std::cout << GREEN;
-		// for(std::map<std::string, std::string>::const_iterator it = get_session("abc123").begin(); it != get_session("abc123").end(); it++)//print hader
-		// {
-		// 	std::cout << it->first << " : " << it->second << std::endl;
-		// }
-		// std::cout << RESET;
 	}
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
 	{
+		std::cout << GREEN << "hhhehehehhehhe\n" << RESET;
 		pars_post_req(fds[i].fd);
-		location_has_cgi(this->clients[fds[i].fd].get_request_obj(), myconfig, this->clients[fds[i].fd]);
+		// location_has_cgi(this->clients[fds[i].fd].get_request_obj(), myconfig, this->clients[fds[i].fd]);
 	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{

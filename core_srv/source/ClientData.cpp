@@ -3,7 +3,6 @@
 ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , 
 	ftime_pars(false) , ftime_resp(false), resp_length(0), header_length(-1)
 {
-
 }
 
 ClientData::ClientData(const ClientData &obj)
@@ -14,11 +13,15 @@ ClientData &ClientData::operator=(const ClientData &obj)
 {
 	this->srv_index = obj.srv_index;
 	this->request = obj.request;
-	this->response = obj.response;
 	this->keep_alive = obj.keep_alive;
 	this->reqst_is_done = obj.reqst_is_done;
 	this->length = obj.length;
 	this->post_body_done = obj.post_body_done;
+	this->ftime_pars = obj.ftime_pars;
+	this->ftime_resp = obj.ftime_resp;
+	this->resp_length = obj.resp_length;
+	this->header_length = obj.header_length;
+	this->cgi = obj.cgi;
 	return (*this);
 }
 
@@ -37,10 +40,6 @@ void ClientData::set_request(std::string reqs)
 {
 	this->request.clear();
 	this->request.insert(this->request.end(), reqs.begin(), reqs.end());
-}
-void ClientData::set_response(std::vector<char> resp)
-{
-	this->response = resp;
 }
 void ClientData::set_keep_alive(bool kp_alive)
 {
@@ -74,6 +73,28 @@ void 	ClientData::set_header_length(long long length)
 {
 	this->header_length = length;
 }
+void 	ClientData::set_sessionID(std::string id)
+{
+	this->sesssion_id = id;
+}
+std::map<std::string, std::string> &ClientData::getSession_data()
+{
+	return this->session_data;
+}
+void ClientData::setSession_data(const std::string &key, const std::string &value) 
+{
+	session_data[key] = value;
+}
+void ClientData::setSession_data(const std::map<std::string, std::string> &data) 
+{
+	this->session_data = data;
+}
+void ClientData::set_cgi(HTTPCGI _cgi)
+{
+	this->cgi  = _cgi;
+}
+
+
 //             Getters  
 int ClientData::get_srv_index() const
 {
@@ -82,10 +103,6 @@ int ClientData::get_srv_index() const
 std::vector<char> &ClientData::get_request()
 {
 	return (request);
-}
-std::vector<char> ClientData::get_response() const
-{
-	return (response);
 }
 bool ClientData::get_keep_alive() const
 {
@@ -131,6 +148,19 @@ long long	ClientData::get_header_length()
 {
 	return (header_length);
 }
+HTTPCGI &ClientData::get_cgi()
+{
+	return this->cgi;
+}
+std::ifstream &ClientData::getFile() 
+{
+	return file; 
+}
+Httprequest	&ClientData::get_obj_req()
+{
+	return (req);
+}
+
 
 //              append
 void    ClientData::requse_append(std::vector<char> append_req)
@@ -142,7 +172,6 @@ void    ClientData::requse_append(std::vector<char> append_req)
 void ClientData::clean_client_data()
 {
 	this->request.clear();
-	this->response.clear();
 	this->keep_alive = false;
 	this->reqst_is_done = false;
 	this->length = -1;
@@ -152,13 +181,10 @@ void ClientData::clean_client_data()
 	this->header_length = -1;
 	this->ftime_resp = false;
 	this->file.clear();
+	this->cgi.reset_cgi_obj();
 }
 
 void ClientData::clean_request()
 {
 	this->request.clear();
-}
-void ClientData::clean_response()
-{
-	this->response.clear();
 }

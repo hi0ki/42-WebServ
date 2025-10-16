@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/16 12:12:38 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/16 16:14:09 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,12 @@
 HTTPCGI::HTTPCGI(Httprequest &req, const Location &loc)
 {
     cgi_env(req, loc);
+}
+
+HTTPCGI &HTTPCGI::operator=(const HTTPCGI &obj)
+{
+    this->envr = obj.envr;
+    return (*this);
 }
 
 void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
@@ -236,9 +242,9 @@ std::string clean_string(const std::string& str)
     return result;
 }
 
-std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
+std::string HTTPCGI::execute(const std::string &script_path, std::map<std::string, std::string> post_data)
 {
-    std::map<std::string, std::string> post_data = client.get_body_map();
+    // std::map<std::string, std::string> post_data = client.get_body_map();
     std::string post_file = "/tmp/cgi_post_data.txt";
 
     // Step 1: Build the POST data string "key=value&key=value&..."
@@ -388,9 +394,8 @@ std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
     return output;
 }
 
+void HTTPCGI::reset_cgi_obj()
+{
+    this->envr.clear();
+}
 
-
-// bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg)
-// {
-    
-// }

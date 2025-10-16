@@ -290,7 +290,7 @@ bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
     HTTPCGI cgi(req, loc);
     if (cgi.can_execute(config, req.get_index(), req)) 
        return false ;
-    std::string response = cgi.execute(req.getAbsolutePath(), client);
+    std::string response = cgi.execute(req.getAbsolutePath(), client.get_body_map());
     if (response != "")
         req.setBody_cgi(response);
     return true;
@@ -390,13 +390,14 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
     {
         if (check_fileExtension(req.getPath(), req, config) && req.getError_page_found() == false)
         {
-            if (location_has_cgi(req, config, client))
-            {
-                req.setStatus(200, "OK");
-                return true;
-            }   
+            HTTPCGI cgi(req, loc);
+            client.set_cgi(cgi);
+            if (client.get_cgi().can_execute(config, req.get_index(), req)) 
+                return false;
+            req.setcgi_allowed(true);
+            req.setStatus(200, "OK");
+            return true;
         }
-        return false;
     }
     if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) || !pathExists(req.getAbsolutePath(), req, c))
     {
@@ -690,7 +691,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     client.set_request(removeExtraSpaces(client.get_request()));
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
-    // std::cout << tmp;
+
     if (client.get_request()[0] != 'P')
     {
         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)

@@ -40,6 +40,7 @@
             bool is_deleted;
             bool file_opened;
             std::map<std::string, std::string> cookie;
+            bool cgi_allowed;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -112,8 +113,15 @@
             void setCookie(const std::map<std::string, std::string> &Cookie);
             std::map<std::string, std::string>& getCookie();
 
+            void setcgi_allowed(bool is_cgi_allowed)
+            {
+                this->cgi_allowed = is_cgi_allowed;
+            }
 
-            
+            bool getcgi_allowed()
+            {
+                return this->cgi_allowed;
+            }
 
 
     
