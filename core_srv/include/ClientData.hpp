@@ -6,6 +6,7 @@
 
 #include "../../request/Request.hpp"
 #include "Server.hpp"
+#include "../../CGI/HTTPCGI.hpp"
 
 typedef struct s_body_data
 {
@@ -18,16 +19,17 @@ class ClientData
 	private:
 		Httprequest req;
 		int srv_index;
-		std::vector<char> request;
-		std::vector<char> response;
-		std::map<std::string, std::string> body_content;
+		std::vector<char> request; // Request from recv
+		std::map<std::string, std::string> body_content; // form content from Post method (key = value)
 		bool keep_alive;
-		bool reqst_is_done;
+		bool reqst_is_done; // recv doen with request
+		std::map<std::string, std::string> session_data; // cookie data
+		std::string session_id; // session id
 
-		int length;
-		bool post_body_done;
-		bool ftime_pars;
-		body_data post_info;
+		int length; // body length for post Method
+		bool post_body_done; // if recv done with body (POST method)
+		bool ftime_pars; // first time for POST method
+		body_data post_info; // variables for POST part
 
 		//response vars
 			long long header_length;
@@ -42,6 +44,7 @@ class ClientData
 		This needs a Client class that stores things like:
 			timestamp of last activity.
 		*/
+			HTTPCGI cgi;
 	public:
 		ClientData();
 		ClientData(const ClientData &obj);
@@ -51,7 +54,6 @@ class ClientData
 		void 				set_srv_index(int index);
 		void 				set_request(std::vector<char> reqs);
 		void				set_request(std::string reqs);
-		void 				set_response(std::vector<char> resp);
 		void 				set_keep_alive(bool kp_alive);
 		void 				set_reqs_done(bool reqst);
 		void 				set_length(int new_length);
@@ -60,14 +62,15 @@ class ClientData
 		void 				set_ftime_resp(bool first_time);
 		void 				set_resp_length(long long length);
 		void 				set_header_length(long long length);
+		void 				set_sessionID(std::string id);
+		std::map<std::string, std::string>& getSession_data();
+		void setSession_data(const std::string &key, const std::string &value);
+		void setSession_data(const std::map<std::string, std::string> &data);
+		void set_cgi(HTTPCGI _cgi);
+
 		//      Getters
-		Httprequest			&get_obj_req()
-		{
-			return (req);
-		}
 		int 				get_srv_index() const;
 		std::vector<char> 	&get_request();
-		std::vector<char> 	get_response() const;
 		bool 				get_keep_alive() const;
 		bool				get_reqs_done() const;
 		Httprequest&		get_request_obj();
@@ -79,7 +82,10 @@ class ClientData
 		bool   				get_ftime_resp();
 		long long			get_resp_length();
 		long long			get_header_length();
-		std::ifstream 		&getFile();
+		std::string			get_sessionID();
+		HTTPCGI				&get_cgi();
+		std::ifstream &getFile();
+		Httprequest			&get_obj_req();
 		//		append
 		void 				requse_append(std::vector<char> append_req);
 		//      clear

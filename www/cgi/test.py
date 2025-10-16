@@ -2,25 +2,25 @@
 import os
 import cgi
 
-# Indique que la sortie est du HTML
+# Set content type for HTTP
 print("Content-Type: text/html\n")
 
-# Récupération des variables d'environnement CGI
+# Retrieve CGI environment variables
 method = os.environ.get("REQUEST_METHOD", "UNKNOWN")
 query = os.environ.get("QUERY_STRING", "")
 script_path = os.environ.get("SCRIPT_FILENAME", "")
 path_info = os.environ.get("PATH_INFO", "")
 
-# Pour parser les paramètres GET ou POST
+# Parse GET or POST parameters
 form = cgi.FieldStorage()
 name = form.getvalue("name", "inconnu")
 city = form.getvalue("city", "inconnu")
 
-# Construction de la page HTML
+# Build HTML page
 print("<html>")
 print("<head><title>CGI Example</title></head>")
 print("<body>")
-print(f"<h1>CGI Script Test</h1>")
+print("<h1>CGI Script Test</h1>")
 print(f"<p>Méthode : {method}</p>")
 print(f"<p>Query string : {query}</p>")
 print(f"<p>Script path : {script_path}</p>")

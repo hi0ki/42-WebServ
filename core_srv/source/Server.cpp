@@ -1,6 +1,7 @@
 #include "../include/Server.hpp"
 #include "../../config/server.hpp"
 
+
 #include <unistd.h>
 #include <sstream>
 
@@ -287,7 +288,7 @@ void Server::pars_post_req(int index)
 						for (; old_request[fname_pos] != '"'; fname_pos++)
 							map_key.push_back(old_request[fname_pos]);
 						int end = old_request.find("\r\n\r\n") + 4;
-						for (;end < key_pos; end++)
+						for (;end < key_pos - 1; end++)
 							map_value.push_back(old_request[end]);
 						old_request.erase(old_request.begin(), old_request.begin() + end);
 						this->clients[index].get_body_map()[map_key] = map_value;
@@ -309,6 +310,19 @@ void Server::pars_post_req(int index)
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
 		this->clients[index].set_length(-1);
+		// post cgi case
+		// this->clients[index].
+		// cgi
+		if (this->clients[index].get_request_obj().getcgi_allowed())
+		{
+			// std::cout << "daaazt" << std::endl;
+			this->clients[index].get_request_obj().setBody_cgi(
+					this->clients[index].get_cgi().execute(
+						this->clients[index].get_request_obj().getAbsolutePath(), 
+						this->clients[index].get_body_map()
+					)
+			);
+		}
 	}
 }
 
@@ -336,9 +350,17 @@ void Server::handle_request(int i)
 	}
 
 	if (this->clients[fds[i].fd].get_length() == -1)
+	{
+		std::cout << "3awd dkhl\n";
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+		set_session_data(this->clients[fds[i].fd].get_sessionID(), this->clients[fds[i].fd].getSession_data());
+	}
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
+	{
+		std::cout << GREEN << "hhhehehehhehhe\n" << RESET;
 		pars_post_req(fds[i].fd);
+		// location_has_cgi(this->clients[fds[i].fd].get_request_obj(), myconfig, this->clients[fds[i].fd]);
+	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
 		std::cout << BLUE << "Request is done" << RESET << std::endl;
@@ -348,13 +370,16 @@ void Server::handle_request(int i)
 
 void Server::handle_response(int i)
 {
-	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl; // khas itbdl
+	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response;
-
 	this->clients[fds[i].fd].update_activity();
-	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]);
-	send(fds[i].fd, response.c_str(), response.size(), 0);
-	if (!this->clients[fds[i].fd].get_keep_alive())
+	this->clients[fds[i].fd].setSession_data(get_session(clients[fds[i].fd].get_sessionID()));
+	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(
+		this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]
+	);
+	std::cout << response << std::endl;
+	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT); // handel < 0
+	if (this->clients[fds[i].fd].get_header_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
 		close(fds[i].fd);
@@ -368,5 +393,6 @@ void Server::handle_response(int i)
 		this->clients[fds[i].fd].clean_client_data();
 		this->clients[fds[i].fd].get_request_obj().ft_clean();
 		this->fds[i].events = POLLIN;
-	}	
+	}
+	response.clear();
 }

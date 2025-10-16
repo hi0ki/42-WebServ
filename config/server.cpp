@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 14:04:32 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/15 21:43:16 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,8 @@ std::vector<std::string> split(const std::string &str, char c)
             break;
         if(str[i] == c && cont.size())// a verifier cont.size()
         {
-            result.push_back(cont);
+            if(cont.size())
+                result.push_back(cont);
             cont.clear();
         }
         if (str[i] != c)
@@ -256,12 +257,13 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                     throw std::runtime_error("invalid location (return must have exactly 3 args)");
             }
             // tout le reste
-            else if (spl[0] != "extension")
+            // else if (spl[0] != "extension")
+            else if (spl[0] != "cgi_extension" && spl[0] != "cgi_path")
             {
                 if (spl.size() != 2)
                     throw std::runtime_error("invalid location (directive must have exactly 2 args)");
             }
-            if(spl[0] != "methods" && spl[0] != "return" && spl[0] != "extension")
+            if(spl[0] != "methods" && spl[0] != "return" && spl[0] != "cgi_extension" && spl[0] != "cgi_path" )
                 check_semicolon(spl[1]);
             // if(spl[0] == "redirect_url")
             // {
@@ -282,6 +284,8 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 }
 
                 int code = std::stoi(spl[1]);
+                if(code != 301)
+                    throw std::runtime_error("content invalid");
                 if (code < 100 || code > 599)  // seulement codes HTTP valides
                     throw std::runtime_error("invalid return code: must be between 100 and 599");
 
@@ -301,6 +305,8 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 // if(loc.type == UNDEFINED)
                 //     loc.type = CGI;
             }
+            else if (spl[0] == "index")
+                loc.index = spl[1];
             // else if(spl[0] == "cgi_handler" && loc.return_r.red_url.empty())
             // {
             //     loc.cgi_handler = spl[1];
@@ -324,18 +330,43 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             else if (spl[0] == "cgi_extension")
             {
                 // check_semicolon(spl[1]);
-                if (spl[1].empty() || spl[1][0] != '.')
-                    throw std::runtime_error("invalid cgi_extension: " + spl[1]);
-                loc.cgi_extension.push_back(spl[1]);
+                if (spl.size() < 2)
+                    throw std::runtime_error("invalid cgi_extension: no extension provided");
+
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (spl[i].empty() || spl[i][0] != '.')
+                        throw std::runtime_error("invalid cgi_extension: " + spl[i]);
+                    if(i == spl.size() - 1)
+                    {
+                        check_semicolon(spl[i]);
+                        if (!spl[i].size())
+                            throw std::runtime_error("invalid cgi_extension");;
+                    }
+                    loc.cgi_extension.push_back(spl[i]);
+                }
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
             else if (spl[0] == "cgi_path")///// todo/// if not existe throw exception
             {
+                if(loc.cgi_path.size())
+                    throw std::runtime_error("cgi_path: alredy exist");
                 // check_semicolon(spl[1]);
-                if (spl[1].empty())
-                    throw std::runtime_error("cgi_path cannot be empty");
-                loc.cgi_path = spl[1];  // tu avais déjà `cgi_handler`, tu peux utiliser `cgi_path` ou garder l'ancien
+                if (spl.size() < 2)
+                    throw std::runtime_error("cgi_path: no path provided");
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (spl[i].empty())
+                        throw std::runtime_error("cgi_path cannot be empty");
+                    if(i == spl.size() - 1)
+                    {
+                        check_semicolon(spl[i]);
+                        if (!spl[i].size())
+                            throw std::runtime_error("invalid cgi_path");
+                    }
+                    loc.cgi_path.push_back(spl[i]);
+                }
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
@@ -356,10 +387,10 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                     meth.push_back(spl[i]);
                 }
                 loc.methods = meth;
-                std::cout << "-------------------" << loc.methods.size() << std::endl;
+                // std::cout << "-------------------" << loc.methods.size() << std::endl;
             }
             else
-                throw std::runtime_error(spl[0] + "---invalid key in location");
+                throw std::runtime_error(spl[0] + " invalid key in location");
             it++;
             if(it == end)
                 throw std::runtime_error(" '}' is missing ");
@@ -371,7 +402,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
     else
         throw std::runtime_error("path invalid");
     this->set_location(loc);
-    std::cout << location[location.size() - 1].methods.size() << "##############################"<< std::endl;
+    // std::cout << location[location.size() - 1].methods.size() << "##############################"<< std::endl;
 }
 
 void server::pars_serv()

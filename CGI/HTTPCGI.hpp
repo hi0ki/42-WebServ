@@ -16,18 +16,24 @@
 #include <cstring>     // for strdup
 #include <sys/wait.h>  // for waitpid
 #include <unistd.h>    // for fork, execve, pipe, etc. (if you use them)=
+#include <map>
+#include <fcntl.h>
 
 #include "../request/Request.hpp"
+// #include "../core_srv/include/ClientData.hpp"
 
 class HTTPCGI
 {
     private:
         std::vector<char*> envr;
     public:
+        HTTPCGI() {}
         HTTPCGI(Httprequest &req, const Location &loc);
+        HTTPCGI &operator=(const HTTPCGI &obj);
         void cgi_env(Httprequest &req, const Location &loc);
         //function to execute
         // bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg);
-        int can_execute(config &conf, int index, Httprequest req);
-        std::string execute(const std::string &script_path, const std::string &body);
+        int can_execute(config &conf, int index, Httprequest &req);
+        std::string execute(const std::string &script_path, std::map<std::string, std::string> post_data);
+        void reset_cgi_obj();
 };

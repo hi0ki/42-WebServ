@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/07 14:05:41 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/13 17:30:23 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ config::config(std::string nameFile) : File(nameFile)
     if (!File.is_open())
         throw std::runtime_error("Unable to open the file: " + nameFile);
     this->parse_configFile();
+    if(!servs.size())
+        throw std::runtime_error("config file invalid");
     this->print_servers();
 }  
 
@@ -163,35 +165,95 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             if(tmp.size() != 3 || tmp[2] != "{")
                 throw std::runtime_error("location invalid");
             serv.pars_location(++it, tmp, conf.end());
-            if (serv.get_location()[serv.get_location().size()].type == CGI)
-            {
-            std::cout << " waaaa " << serv.get_location()[serv.get_location().size()].methods.size() << std::endl;
-                std::cout << "aaaaah " << std::endl;
-                // exit(1);
-            }
-            //check if it == end and we dont foud }, if end throw exeption// if i need it
         }
         else if(!tmp.empty() && tmp[0] == "}")
         {
             tmp.clear();
             break;
-        }   
+        }
+        else if(tmp.size() == 2 && tmp[0] == "server" && tmp[1] == "{")
+        {
+            it--;
+            return;
+        }
         else if(!tmp.empty())
         {
+            std::cout << tmp[0] << std::endl;
             tmp.clear();
-            throw std::runtime_error("invalid key");
+            throw std::runtime_error("11111invalid key");
         }
         tmp.clear();
         it++;
         if (it == conf.end())
-            throw std::runtime_error(" '}' is missing ");
+            throw std::runtime_error("'}' is missing ");
     }
     if(serv.get_IP().empty() || serv.get_root().empty())
         throw std::runtime_error("empty values");
-    servs.push_back(serv);
     
+    servs.push_back(serv);
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods.size() << std::endl;
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].type << std::endl;
+    
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[0] << std::endl;
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[1] << std::endl;
+    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[2] << std::endl;
+    // const std::vector<Location>& locations = servs[servs.size() - 1].get_location();
+    // for(size_t i = 0; i < locations.size(); i++)
+    // {
+    //     if (locations[i].type == CGI)
+    //     {
+    //         std::cout << "Type: " << locations[i].type << std::endl;
+    //         std::cout << "Methods size: " << locations[i].methods.size() << std::endl;
+            
+    //         for(size_t j = 0; j < locations[i].methods.size(); j++) {
+    //             std::cout << "  Method: " << locations[i].methods[j] << std::endl;
+    //         }
+    //     }
+    // }
+}
+bool is_comment(std::string ligne)
+{
+    int i = 0;
+    while(i < ligne.size())
+    {
+        if(ligne[i] != ' ' && ligne[i] != '\t')
+            break;
+        i++;
+    }
+    
+    if(ligne[i] == '#')
+        return(1);
+    return(0);
 }
 
+
+bool is_empty(const std::string &ligne)
+{
+    size_t i = 0;
+
+    // Ignorer les espaces, tabulations et sauts de ligne
+    while (i < ligne.size() && (ligne[i] == ' ' || ligne[i] == '\t' || ligne[i] == '\n'))
+        i++;
+
+    // Si on atteint la fin ou si le premier non-espace est '#'
+    if (i < ligne.size())
+        return false;
+
+    return true;
+}
+
+bool is_keyword(std::string word)
+{
+    std::string arr[] = {"listen", "server_name", "root", "index", "methods", "error_page", "autoindex", "location",
+                        "return", "cgi_enabled", "cgi_extension", "cgi_path", "return", "}"};
+                
+    for (int i = 0; i < 14; i++)
+    {
+        if (arr[i] == word)
+            return (true);
+    }
+    return (false);
+}
 void config::parse_configFile()
 {
     std::vector<std::string> conf;
@@ -200,15 +262,13 @@ void config::parse_configFile()
     
     while(getline(File, ligne))
     {
-        // for linux version
-        // Remove trailing CR ("\r") to support files with Windows CRLF line endings
-        if (!ligne.empty() && ligne[ligne.size() - 1] == '\r')
-            ligne.erase(ligne.size() - 1);
-
-        if(ligne == "\n")
-            continue; // je peut la suppr
+        if(is_empty(ligne) || is_comment(ligne))
+            continue;//je peut la suppr
         conf.push_back(ligne);
     }
+    // for(int i = 0; i < conf.size() ;i++)
+    //     std::cout << conf[i] << std::endl;
+    // exit(1);
     it = conf.begin();
     std::vector<std::string> tmp;
     
@@ -217,26 +277,61 @@ void config::parse_configFile()
         tmp = split(*it, ' ');
         try
         {
-            if(!tmp.empty() && tmp[0] == "server" && tmp[1] == "{")//check server
+            if(!tmp.empty() && tmp.size() == 2 && tmp[0] == "server" && tmp[1] == "{")//check server
             {
                     
                 if(tmp.size() >= 3)
                 {
-                    throw std::runtime_error("##content invalid");
+                    throw std::runtime_error("content invalid\n");
                 }
                 else
                 {
-                    set_server(++it, conf); 
-                      
+                    set_server(++it, conf);
+                    if(it + 1 == conf.end())
+                        break;
+                    // exit(1);
+                    
+                    std::vector<std::string> tmp1;
+                    tmp1 = split(*(it + 1), ' ');
+                    // std::cout << "#######################55" << *(it + 1)<<"/"<< tmp1.size() << std::endl;
+                    if(!(*it == "}" && tmp1.size() == 2 && tmp1[0] == "server" && tmp1[1] == "{"))
+                    {
+                        std::cout << RED <<"content invalid" << RESET << std::endl;
+                        if(!(tmp1.size() == 2 && tmp1[0] == "server" && tmp1[1] == "{"))
+                        {
+                            tmp1.clear();
+                            // std::cout << "  \nwwheree :     " << *it << std::endl; 
+                            while(servs.size() != 0)
+                                servs.pop_back();
+                            break;  
+                        }
+                    }
+                    // std::cout << "1#######################\n" << std::endl;
+                    tmp1.clear();
+                    // if()    
                 }       
             }
+            else if(!tmp.empty() && !is_keyword(tmp[0]))// && !is_keyword(tmp[0])
+            {
+                // std::cout << "here" << std::endl;
+                // std::cout << tmp[0]; 
+                while(servs.size() != 0)
+                    servs.pop_back();
+                break;
+            }
             else if (!tmp.empty())
-                throw std::runtime_error("content invalid");
+            {
+                it++;
+                continue;
+            }
+                // throw std::runtime_error("yyyyyyyyycontent invalid");
         }
         catch (std::exception &e)
         {
             std::cerr << RED << e.what() << RESET << std::endl;
         }
+        if(it == conf.end())
+            break;
         it++;
         tmp.clear();
     }

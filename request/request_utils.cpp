@@ -20,6 +20,7 @@ Httprequest::Httprequest()
     this->is_deleted = false;
     // this->lenght = 0;
     this->file_opened = false;
+    // this->cookie = "";
 }
 
 
@@ -206,21 +207,13 @@ bool Httprequest::get_is_deleted() const
     return is_deleted;
 }
 
-// void Httprequest::set_lenght(long long len)
-// {
-//     lenght = len;
-// }
-// long long Httprequest::get_lenght() const
-// {
-//     return lenght;
-// }
-
-// bool Httprequest::get_file_opened() const
-// {
-// 	return file_opened;
-// }
-
-// void Httprequest::set_file_opened(bool is_opened)
-// {
-// 	this->file_opened = is_opened;
-// }
+void Httprequest::setCookie(const std::map<std::string, std::string> &Cookie)
+{
+    this->cookie = Cookie;
+}
+    
+std::map<std::string, std::string>& Httprequest::getCookie() 
+{
+    return this->cookie;
+}
+     
