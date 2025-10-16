@@ -24,7 +24,7 @@ class ClientData
 		bool keep_alive;
 		bool reqst_is_done; // recv doen with request
 		std::map<std::string, std::string> session_data; // cookie data
-		std::string sesssion_id; // session id
+		std::string session_id; // session id
 
 		int length; // body length for post Method
 		bool post_body_done; // if recv done with body (POST method)

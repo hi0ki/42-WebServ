@@ -27,7 +27,7 @@ async function getData() {
   
   async function deleteData() {
     try {
-      const response = await fetch('/test-delete', { method: 'DELETE' });
+      const response = await fetch('/upload/big_img.png', { method: 'DELETE' });
       const text = await response.text();
       document.getElementById('deleteResult').textContent = text;
     } catch (err) {

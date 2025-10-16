@@ -313,6 +313,7 @@ bool handelGET(Httprequest &req, config &config, ClientData &client)
     {
         // if (!isUriEndsWithSlash(req.getPath(), req))
         //     return false;
+    std::cout << "mommy\n";
         if (resolve_index(req, config) == false)
             t_f = findIndexFile(req);
         if (t_f == false)
@@ -691,7 +692,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     client.set_request(removeExtraSpaces(client.get_request()));
     for(int i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
-
+    std::cout << tmp;
     if (client.get_request()[0] != 'P')
     {
         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
@@ -752,7 +753,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     if (is_location_have_redirect(*this, config))
         return 0;
     
-    // std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
+    std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config, client) == false)
         check_Error_pages(*this, config, client);
     return 0;

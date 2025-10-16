@@ -75,7 +75,7 @@ void 	ClientData::set_header_length(long long length)
 }
 void 	ClientData::set_sessionID(std::string id)
 {
-	this->sesssion_id = id;
+	this->session_id = id;
 }
 std::map<std::string, std::string> &ClientData::getSession_data()
 {
@@ -160,7 +160,10 @@ Httprequest	&ClientData::get_obj_req()
 {
 	return (req);
 }
-
+std::string	ClientData::get_sessionID()
+{
+	return (session_id);
+}
 
 //              append
 void    ClientData::requse_append(std::vector<char> append_req)
