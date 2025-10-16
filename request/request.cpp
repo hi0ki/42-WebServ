@@ -23,26 +23,22 @@ bool is_valid_url(const std::string &uri)
     return true;
 }
 
-///should modify this function
-long long stringToLongLong(const std::string& str) { 
-    try {
-        return std::stoll(str); // convert string to long long
-    } catch (const std::invalid_argument& e) {
-        // std::cerr << "Invalid input: not a number\n";
+long long stringToLongLong(const std::string& str) 
+{ 
+    char *end;
+    long long value = std::strtoll(str.c_str(), &end, 10);
+    if (end == str.c_str() || *end != '\0') 
         return 0;
-    } catch (const std::out_of_range& e) {
-        // std::cerr << "Input out of range for long long\n";
-        return 0;
-    }
+    return value;
 }
 
 bool is_req_well_formed(Httprequest &req, config &config)
 {
-    if(req.getPath().find("//") != std::string::npos)
-    {
-        req.setStatus(404, "Not Found");
-        return false;
-    }
+    // if(req.getPath().find("//") != std::string::npos)
+    // {
+    //     req.setStatus(404, "Not Found");
+    //     return false;
+    // }
     std::map<std::string, std::string>::iterator it = req.getHeaders().find("Transfer-Encoding");
     if (it != req.getHeaders().end())
     {
@@ -744,7 +740,6 @@ int Httprequest::request_pars(ClientData &client , config &config)
             client.setSession_data(tmp.substr(i, a - i), tmp.substr(a + 1, tmp.find(";", a) - (a + 1)));
             if (tmp.substr(i, a - i) == "sessionId")
                 client.set_sessionID(tmp.substr(a + 1, tmp.find(";", a) - (a + 1)));
-            // cookie[tmp.substr(i, a - i)] = tmp.substr(a + 1, tmp.find(";", a) - (a + 1));
             i = tmp.find(";", a);
             if (i == std::string::npos)
                 break;
