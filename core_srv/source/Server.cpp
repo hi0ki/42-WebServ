@@ -315,7 +315,16 @@ void Server::handle_request(int i)
 	}
 
 	if (this->clients[fds[i].fd].get_length() == -1)
+	{
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
+		set_session_data(this->clients[fds[i].fd].get_sessionID(), this->clients[fds[i].fd].getSession_data());
+		// std::cout << GREEN;
+		// for(std::map<std::string, std::string>::const_iterator it = get_session("abc123").begin(); it != get_session("abc123").end(); it++)//print hader
+		// {
+		// 	std::cout << it->first << " : " << it->second << std::endl;
+		// }
+		// std::cout << RESET;
+	}
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
 	{
 		pars_post_req(fds[i].fd);
@@ -332,7 +341,10 @@ void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response = "";
-	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]);
+	this->clients[fds[i].fd].setSession_data(get_session(clients[fds[i].fd].get_sessionID()));
+	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(
+		this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]
+	);
 	send(fds[i].fd, response.c_str(), response.size(), 0);
 	if (this->clients[fds[i].fd].get_resp_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
