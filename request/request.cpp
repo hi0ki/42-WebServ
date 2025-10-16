@@ -312,8 +312,7 @@ bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
     Location loc = findMatchingLocation(req, config);
     HTTPCGI cgi(req, loc);
     if (cgi.can_execute(config, req.get_index(), req)) 
-        return false ;
-    std::string body_str(req.getBody().begin(), req.getBody().end());
+       return false ;
     std::string response = cgi.execute(req.getAbsolutePath(), client);
     if (response != "")
         req.setBody_cgi(response);

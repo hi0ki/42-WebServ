@@ -271,7 +271,7 @@ void Server::pars_post_req(int index)
 						for (; old_request[fname_pos] != '"'; fname_pos++)
 							map_key.push_back(old_request[fname_pos]);
 						int end = old_request.find("\r\n\r\n") + 4;
-						for (;end < key_pos; end++)
+						for (;end < key_pos - 1; end++)
 							map_value.push_back(old_request[end]);
 						old_request.erase(old_request.begin(), old_request.begin() + end);
 						this->clients[index].get_body_map()[map_key] = map_value;
@@ -317,7 +317,10 @@ void Server::handle_request(int i)
 	if (this->clients[fds[i].fd].get_length() == -1)
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
+	{
 		pars_post_req(fds[i].fd);
+		location_has_cgi(this->clients[fds[i].fd].get_request_obj(), myconfig, this->clients[fds[i].fd]);
+	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
 		std::cout << BLUE << "Request is done" << RESET << std::endl;
