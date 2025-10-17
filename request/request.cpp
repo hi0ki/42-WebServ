@@ -374,6 +374,8 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
             req.setStatus(200, "OK");
             return true;
         }
+        req.setStatus(403, "Forbidden");
+        return false;
     }
     if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) \
         || !pathExists(req.getAbsolutePath(), req, c))

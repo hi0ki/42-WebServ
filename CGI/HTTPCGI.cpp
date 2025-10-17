@@ -6,14 +6,13 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/17 12:58:38 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 22:07:51 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "HTTPCGI.hpp"
 
-/// dont forget delete (free the memory)
 HTTPCGI::HTTPCGI(Httprequest &req)
 {
     cgi_env(req);
@@ -40,8 +39,7 @@ void HTTPCGI::cgi_env(Httprequest &req)
         if (it != headers.end())
             env.push_back("CONTENT_TYPE=" + it->second);
     }
-    // i need location root biiiiiiiiiig waaaaaaaaarniiiiiiiing ????
-    env.push_back("SCRIPT_FILENAME=" + req.getAbsolutePath());// without file name, ask fatima zahraa
+    env.push_back("SCRIPT_FILENAME=" + req.getAbsolutePath());
     env.push_back("SERVER_SOFTWARE=webserv/1.0");
     env.push_back("GATEWAY_INTERFACE=CGI/1.1");
     env.push_back("SERVER_PROTOCOL=HTTP/1.1");
@@ -58,12 +56,11 @@ void HTTPCGI::cgi_env(Httprequest &req)
         env.push_back("HTTP_" + key + "=" + it->second);
     }
     // Conversion en `char*` pour execve
-    // std::vector<char*> envr;
     for (size_t i = 0; i < env.size(); i++)
     {
-        envr.push_back(strdup(env[i].c_str())); // strdup car execve attend des pointeurs valides
+        envr.push_back(strdup(env[i].c_str()));
     }
-    envr.push_back(NULL); // fin du tableau
+    envr.push_back(NULL);
 }
 
 int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
@@ -96,7 +93,7 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
             else if (!conf.get_servs()[index].get_methods().empty())
             {
                 std::cout << "in global serv" << std::endl;
-                methods_to_check = conf.get_servs()[index].get_methods(); // ✅ copie locale
+                methods_to_check = conf.get_servs()[index].get_methods();
             }
 
             if (!methods_to_check.empty())
@@ -115,19 +112,16 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
                     std::cout << GREEN << "Method " << req.getMethod() << " is allowed" << RESET << std::endl;
                 }
             }
-
-            
             // 3. Check file extension
             std::string ext;
             std::string path = req.getAbsolutePath();
             
-            // ✅ FIX 3: Utiliser size_t au lieu de int pour éviter les warnings
             for(size_t j = path.size(); j > 0; --j)
             {
                 if(path[j - 1] == '.')
                 {
                     ext = path.substr(j - 1);
-                    break;  // ✅ FIX 4: Ajouter break pour sortir dès qu'on trouve
+                    break;
                 }
             }
             
@@ -215,14 +209,12 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
             }
             
             std::cout << GREEN << "All CGI checks passed!" << RESET << std::endl;
-            return (0);  // ✅ Success!
+            return (0);
         }
     }
-    // Si on arrive ici, aucune location CGI trouvée
     req.setStatus(404, "Not Found");
     return (1);
 
-    // return(1);
 }
 
 std::string clean_string(const std::string& str)
@@ -248,7 +240,6 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
         
         post_content += clean_key + "=" + clean_value;
     }
-    std::cout << "allll :::: " << post_content << std::endl; 
     
     // Step 2: Save to a file
     std::ofstream out(post_file.c_str());
@@ -275,8 +266,6 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
         
     if (pid == 0)
     {
-        // --- CHILD PROCESS ---
-
         // Redirect CGI stdout → pipe
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[0]);
@@ -310,16 +299,15 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
 
         // --- Prepare argv for execve ---
         char *argv[] = {
-            strdup(script_path.c_str()), // script path
+            strdup(script_path.c_str()),
             NULL
         };
 
         // --- Execute CGI script ---
         execve(argv[0], argv, envr.data());
-        perror("execve"); // if execve fails
+        perror("execve");
         _exit(1);
     }
-    // --- PARENT PROCESS ---
     close(pipefd[1]);
     std::string output;
     char buffer[4096];

@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/15 21:43:16 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 22:29:13 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <string>
 #include <cstdlib>
 #include <stdexcept>
-// a revoir ces headers
 
 std::vector<std::string> split(const std::string &str, char c)
 {
@@ -28,7 +27,7 @@ std::vector<std::string> split(const std::string &str, char c)
     {
         if(str[i] == '#')
             break;
-        if(str[i] == c && cont.size())// a verifier cont.size()
+        if(str[i] == c && cont.size())
         {
             if(cont.size())
                 result.push_back(cont);
@@ -47,11 +46,11 @@ void check_semicolon(std::string &str)
     if (str.empty())
         throw std::runtime_error("Empty string");
 
-    size_t pos = str.find(';'); // chercher la première occurrence de ';'
+    size_t pos = str.find(';');
     if (pos == std::string::npos)
         throw std::runtime_error("Missing semicolon in: " + str);
 
-    str = str.substr(0, pos); // garder seulement ce qui est avant le premier ';'
+    str = str.substr(0, pos);
 }
 
 void server::pars_errPage()
@@ -63,7 +62,7 @@ std::string getPWDwithWWW() {
     char buffer[PATH_MAX];
     if (getcwd(buffer, sizeof(buffer)) != NULL) {
         std::string path(buffer);
-        path += "/www";   // on ajoute /www à la fin
+        path += "/www";
         return path;
     } else {
         perror("getcwd error");
@@ -79,7 +78,7 @@ size_t string_to_sizet(const std::string &str)
     char *endptr;
     unsigned long val = strtoul(str.c_str(), &endptr, 10);
 
-    if (*endptr != '\0') // si un caractère non numérique est présent
+    if (*endptr != '\0')
         throw std::runtime_error("Invalid character in number");
 
     return static_cast<size_t>(val);
@@ -87,10 +86,11 @@ size_t string_to_sizet(const std::string &str)
 
 void server::pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator end)
 {
-    //// initialise the variables
     std::vector<std::string> spl;
     Location loc;
+    bool cgi_enabled_set = false;
     loc.type = UNDEFINED;
+    
     if (tmp[1] == "/")
     {
        loc.path = tmp[1];
@@ -112,17 +112,99 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl[0] != "methods")
                 check_semicolon(spl[1]);
             if(spl[0] == "root")
+            {
+                if(loc.root.size())
+                    throw std::runtime_error("root location already exist");
                 loc.root = getPWDwithWWW() + spl[1];
+            }
             else if (spl[0] == "index")
+            {
+                if(loc.index.size())
+                    throw std::runtime_error("index location already exist");
                 loc.index = spl[1];
+            }
+            else if (spl[0] == "methods")
+            {
+                if(loc.methods.size())
+                    throw std::runtime_error("methods location already exist");
+                std::vector<std::string> meth;
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (i == spl.size() - 1)
+                        check_semicolon(spl[i]);
+
+                    if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
+                        throw std::runtime_error("invalid method: " + spl[i]);
+
+                    if (std::find(meth.begin(), meth.end(), spl[i]) != meth.end())
+                        throw std::runtime_error("duplicate method: " + spl[i]);
+
+                    meth.push_back(spl[i]);
+                }
+                loc.methods = meth;
+            }
             else
                 throw std::runtime_error("invalid key in location");
             it++;
             if(it == end)
                 throw std::runtime_error(" '}' is missing ");
        }
-        if(loc.index.empty())// check if index empty
+        if(loc.index.empty())
             throw std::runtime_error("empty index in location");
+    }
+
+    if (tmp[1] == "/errors")
+    {
+       loc.path = tmp[1];
+       loc.type = ERROR;
+       while(it != end && *it != "}")
+       {
+            spl = split(*it, ' ');
+            if(spl.empty())
+            {
+                it++;
+                if(it == end)
+                throw std::runtime_error(" '}' is missing ");
+                continue;
+            }
+            if (spl.size() == 1 && spl[0] == "}")
+                break;
+            if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
+                throw std::runtime_error("invalid location");
+            if(spl[0] != "methods")
+                check_semicolon(spl[1]);
+            if(spl[0] == "root")
+            {
+                if(loc.root.size())
+                    throw std::runtime_error("root location already exist");
+                loc.root = getPWDwithWWW() + spl[1];
+            }
+            else if (spl[0] == "methods")
+            {
+                if(loc.methods.size())
+                    throw std::runtime_error("methods location already exist");
+                std::vector<std::string> meth;
+                for (size_t i = 1; i < spl.size(); i++)
+                {
+                    if (i == spl.size() - 1)
+                        check_semicolon(spl[i]);
+
+                    if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
+                        throw std::runtime_error("invalid method: " + spl[i]);
+
+                    if (std::find(meth.begin(), meth.end(), spl[i]) != meth.end())
+                        throw std::runtime_error("duplicate method: " + spl[i]);
+
+                    meth.push_back(spl[i]);
+                }
+                loc.methods = meth;
+            }
+            else
+                throw std::runtime_error("invalid key in location");
+            it++;
+            if(it == end)
+                throw std::runtime_error(" '}' is missing ");
+       }
     }
     else if (tmp[1] == "/api")
     {
@@ -145,16 +227,26 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl[0] != "methods")
                 check_semicolon(spl[1]);
             if(spl[0] == "root")
+            {
+                if(loc.root.size())
+                    throw std::runtime_error("root location already exist");
                 loc.root = getPWDwithWWW() + spl[1];
+            }
             else if (spl[0] == "index")
+            {
+                if(loc.index.size())
+                    throw std::runtime_error("index location already exist");
                 loc.index = spl[1];
+            }
             else if (spl[0] == "methods")
             {
+                if(loc.methods.size())
+                    throw std::runtime_error("methods location already exist");
                 std::vector<std::string> meth;
                 for (size_t i = 1; i < spl.size(); i++)
                 {
                     if (i == spl.size() - 1)
-                        check_semicolon(spl[i]);  // supprime le ';' si présent
+                        check_semicolon(spl[i]);
 
                     if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
                         throw std::runtime_error("invalid method: " + spl[i]);
@@ -175,6 +267,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
     }
     else if (tmp[1] == "/upload")
     {
+        loc.max_upload_size = 0;
         loc.path = tmp[1];
         loc.type = UPLOAD;
         while(it != end && *it != "}")
@@ -194,16 +287,26 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             if(spl[0] != "methods")
                 check_semicolon(spl[1]);
             if(spl[0] == "root")
+            {
+                if(loc.root.size())
+                    throw std::runtime_error("root location already exist");
                 loc.root = getPWDwithWWW() + spl[1];
+            }
             else if (spl[0] == "max_upload_size")
+            {
+                if(loc.max_upload_size)
+                    throw std::runtime_error("max_upload_size location already exist");
                 loc.max_upload_size = string_to_sizet(spl[1]);
+            }
             else if (spl[0] == "methods")
             {
+                if(loc.methods.size())
+                    throw std::runtime_error("methods location already exist");
                 std::vector<std::string> meth;
                 for (size_t i = 1; i < spl.size(); i++)
                 {
                     if (i == spl.size() - 1)
-                        check_semicolon(spl[i]);  // supprime le ';' si présent
+                        check_semicolon(spl[i]);
 
                     if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
                         throw std::runtime_error("invalid method: " + spl[i]);
@@ -222,7 +325,7 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 throw std::runtime_error(" '}' is missing ");
         }
        if(loc.max_upload_size == 0)
-            loc.max_upload_size = 1048576;   /// a verifier d ou vient 0
+            loc.max_upload_size = 1048576;
     }
     else if (tmp[1][0] == '/')
     {
@@ -238,12 +341,8 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             if (spl.size() == 1 && spl[0] == "}")
                 break;
-            // if((spl.size() != 2 && spl[0] != "methods") || (spl.size() > 4 && spl[0] == "methods"))
-            //     throw std::runtime_error("invalid location");
-            
             if (spl.empty())
                 throw std::runtime_error("invalid location");
-
             // methods
             if (spl[0] == "methods")
             {
@@ -256,8 +355,6 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 if (spl.size() != 3)
                     throw std::runtime_error("invalid location (return must have exactly 3 args)");
             }
-            // tout le reste
-            // else if (spl[0] != "extension")
             else if (spl[0] != "cgi_extension" && spl[0] != "cgi_path")
             {
                 if (spl.size() != 2)
@@ -265,18 +362,12 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             if(spl[0] != "methods" && spl[0] != "return" && spl[0] != "cgi_extension" && spl[0] != "cgi_path" )
                 check_semicolon(spl[1]);
-            // if(spl[0] == "redirect_url")
-            // {
-            //     loc.redirect_url = spl[1];
-            //     loc.path = tmp[1];
-            //     loc.type = REDIRECT;
-            // }
             if (spl[0] == "return")
             {
+                if(loc.return_r.red_url.size())
+                    throw std::runtime_error("return location already exist");
                 if (spl.size() != 3)
                     throw std::runtime_error("invalid return directive: expected 'return <code> <url>;'");
-
-                // Vérifier que spl[1] est bien un nombre
                 for (size_t i = 0; i < spl[1].size(); i++)
                 {
                     if (!isdigit(static_cast<unsigned char>(spl[1][i])))
@@ -286,10 +377,8 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 int code = std::stoi(spl[1]);
                 if(code != 301)
                     throw std::runtime_error("content invalid");
-                if (code < 100 || code > 599)  // seulement codes HTTP valides
+                if (code < 100 || code > 599)
                     throw std::runtime_error("invalid return code: must be between 100 and 599");
-
-                // Vérifier et nettoyer l’URL
                 check_semicolon(spl[2]);
 
                 loc.return_r.err = code;
@@ -297,26 +386,24 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 loc.path = tmp[1];
                 loc.type = REDIRECT;
             }
-            else if(spl[0] == "root" && loc.return_r.red_url.empty())
+            else if(spl[0] == "root")//  && loc.return_r.red_url.empty()
             {
+                if(loc.root.size())
+                    throw std::runtime_error("root location already exist");
                 loc.root = getPWDwithWWW() + spl[1];
                 if(loc.path.empty())
                     loc.path = tmp[1];
-                // if(loc.type == UNDEFINED)
-                //     loc.type = CGI;
             }
             else if (spl[0] == "index")
+            {
+                if(loc.index.size())
+                    throw std::runtime_error("index location already exist");
                 loc.index = spl[1];
-            // else if(spl[0] == "cgi_handler" && loc.return_r.red_url.empty())
-            // {
-            //     loc.cgi_handler = spl[1];
-            //     if(loc.path.empty())
-            //         loc.path = tmp[1];
-            //     if(loc.type == UNDEFINED)//why i use UNDEFINED
-            //         loc.type = CGI;
-            // }
+            }
             else if (spl[0] == "cgi_enabled")
             {
+                if(cgi_enabled_set == true)
+                    throw std::runtime_error("cgi_enabled location already exist");
                 if (spl[1] == "on")
                     loc.cgi_enabled = true;
                 else if (spl[1] == "off")
@@ -324,12 +411,13 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 else
                     throw std::runtime_error("invalid value for cgi_enabled: " + spl[1]);
                 if(loc.type == UNDEFINED)
-                    loc.type = CGI; // important pour marquer que c'est une location CGI
-                    ///// je dois verifier si j ai redirect et ja i autre key de CGI et le contraire
+                    loc.type = CGI;
+                cgi_enabled_set = true;
             }
             else if (spl[0] == "cgi_extension")
             {
-                // check_semicolon(spl[1]);
+                if(loc.cgi_extension.size())
+                    throw std::runtime_error("cgi_extension location already exist");
                 if (spl.size() < 2)
                     throw std::runtime_error("invalid cgi_extension: no extension provided");
 
@@ -348,11 +436,12 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 if(loc.type == UNDEFINED)
                     loc.type = CGI;
             }
-            else if (spl[0] == "cgi_path")///// todo/// if not existe throw exception
+            else if (spl[0] == "cgi_path")
             {
                 if(loc.cgi_path.size())
+                    throw std::runtime_error("cgi_path location already exist");
+                if(loc.cgi_path.size())
                     throw std::runtime_error("cgi_path: alredy exist");
-                // check_semicolon(spl[1]);
                 if (spl.size() < 2)
                     throw std::runtime_error("cgi_path: no path provided");
                 for (size_t i = 1; i < spl.size(); i++)
@@ -372,11 +461,13 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
             }
             else if (spl[0] == "methods")
             {
+                if(loc.methods.size())
+                    throw std::runtime_error("methods location already exist");
                 std::vector<std::string> meth;
                 for (size_t i = 1; i < spl.size(); i++)
                 {
                     if (i == spl.size() - 1)
-                        check_semicolon(spl[i]);  // supprime le ';' si présent
+                        check_semicolon(spl[i]);
 
                     if (spl[i] != "GET" && spl[i] != "POST" && spl[i] != "DELETE")
                         throw std::runtime_error("invalid method: " + spl[i]);
@@ -387,10 +478,9 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                     meth.push_back(spl[i]);
                 }
                 loc.methods = meth;
-                // std::cout << "-------------------" << loc.methods.size() << std::endl;
             }
             else
-                throw std::runtime_error(spl[0] + " invalid key in location");
+                throw std::runtime_error("[" + spl[0] + "] invalid key in location");
             it++;
             if(it == end)
                 throw std::runtime_error(" '}' is missing ");
@@ -402,12 +492,6 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
     else
         throw std::runtime_error("path invalid");
     this->set_location(loc);
-    // std::cout << location[location.size() - 1].methods.size() << "##############################"<< std::endl;
-}
-
-void server::pars_serv()
-{
-    
 }
     
 void server::set_IP(std::string ip)
