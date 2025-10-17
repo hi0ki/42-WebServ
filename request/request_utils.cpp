@@ -6,23 +6,19 @@ Httprequest::Httprequest()
     this->method = "";
     this->path = "";
     this->version = "";
-    // this->body = ;
-        // std::string query;
-    this->error = false;
-    this->absolutePath = "";
-    this->status_code = 0;
-    this->status_text = "";
-    this->QUERY_STRING = "";
-    this->check_autoindex = false;
-    this->forceGetOnError = false;
     this->body_cgi = "";
+    this->status_text = "";
+    this->server_name = "";
+    this->absolutePath = "";
+    this->QUERY_STRING = "";
     this->redirectLocation = "";
-    this->is_deleted = false;
-    // this->lenght = 0;
+    this->error = false;
+    this->status_code = 0;
+    this->cgi_allowed = false;
     this->file_opened = false;
-    // this->cookie = "";
+    this->check_autoindex = false;
+    this->Error_page_found = false;
 }
-
 
 std::string uintToString(unsigned int value)
 {
@@ -147,7 +143,6 @@ std::string& Httprequest::get_servername()
     return this->server_name;
 }
 
-
 void Httprequest::set_check_autoindex(bool autoindex)
 {
     this->check_autoindex = autoindex;
@@ -166,15 +161,6 @@ void Httprequest::set_index(int nindex)
 int Httprequest::get_index() const
 {
     return this->index;
-}
-
-void Httprequest::setForceGetOnError(bool forceGetOnError)
-{
-    this->forceGetOnError = forceGetOnError;
-}
-bool Httprequest::getForceGetOnError()const
-{
-    return this->forceGetOnError;
 }
 
 void Httprequest::setBody_cgi(std::string body)
@@ -196,24 +182,13 @@ void Httprequest::set_query_string(std::string query)
 {
     QUERY_STRING = query;
 }
-
-void Httprequest::set_is_deleted(bool is_deleted)
+   
+void Httprequest::setcgi_allowed(bool is_cgi_allowed)
 {
-    this->is_deleted = is_deleted;
-}
-            
-bool Httprequest::get_is_deleted() const
-{
-    return is_deleted;
+    this->cgi_allowed = is_cgi_allowed;
 }
 
-void Httprequest::setCookie(const std::map<std::string, std::string> &Cookie)
+bool Httprequest::getcgi_allowed()
 {
-    this->cookie = Cookie;
+    return this->cgi_allowed;
 }
-    
-std::map<std::string, std::string>& Httprequest::getCookie() 
-{
-    return this->cookie;
-}
-     

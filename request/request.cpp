@@ -15,7 +15,7 @@ bool is_valid_url(const std::string &uri)
             return false;
         if (uri[i] == '%') 
         {
-            if (i + 2 >= uri.size() || !isxdigit(uri[i + 1]) || !isxdigit(uri[i + 2]))
+            if (i + 2 >= uri.size() || !isxdigit(uri[i + 1])  || !isxdigit(uri[i + 2]))
                 return false;
             i += 2;
         }
@@ -43,9 +43,11 @@ bool is_req_well_formed(Httprequest &req)
             return false;
         }
     }
-    if ((req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length") == req.getHeaders().end() \
-       && req.getMethod() == "POST") || !is_valid_url(req.getPath()) || req.getHeaders().find("Host") == req.getHeaders().end()
-       || req.getVersion() != "HTTP/1.1")
+    if ((req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && \
+        req.getHeaders().find("Content-Length") == req.getHeaders().end() \
+        && req.getMethod() == "POST") || !is_valid_url(req.getPath()) || \
+        req.getHeaders().find("Host") == req.getHeaders().end() \
+        || req.getVersion() != "HTTP/1.1")
     {
         req.setStatus(400, "Bad Request");
         return false;
@@ -82,7 +84,8 @@ Location findMatchingLocation(Httprequest &req, config &config)
             }
         }
     }
-    if (best_match.path.size() && best_match.path == "/" && s.find('/', 1) != std::string::npos && !req.getError())
+    if (best_match.path.size() && best_match.path == "/" \
+        && s.find('/', 1) != std::string::npos && !req.getError())
     {
         req.setStatus(404, "Not Found");
         return dummy;
@@ -174,32 +177,6 @@ bool resolve_index(Httprequest &req, config &config)
     return false;
 }
 
-bool isAutoindexEnabled(Httprequest &req, config &config, bool found)
-{
-    if (found == true)
-    {
-        std::string dir = req.getPath().substr(0, req.getPath().find('/' , 1));
-        std::vector<Location> loc = config.get_servs()[req.get_index()].get_location();
-        for(unsigned int i = 0; i < loc.size(); i++)
-        {
-            if (loc[i].path.find(dir) != std::string::npos)
-            {
-                if (loc[i].path != "")
-                {
-                    if(fileExists(req.getAbsolutePath() + "/" + loc[i].index) == true)
-                    {
-                        req.setAbsolutePath(req.getAbsolutePath() + "/" + loc[i].index);
-                        return true;
-                    }
-                    return false;
-                }
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 std::string AutoindexPage(Httprequest &req)
 {
     DIR *dir;
@@ -216,8 +193,6 @@ std::string AutoindexPage(Httprequest &req)
         if ((std::string)entry->d_name == "." || (std::string)entry->d_name == "..")
             continue;
          struct stat st;
-        // if (stat(full_path.c_str(), &st) != 0)
-        //     continue; 
         std::string href = req.getPath();
         if (href.empty() || href[href.size() - 1] != '/')
             href += '/';
@@ -274,7 +249,6 @@ bool isUriEndsWithSlash(std::string s, Httprequest &req)
     return true;
 }
 
-
 bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
 {
     Location loc = findMatchingLocation(req, config);
@@ -287,7 +261,6 @@ bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
     else
         return false;
     return true;
-    
 }
 
 bool handelGET(Httprequest &req, config &config, ClientData &client)
@@ -402,9 +375,10 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
             return true;
         }
     }
-    if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) || !pathExists(req.getAbsolutePath(), req, c))
+    if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) \
+        || !pathExists(req.getAbsolutePath(), req, c))
     {
-        req.setError(true);///
+        req.setError(true);
         req.setStatus(404, "Not Found");
         return false;
     }
@@ -446,7 +420,6 @@ bool handelDELETE(Httprequest &req, config &config)
         if (remove(req.getAbsolutePath().c_str()) == 0)
         {
             req.setStatus(204, "No Content");
-            req.set_is_deleted(true);
             return true;
         } 
         else
@@ -461,7 +434,6 @@ bool handelDELETE(Httprequest &req, config &config)
         {
             if (remove(req.getAbsolutePath().c_str()) == 0)
             {
-                req.set_is_deleted(true);
                 req.setStatus(204, "No Content");
                 return true;
             } 
@@ -493,46 +465,8 @@ bool    handleMethod(Httprequest &req, config &config, ClientData &client)
     return check;
 }
 
-std::string readLineFromVector(const std::vector<char> &request , int &pos)
-{
-    std::string line;
-    while ((unsigned int)pos < request.size())
-    {
-        if (request[pos] == '\r' && (size_t)(pos + 1) < request.size() && request[pos + 1] == '\n')
-        {
-            pos += 2;
-            break;
-        }
-        line += request[pos];
-        pos++;
-    }
-    return line;
-}
-
-void parseChunkedBody(std::vector<char>& body, ClientData &client, int start)
-{
-    client.set_reqs_done(false);
-    std::string s;
-    for(int i = start ; (unsigned int)i < client.get_request().size(); i++)
-    {
-        s = readLineFromVector(client.get_request(), i);
-        long chunk_size = strtol(s.c_str(), NULL, 16);
-        if (chunk_size == 0) 
-        {
-            client.set_reqs_done(true);
-            break;
-        }
-        for(int j = 0; j < chunk_size; j++)
-            body.push_back(client.get_request()[i + j]);
-        i += chunk_size - 1;
-        if ((unsigned int)(i + 2) <= client.get_request().size() && client.get_request()[i] == '\r' && client.get_request()[i + 1] == '\n')
-            i += 2;
-    }
-}
-
 bool is_location_have_redirect(Httprequest &req, config &config)
 {
-    //matensaych dik chi diali 301 return error
     Location loc = findMatchingLocation(req, config);
     if (loc.type == REDIRECT)
     {
@@ -556,10 +490,8 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
 {
     if (!is_req_well_formed(req) || findMatchingLocation(req, config).path.empty() || !isValidMethod(req))
     {
-        // std::cout << RED <<"found\n" << RESET << std::endl;
-        client.set_reqs_done(true);//
+        client.set_reqs_done(true);
         req.setMethod("GET");
-        // std::cout << req.getStatus_code() << "\n";
         for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
         {
             if (req.getStatus_code() == (unsigned int)config.get_servs()[req.get_index()].get_errpage()[i].err)
@@ -646,7 +578,8 @@ void post_content(Httprequest &req, ClientData &client)
         {
             size_t found = req.getHeaders()["Content-Type"].find("----");
             if (found != std::string::npos)
-                client.get_body_struct().key = req.getHeaders()["Content-Type"].substr(found + 4, req.getHeaders()["Content-Type"].size() - found + 4);
+                client.get_body_struct().key = \
+                req.getHeaders()["Content-Type"].substr(found + 4, req.getHeaders()["Content-Type"].size() - found + 4);
         }
     }
 }
@@ -675,9 +608,10 @@ std::string removeSpaces(const std::string &str)
         if (str[i] == '"')
         {
             found = !found;
-            i++;//
+            i++;
         }
-        if (!(str[i] == ' ' && !found && i > 1 && (str[i - 1] == '=' || str[i + 1] == '=' || str[i - 1] == ';' || str[i + 1] == ';')))
+        if (!(str[i] == ' ' && !found && i > 1 && \
+            (str[i - 1] == '=' || str[i + 1] == '=' || str[i - 1] == ';' || str[i + 1] == ';')))
            result += str[i];
         if (((str[i] == '=' && str[i + 1] == '=') || (str[i] == ';' && str[i + 1] == ';')) && !found)
             i++;
@@ -720,7 +654,8 @@ int Httprequest::request_pars(ClientData &client , config &config)
     version = r.substr(path_end + 1, r.find('\r', 0) - (path_end + 1));
     for(unsigned int i = r.find("\r\n", 0) + 2; i < r.size(); i++)
     {
-        headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2, (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
+        headers[r.substr(i, r.find(':', i) - i)] = r.substr(r.find(':', i) + 2,\
+         (r.find("\r\n", r.find(':', i) + 1)) - (r.find(':', i) + 2));
         i = r.find("\r\n", r.find(':', i)) + 1;
     }
     for(unsigned int i = a + 2; i < client.get_request().size(); i++)
@@ -753,7 +688,6 @@ int Httprequest::request_pars(ClientData &client , config &config)
     resolvePath(config, *this);
     if (is_location_have_redirect(*this, config))
         return 0;
-    
     std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config, client) == false)
         check_Error_pages(*this, config, client);
@@ -762,22 +696,22 @@ int Httprequest::request_pars(ClientData &client , config &config)
 
 void Httprequest::ft_clean()
 {
-    this->method.clear();
     this->path.clear();
-    this->version.clear();
     this->body.clear();
+    this->method.clear();
     this->headers.clear();
-    this->absolutePath.clear();
-    this->server_name.clear();
-    this->status_code = 0;
+    this->version.clear();
+    this->body_cgi.clear();
     this->status_text.clear();
+    this->server_name.clear();
     this->QUERY_STRING.clear();
-    this->check_autoindex = false;
-    this->Error_page_found = false;
-    this->body_cgi = "";
-    this->redirectLocation = "";
-    this->is_deleted = false;
+    this->absolutePath.clear();
+    this->redirectLocation.clear();
+    this->error = false;
+    this->status_code = 0;
     this->file_opened = false;
-    this->cookie.clear();
+    this->cgi_allowed = false;
+    this->Error_page_found = false;
+    this->check_autoindex = false;
 }
 
