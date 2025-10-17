@@ -42,7 +42,7 @@ void Server::server_start()
 		this->connection = socket(AF_INET, SOCK_STREAM, 0);
 		if (this->connection == -1)
 		{
-			std::cerr<< "connection socket err" << std::endl;
+			std::cerr<< "Connection Socket Error" << std::endl;
 			continue ;
 		}
 		try

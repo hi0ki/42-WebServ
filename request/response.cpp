@@ -77,7 +77,6 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
 
 std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client) 
 {
-    // std::cout <<  "fresponse status code " << this->getStatus_code() << getAbsolutePath() << std::endl;
     std::string response;
     std::string body;
     std::string statusLine;
@@ -88,7 +87,6 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
         if (!this->file_opened)
         {
             client.getFile().open(this->getAbsolutePath().c_str());
-            // client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
             if (!client.getFile().is_open()) {
                 response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 70\r\n\r\n \
                 <html><body><h1>404 Not Found</h1><p>The requested file could not be found on this server.</p></body></html>";
@@ -101,7 +99,6 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
                 std::ifstream::pos_type size = client.getFile().tellg();
                 client.getFile().close();
                 client.getFile().open(this->getAbsolutePath().c_str());
-                // client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
                 body_size = static_cast<long long>(size);
                 client.set_header_length(body_size);
             }
@@ -112,10 +109,8 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
             client.getFile().read(buffer, BUFFER_SIZE);
             body = std::string(buffer, client.getFile().gcount());
             client.set_resp_length(body.length());
-            // std::cout << " = " << client.get_resp_length() << " | length li khso ikon = " << client.get_header_length() << std::endl;
             if (client.getFile().eof() || client.get_resp_length() >= client.get_header_length())
             {
-                std::cout << RED << "End of file, closing\n" << RESET;
                 client.getFile().close();
                 client.set_header_length(-1);
             }

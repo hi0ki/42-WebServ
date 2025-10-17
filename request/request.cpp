@@ -630,7 +630,6 @@ int Httprequest::request_pars(ClientData &client , config &config)
     client.set_request(removeExtraSpaces(client.get_request()));
     for(size_t i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
-    std::cout << tmp;
     if (client.get_request()[0] != 'P')
     {
         if (tmp.find("\r\n\r\n" , 0) != std::string::npos)
@@ -690,7 +689,6 @@ int Httprequest::request_pars(ClientData &client , config &config)
     resolvePath(config, *this);
     if (is_location_have_redirect(*this, config))
         return 0;
-    std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config, client) == false)
         check_Error_pages(*this, config, client);
     return 0;

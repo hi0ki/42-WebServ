@@ -89,7 +89,6 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
             serv.set_IP(help[0]);//verify if ip is good??
             if(validnumber(help[1]))
             serv.set_port(atoi(help[1].c_str()));
-            // std::cout << serv.get_port();
             help.clear();
         }
         else if(!tmp.empty() && tmp[0] == "server_name")
@@ -273,7 +272,7 @@ void config::parse_configFile()
 
                     if(!(*it == "}" && tmp1.size() == 2 && tmp1[0] == "server" && tmp1[1] == "{"))
                     {
-                        std::cout << RED <<"content invalid" << RESET << std::endl;
+                        std::cout << RED <<"Content Invalid" << RESET << std::endl;
                         if(!(tmp1.size() == 2 && tmp1[0] == "server" && tmp1[1] == "{"))
                         {
                             tmp1.clear();
