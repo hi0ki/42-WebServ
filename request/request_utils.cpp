@@ -7,7 +7,6 @@ Httprequest::Httprequest()
     this->path = "";
     this->version = "";
     // this->body = ;
-        // std::string query;
     this->error = false;
     this->absolutePath = "";
     this->status_code = 0;
@@ -20,9 +19,7 @@ Httprequest::Httprequest()
     this->is_deleted = false;
     // this->lenght = 0;
     this->file_opened = false;
-    // this->cookie = "";
 }
-
 
 std::string uintToString(unsigned int value)
 {

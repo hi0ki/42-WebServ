@@ -43,8 +43,10 @@ bool is_req_well_formed(Httprequest &req)
             return false;
         }
     }
-    if ((req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && req.getHeaders().find("Content-Length") == req.getHeaders().end() \
-       && req.getMethod() == "POST") || !is_valid_url(req.getPath()) || req.getHeaders().find("Host") == req.getHeaders().end()
+    if ((req.getHeaders().find("Transfer-Encoding") == req.getHeaders().end() && \
+        req.getHeaders().find("Content-Length") == req.getHeaders().end() \
+       && req.getMethod() == "POST") || !is_valid_url(req.getPath()) 
+       || req.getHeaders().find("Host") == req.getHeaders().end()
        || req.getVersion() != "HTTP/1.1")
     {
         req.setStatus(400, "Bad Request");
@@ -130,7 +132,6 @@ bool findIndexFile(Httprequest &req)
         if (fileExists(fullPath))
         {
             req.setAbsolutePath(fullPath);
-
             req.setStatus(200, "OK");
             return true;
         } 
@@ -154,7 +155,7 @@ bool resolve_index(Httprequest &req, config &config)
     Location loc = findMatchingLocation(req, config);
     if (loc.index != "")
     {
-        if(fileExists(req.getAbsolutePath() + loc.index) == true)
+        if(fileExists(req.getAbsolutePath() + loc.index))
         {
             req.setAbsolutePath(req.getAbsolutePath() + loc.index);
             req.setStatus(200, "OK");
@@ -164,7 +165,7 @@ bool resolve_index(Httprequest &req, config &config)
     }
     if (config.get_servs()[req.get_index()].get_index() != "")
     {
-        if(fileExists(req.getAbsolutePath() + config.get_servs()[req.get_index()].get_index()) == true)
+        if(fileExists(req.getAbsolutePath() + config.get_servs()[req.get_index()].get_index()))
         {
             req.setAbsolutePath(req.getAbsolutePath() + config.get_servs()[req.get_index()].get_index());
             req.setStatus(200, "OK");
