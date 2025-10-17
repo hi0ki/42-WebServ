@@ -1,160 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>CGI Tester</title>
-<style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #141E30, #243B55);
-  color: #fff;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px;
-  min-height: 100vh;
-}
-h1 { margin-bottom: 15px; }
-.container {
-  background: rgba(255,255,255,0.1);
-  border-radius: 16px;
-  padding: 25px;
-  width: 90%;
-  max-width: 800px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  backdrop-filter: blur(10px);
-}
-input, button, textarea {
-  border: none;
-  border-radius: 8px;
-  padding: 10px;
-  width: 100%;
-  font-size: 15px;
-  margin-top: 8px;
-}
-button {
-  cursor: pointer;
-  background: #fff;
-  color: #243B55;
-  font-weight: bold;
-  transition: 0.3s;
-}
-button:hover { background: #ddd; }
-.test-output {
-  background: rgba(0,0,0,0.4);
-  border-radius: 8px;
-  padding: 10px;
-  margin-top: 10px;
-  white-space: pre-wrap;
-  font-size: 13px;
-  overflow-y: auto;
-  max-height: 200px;
-}
-.section { margin-top: 25px; }
-hr { border: 1px solid rgba(255,255,255,0.2); margin: 25px 0; }
-</style>
+  <meta charset="UTF-8">
+  <title>Webserv Test Dashboard</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="container">
 
-<h1>🧠 CGI Full Test Page</h1>
-<p>Enter your CGI path and run all tests (GET, POST, multipart, DELETE) with one click.</p>
+    <div class="header">
+      <img src="team_logo.jpg" alt="Team Logo">
+      <h1>Webserv Test Dashboard</h1>
+      <p>Test your server routes and CGI easily</p>
+    </div>
 
-<div class="container">
-  <label><b>CGI Script Path</b></label>
-  <input type="text" id="cgiPath" placeholder="/cgi-bin/test.cgi">
+    <div class="grid">
 
-  <label><b>GET Parameters</b></label>
-  <input type="text" id="getParams" placeholder="?name=hafssa&age=22">
+      <!-- GET -->
+      <section>
+        <h2>GET Request</h2>
+        <input id="getPath" type="text" placeholder="Enter path (e.g. /)">
+        <button onclick="doGet()">Send GET</button>
+        <div class="response-box" id="getResponse"></div>
+      </section>
 
-  <label><b>POST Text Data</b></label>
-  <input type="text" id="postData" placeholder="some=example&text=data">
+      <!-- POST Upload -->
+      <section>
+        <h2>POST Upload</h2>
+        <form id="postForm" enctype="multipart/form-data">
+          <label>Upload Image:</label>
+          <input type="file" id="imageFile" accept="image/*"><br>
+          <label>Upload Video:</label>
+          <input type="file" id="videoFile" accept="video/*"><br>
+          <button type="button" onclick="doPost()">Send POST</button>
+        </form>
+        <div class="response-box" id="postResponse"></div>
+      </section>
 
-  <label><b>File Upload (multipart)</b></label>
-  <input type="file" id="fileInput">
+      <!-- Multipart -->
+      <section>
+        <h2>POST Multipart</h2>
+        <input id="mpKey" type="text" placeholder="Key">
+        <input id="mpValue" type="text" placeholder="Value">
+        <button onclick="doMultipart()">Send Multipart</button>
+        <div class="response-box" id="mpResponse"></div>
+      </section>
 
-  <label><b>DELETE Target Path</b></label>
-  <input type="text" id="deletePath" placeholder="/path/to/file/to/delete">
+      <!-- DELETE -->
+      <section>
+        <h2>DELETE File</h2>
+        <input id="deletePath" type="text" placeholder="Enter file path (e.g. /upload/test.png)">
+        <button onclick="doDelete()">Send DELETE</button>
+        <div class="response-box" id="deleteResponse"></div>
+      </section>
 
-  <button id="runAll">🚀 Run All Tests</button>
+      <!-- CGI -->
+      <section class="cgi-section">
+        <h2>CGI Tester</h2>
+        <input id="cgiPath" type="text" placeholder="Enter CGI path (e.g. /cgi-bin/script.py)">
+        <div class="cgi-buttons">
+          <button onclick="doCgiGet()">Run GET</button>
+          <button onclick="doCgiPost()">Run POST</button>
+        </div>
+        <div class="response-box" id="cgiResponse"></div>
+      </section>
 
-  <div class="section">
-    <h3>GET Response</h3>
-    <div id="getOutput" class="test-output">Waiting...</div>
-
-    <h3>POST Response</h3>
-    <div id="postOutput" class="test-output">Waiting...</div>
-
-    <h3>Multipart Upload Response</h3>
-    <div id="multiOutput" class="test-output">Waiting...</div>
-
-    <h3>DELETE Response</h3>
-    <div id="deleteOutput" class="test-output">Waiting...</div>
+    </div>
   </div>
-</div>
-
-<script>
-async function sendRequest(method, url, body, isForm = false) {
-  const options = { method };
-  if (body) {
-    if (isForm) options.body = body;
-    else options.body = body;
-  }
-  try {
-    const res = await fetch(url, options);
-    const text = await res.text();
-    return `Status: ${res.status}\n\n${text}`;
-  } catch (err) {
-    return `Error: ${err}`;
-  }
-}
-
-document.getElementById('runAll').addEventListener('click', async () => {
-  const cgi = document.getElementById('cgiPath').value.trim();
-  if (!cgi) return alert("Enter a CGI path first!");
-
-  const getParams = document.getElementById('getParams').value.trim();
-  const postData = document.getElementById('postData').value.trim();
-  const deletePath = document.getElementById('deletePath').value.trim();
-  const file = document.getElementById('fileInput').files[0];
-
-  // Reset outputs
-  document.getElementById('getOutput').textContent = "Loading...";
-  document.getElementById('postOutput').textContent = "Loading...";
-  document.getElementById('multiOutput').textContent = "Loading...";
-  document.getElementById('deleteOutput').textContent = "Loading...";
-
-  // GET
-  const getRes = await sendRequest('GET', cgi + getParams);
-  document.getElementById('getOutput').textContent = getRes;
-
-  // POST
-  const postForm = new URLSearchParams();
-  if (postData) {
-    postData.split('&').forEach(pair => {
-      const [key, value] = pair.split('=');
-      postForm.append(key, value);
-    });
-  }
-  const postRes = await sendRequest('POST', cgi, postForm);
-  document.getElementById('postOutput').textContent = postRes;
-
-  // MULTIPART (with file)
-  if (file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    const multiRes = await sendRequest('POST', cgi, formData, true);
-    document.getElementById('multiOutput').textContent = multiRes;
-  } else {
-    document.getElementById('multiOutput').textContent = "No file selected.";
-  }
-
-  // DELETE
-  const delUrl = deletePath ? `${cgi}?target=${encodeURIComponent(deletePath)}` : cgi;
-  const delRes = await sendRequest('DELETE', delUrl);
-  document.getElementById('deleteOutput').textContent = delRes;
-});
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>

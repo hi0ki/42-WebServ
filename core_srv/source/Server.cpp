@@ -80,13 +80,6 @@ void Server::server_start()
 
 void Server::bind_socket(int srv_index)
 {
-	// std::cout << "------------------------biiindiiiing----------------------\n";
-	// std::cout << "server index : " << srv_index << std::endl;
-	// std::cout << "ip : " << this->myconfig.get_servs()[srv_index].get_IP() << std::endl;
-	// std::cout << "port : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
-	// std::cout << "connection : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
-	// std::cout << std::endl;
-
 	if (this->myconfig.get_servs()[srv_index].get_port() < 1024 || this->myconfig.get_servs()[srv_index].get_port() > 65535)
 	{
 		std::string err_msg = std::to_string(this->myconfig.get_servs()[srv_index].get_port()) + " : Can't use ports under 1024 or bigger then 65535, your process must have the necessary permissions\n";
@@ -95,7 +88,7 @@ void Server::bind_socket(int srv_index)
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[srv_index].get_IP())); // (host to network long).
-	addr.sin_port = htons(this->myconfig.get_servs()[srv_index].get_port()); // change it to bytes with htons bcs maching dont read the decimal
+	addr.sin_port = htons(this->myconfig.get_servs()[srv_index].get_port());
 	
 	int opt = 1;
 	setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
@@ -370,14 +363,14 @@ void Server::handle_request(int i)
 
 void Server::handle_response(int i)
 {
-	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
+	// std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response;
 	this->clients[fds[i].fd].update_activity();
 	this->clients[fds[i].fd].setSession_data(get_session(clients[fds[i].fd].get_sessionID()));
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(
 		this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]
 	);
-	std::cout << response << std::endl;
+	// std::cout << response << std::endl;
 	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT); // handel < 0
 	if (this->clients[fds[i].fd].get_header_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{

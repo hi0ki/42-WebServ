@@ -1,67 +1,48 @@
-async function getData() {
-    try {
-      const response = await fetch('get_page.html');
-      const text = await response.text();
-      document.getElementById('getResult').textContent = text;
-    } catch (err) {
-      document.getElementById('getResult').textContent = 'Error: ' + err;
-    }
-  }
-  
-  document.getElementById('postForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const data = document.getElementById('postInput').value;
-  
-    try {
-      const response = await fetch('/test-post', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: data
-      });
-      const text = await response.text();
-      document.getElementById('postResult').textContent = text;
-    } catch (err) {
-      document.getElementById('postResult').textContent = 'Error: ' + err;
-    }
-  });
-  
-  async function deleteData() {
-    try {
-      const response = await fetch('/upload/felhafid.jpg', { method: 'DELETE' });
-      const text = await response.text();
-      document.getElementById('deleteResult').textContent = text;
-    } catch (err) {
-      document.getElementById('deleteResult').textContent = 'Error: ' + err;
-    }
-  }
-  
-  document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-  
-    const fileInput1 = document.getElementById('uploadInput1');
-    const fileInput2 = document.getElementById('uploadInput2');
-    const videoInput = document.getElementById('uploadVideo');
-    const formData = new FormData();
-  
-    if (fileInput1.files[0]) {
-      formData.append('image1', fileInput1.files[0]);
-    }
-    if (fileInput2.files[0]) {
-      formData.append('image2', fileInput2.files[0]);
-    }
-    if (videoInput.files[0]) {
-      formData.append('video', videoInput.files[0]);
-    }
-  
-    try {
-      const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData
-      });
-      const text = await response.text();
-      document.getElementById('uploadResult').textContent = text;
-    } catch (err) {
-      document.getElementById('uploadResult').textContent = 'Error: ' + err;
-    }
-  });
-  
+async function doGet() {
+  const path = document.getElementById('getPath').value;
+  if (!path) return alert('Enter a path!');
+  window.location.href = path; // redirect after GET
+}
+
+async function doPost() {
+  const formData = new FormData();
+  const img = document.getElementById('imageFile').files[0];
+  const vid = document.getElementById('videoFile').files[0];
+  if (img) formData.append('image', img);
+  if (vid) formData.append('video', vid);
+
+  const res = await fetch('/upload', { method: 'POST', body: formData });
+  document.getElementById('postResponse').textContent = await res.text();
+  window.location.href = '/';
+}
+
+async function doMultipart() {
+  const key = document.getElementById('mpKey').value;
+  const value = document.getElementById('mpValue').value;
+  if (!key || !value) return alert('Enter key and value!');
+  const formData = new FormData();
+  formData.append(key, value);
+  const res = await fetch('/upload', { method: 'POST', body: formData });
+  document.getElementById('mpResponse').textContent = await res.text();
+}
+
+async function doDelete() {
+  const path = document.getElementById('deletePath').value;
+  if (!path) return alert('Enter path to delete!');
+  const res = await fetch(path, { method: 'DELETE' });
+  document.getElementById('deleteResponse').textContent = await res.text();
+}
+
+async function doCgiGet() {
+  const path = document.getElementById('cgiPath').value;
+  if (!path) return alert('Enter CGI path!');
+  const res = await fetch(path);
+  document.getElementById('cgiResponse').textContent = await res.text();
+}
+
+async function doCgiPost() {
+  const path = document.getElementById('cgiPath').value;
+  if (!path) return alert('Enter CGI path!');
+  const res = await fetch(path, { method: 'POST' });
+  document.getElementById('cgiResponse').textContent = await res.text();
+}

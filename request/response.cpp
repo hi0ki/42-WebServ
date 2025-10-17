@@ -109,7 +109,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
             client.getFile().read(buffer, BUFFER_SIZE);
             body = std::string(buffer, client.getFile().gcount());
             client.set_resp_length(body.length());
-            std::cout << "lenght = " << client.get_resp_length() << " | length li khso ikon = " << client.get_header_length() << std::endl;
+            // std::cout << " = " << client.get_resp_length() << " | length li khso ikon = " << client.get_header_length() << std::endl;
             if (client.getFile().eof() || client.get_resp_length() >= client.get_header_length())
             {
                 std::cout << RED << "End of file, closing\n" << RESET;
