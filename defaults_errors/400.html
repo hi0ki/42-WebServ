@@ -1,46 +1,26 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>400 Bad Request</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
-      color: #333;
-      text-align: center;
-      padding: 50px;
-    }
-    h1 {
-      font-size: 48px;
-      color: #dc3545;
-    }
-    p {
-      font-size: 18px;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    a {
-      color: #007bff;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>400 - Bad Request</title>
+<style>
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#654ea3,#eaafc8);color:#fff;
+display:flex;justify-content:center;align-items:center;height:100vh;margin:0;text-align:center;}
+.container{animation:fadeIn 1s ease;padding:40px;border-radius:15px;background:rgba(255,255,255,0.15);}
+h1{font-size:80px;margin:0;}h2{margin:10px 0;}button{padding:10px 25px;border:none;border-radius:8px;
+background:#fff;color:#654ea3;font-weight:bold;cursor:pointer;}button:hover{background:#eee;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>400 Bad Request</h1>
-    <p>Sorry, your request could not be understood by the server.</p>
-    <p><a href="/">Return to Homepage</a></p>
-  </div>
+<div class="container">
+  <h1>400</h1>
+  <h2>Bad Request</h2>
+  <p>Your browser sent a request that this server could not understand.</p>
+  <button onclick="goHome()">Go Home</button>
+</div>
+<script>
+function goHome(){window.location.href='/'}
+</script>
 </body>
 </html>

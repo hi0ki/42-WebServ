@@ -1,14 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>404 Not Found</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 40px; }
-    h1 { font-size: 2em; color: #c00; }
-  </style>
+<meta charset="UTF-8">
+<title>404 - Not Found</title>
+<style>
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#000428,#004e92);color:#fff;
+display:flex;justify-content:center;align-items:center;height:100vh;margin:0;text-align:center;}
+.container{animation:fadeIn 1s ease;padding:40px;border-radius:15px;background:rgba(255,255,255,0.1);}
+h1{font-size:100px;margin:0;}button{padding:10px 25px;border:none;border-radius:8px;background:#fff;
+color:#004e92;font-weight:bold;cursor:pointer;}button:hover{background:#eee;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+</style>
 </head>
 <body>
-  <h1>404 Not Found</h1>
-  <p>The requested resource could not be found on this server.</p>
+<div class="container">
+  <h1>404</h1>
+  <h2>Page Not Found</h2>
+  <p>Sorry, the page you requested could not be found.</p>
+  <button onclick="goHome()">Go Home</button>
+</div>
+<script>
+function goHome(){window.location.href='/'}
+</script>
 </body>
 </html>

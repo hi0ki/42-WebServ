@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>301 Moved Permanently</title>
-  <meta http-equiv="refresh" content="5; url=/new-location">
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 40px; }
-    h1 { font-size: 2em; color: #0066cc; }
-    p { font-size: 1.2em; }
-    a { color: #0066cc; text-decoration: none; font-weight: bold; }
-    a:hover { text-decoration: underline; }
-  </style>
+<meta charset="UTF-8">
+<title>301 - Moved Permanently</title>
+<style>
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#283048,#859398);color:#fff;
+display:flex;justify-content:center;align-items:center;height:100vh;margin:0;text-align:center;}
+.container{animation:fadeIn 1.2s ease;padding:40px;border-radius:15px;background:rgba(255,255,255,0.1);}
+h1{font-size:80px;margin:0;}h2{margin:10px 0 20px;}button{padding:10px 25px;border:none;border-radius:8px;
+background:#fff;color:#283048;font-weight:bold;cursor:pointer;}button:hover{background:#ddd;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+</style>
 </head>
 <body>
-  <h1>301 Moved Permanently</h1>
-  <p>This page has been moved permanently to a new location.</p>
-  <p>If you are not redirected automatically, follow the link below:</p>
-  <p><a href="/new-location">Go to the new location</a></p>
+<div class="container">
+  <h1>301</h1>
+  <h2>Moved Permanently</h2>
+  <p>The requested page has been moved to a new location.</p>
+  <button onclick="goHome()">Go Home</button>
+</div>
+<script>
+function goHome(){window.location.href='/'}
+</script>
 </body>
 </html>
