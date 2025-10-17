@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/16 16:14:09 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 11:35:00 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 #include "HTTPCGI.hpp"
 
 /// dont forget delete (free the memory)
-HTTPCGI::HTTPCGI(Httprequest &req, const Location &loc)
+HTTPCGI::HTTPCGI(Httprequest &req)
 {
-    cgi_env(req, loc);
+    cgi_env(req);
 }
 
 HTTPCGI &HTTPCGI::operator=(const HTTPCGI &obj)
@@ -25,7 +25,7 @@ HTTPCGI &HTTPCGI::operator=(const HTTPCGI &obj)
     return (*this);
 }
 
-void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
+void HTTPCGI::cgi_env(Httprequest &req)
 {
     std::vector<std::string> env;
     env.push_back("REQUEST_METHOD=" + req.getMethod());

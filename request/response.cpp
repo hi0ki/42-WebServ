@@ -75,11 +75,6 @@ std::string buildHeaders(Httprequest &req, size_t contentLength, bool keep_alive
     return s;
 }
 
-void readFileBody(Httprequest &req, ClientData &client)
-{
-
-}
-
 std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client) 
 {
     // std::cout <<  "fresponse status code " << this->getStatus_code() << getAbsolutePath() << std::endl;

@@ -1,7 +1,7 @@
 #include "../include/ClientData.hpp"
 
 ClientData::ClientData() : srv_index(-1) , keep_alive(false), reqst_is_done(false) , length(-1) , post_body_done(false) , 
-	ftime_pars(false) , ftime_resp(false), resp_length(0), header_length(-1)
+	ftime_pars(false) , header_length(-1), resp_length(0), ftime_resp(false)
 {
 	this->last_activity = time(NULL);
 }
