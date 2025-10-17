@@ -360,8 +360,7 @@ void Server::handle_response(int i)
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(
 		this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]
 	);
-	std::cout << response << std::endl;
-	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT); // handel < 0
+	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT);
 	if (this->clients[fds[i].fd].get_header_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;

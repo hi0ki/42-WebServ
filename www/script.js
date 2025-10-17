@@ -4,75 +4,90 @@ function showResponse(text) {
   box.textContent = text;
 }
 
-// GET request
+// ✅ Only GET redirects the page
 function doGet() {
-  const path = document.getElementById('getPath').value;
+  const path = document.getElementById('getPath').value.trim();
   if (!path) return showResponse('Please enter a GET path.');
-  
-  fetch(path)
-    .then(res => res.text())
-    .then(text => showResponse(text))
-    .catch(err => showResponse('Error: ' + err));
+  // Real redirect
+  window.location.href = path;
 }
 
-// POST file upload
-function doPost() {
+// POST Upload (no redirect)
+async function doPost() {
   const formData = new FormData();
   const img = document.getElementById('imageFile').files[0];
   const vid = document.getElementById('videoFile').files[0];
+
   if (img) formData.append('image', img);
   if (vid) formData.append('video', vid);
+  if (!img && !vid) return showResponse('Please select at least one file.');
 
-  fetch('/', { method: 'POST', body: formData })
-    .then(res => res.text())
-    .then(text => showResponse(text))
-    .catch(err => showResponse('Error: ' + err));
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const text = await res.text();
+    showResponse(text);
+  } catch (err) {
+    showResponse('Error: ' + err);
+  }
 }
 
-// Multipart POST
-function doMultipart() {
-  const key = document.getElementById('mpKey').value;
-  const value = document.getElementById('mpValue').value;
+// Multipart POST (no redirect)
+async function doMultipart() {
+  const key = document.getElementById('mpKey').value.trim();
+  const value = document.getElementById('mpValue').value.trim();
+
   if (!key || !value) return showResponse('Please fill both key and value.');
-  
+
   const formData = new FormData();
   formData.append(key, value);
 
-  fetch('/', { method: 'POST', body: formData })
-    .then(res => res.text())
-    .then(text => showResponse(text))
-    .catch(err => showResponse('Error: ' + err));
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const text = await res.text();
+    showResponse(text);
+  } catch (err) {
+    showResponse('Error: ' + err);
+  }
 }
 
-// DELETE request
-function doDelete() {
-  const path = document.getElementById('deletePath').value;
+// DELETE File (no redirect)
+async function doDelete() {
+  const path = document.getElementById('deletePath').value.trim();
   if (!path) return showResponse('Please enter a DELETE path.');
-  
-  fetch(path, { method: 'DELETE' })
-    .then(res => res.text())
-    .then(text => showResponse(text))
-    .catch(err => showResponse('Error: ' + err));
+
+  try {
+    const res = await fetch(path, { method: 'DELETE' });
+    const text = await res.text();
+    showResponse(text);
+  } catch (err) {
+    showResponse('Error: ' + err);
+  }
 }
 
-// CGI GET
-function doCgiGet() {
-  const path = document.getElementById('cgiPath').value;
+// CGI GET (no redirect)
+async function doCgiGet() {
+  const path = document.getElementById('cgiPath').value.trim();
   if (!path) return showResponse('Please enter CGI path.');
-  
-  fetch(path)
-    .then(res => res.text())
-    .then(text => showResponse(text))
-    .catch(err => showResponse('Error: ' + err));
+
+  try {
+    const res = await fetch(path);
+    const text = await res.text();
+    showResponse(text);
+  } catch (err) {
+    showResponse('Error: ' + err);
+  }
 }
 
-// CGI POST
-function doCgiPost() {
-  const path = document.getElementById('cgiPath').value;
+// CGI POST (no redirect)
+async function doCgiPost() {
+  const path = document.getElementById('cgiPath').value.trim();
   if (!path) return showResponse('Please enter CGI path.');
-  
-  fetch(path, { method: 'POST' })
-    .then(res => res.text())
-    .then(text => showResponse(text))
-    .catch(err => showResponse('Error: ' + err));
+
+  try {
+    const res = await fetch(path, { method: 'POST' });
+    const text = await res.text();
+    showResponse(text);
+  } catch (err) {
+    showResponse('Error: ' + err);
+  }
 }
