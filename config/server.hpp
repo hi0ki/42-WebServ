@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/17 11:32:30 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 18:49:35 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 #define GREEN   "\033[32m"  
-enum LocationType {UNDEFINED, STATIC, CGI, API, UPLOAD, REDIRECT};
+enum LocationType {UNDEFINED, STATIC, CGI, API, UPLOAD, REDIRECT, ERROR};
 
 struct ErrPage
 {
@@ -40,26 +40,13 @@ struct Location {
     LocationType type;             // type de la location
     std::string root;              // pour STATIC, CGI, UPLOAD
     std::string index;             // pour STATIC
-    // std::string cgi_handler;       // pour CGI (ex: "/usr/bin/php-cgi")
     bool cgi_enabled;
     std::vector<std::string> cgi_extension;
     std::vector<std::string> cgi_path; // pour CGI (ex: "/usr/bin/php-cgi")
     return_red return_r;      // pour REDIRECT (ex: "https://monsite.com/new")
     long long max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
-    std::vector<std::string> limit_except;//fatimazahra zadtha
-     //client_max_body_size 5M;  
     std::vector<std::string> methods ;
 };
-
-// struct Location {
-//     std::string path;
-//     LocationType type;
-//     std::string root;
-//     std::string index;
-//     std::string cgi_handler;
-//     std::string redirect_url;
-//     size_t max_upload_size;
-// };
 
 class server
 {
@@ -76,7 +63,6 @@ class server
     public:
         void pars_errPage();
         void pars_location(std::vector<std::string>::iterator &it, std::vector<std::string> &tmp, std::vector<std::string>::iterator end);
-        void pars_serv();
         void set_IP(std::string ip);
         void set_port(int  nport);
         std::string get_IP();
