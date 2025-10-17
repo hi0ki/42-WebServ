@@ -32,13 +32,8 @@ long long stringToLongLong(const std::string& str)
     return value;
 }
 
-bool is_req_well_formed(Httprequest &req, config &config)
+bool is_req_well_formed(Httprequest &req)
 {
-    // if(req.getPath().find("//") != std::string::npos)
-    // {
-    //     req.setStatus(404, "Not Found");
-    //     return false;
-    // }
     std::map<std::string, std::string>::iterator it = req.getHeaders().find("Transfer-Encoding");
     if (it != req.getHeaders().end())
     {
@@ -283,7 +278,7 @@ bool isUriEndsWithSlash(std::string s, Httprequest &req)
 bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
 {
     Location loc = findMatchingLocation(req, config);
-    HTTPCGI cgi(req, loc);
+    HTTPCGI cgi(req);
     if (cgi.can_execute(config, req.get_index(), req)) 
        return false ;
     std::string response = cgi.execute(req.getAbsolutePath(), client.get_body_map());
@@ -397,7 +392,7 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
         }
         if (check_fileExtension(req.getPath(), req, config) && req.getError_page_found() == false)
         {
-            HTTPCGI cgi(req, loc);
+            HTTPCGI cgi(req);
             client.set_cgi(cgi);
             if (client.get_cgi().can_execute(config, req.get_index(), req)) 
                 return false;
@@ -558,7 +553,7 @@ bool isValidMethod(Httprequest &req)
 
 bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client)
 {
-    if (!is_req_well_formed(req, config) || findMatchingLocation(req, config).path.empty() || !isValidMethod(req))
+    if (!is_req_well_formed(req) || findMatchingLocation(req, config).path.empty() || !isValidMethod(req))
     {
         // std::cout << RED <<"found\n" << RESET << std::endl;
         client.set_reqs_done(true);//
@@ -672,8 +667,9 @@ void connection_header(Httprequest &req, ClientData &client)
 std::string removeSpaces(const std::string &str)
 {
     std::string result;
-    bool found = false;
-    for (int i = 0 ; i < str.size(); ++i)
+    bool        found = false;
+
+    for (size_t i = 0 ; i < str.size(); ++i)
     {
         if (str[i] == '"')
         {
@@ -695,7 +691,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     set_index(client.get_srv_index());
     int a = 0;
     client.set_request(removeExtraSpaces(client.get_request()));
-    for(int i = 0; i < client.get_request().size(); i++)
+    for(size_t i = 0; i < client.get_request().size(); i++)
         tmp.push_back(client.get_request()[i]);
     std::cout << tmp;
     if (client.get_request()[0] != 'P')
@@ -732,7 +728,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     {
         tmp = headers["Cookie"];
         tmp = removeSpaces(tmp);
-        for(int i = 0; i < tmp.size(); i++)
+        for(size_t i = 0; i < tmp.size(); i++)
         {
             size_t a = tmp.find("=", i);
             if (a == std::string::npos || tmp.size() < 2)

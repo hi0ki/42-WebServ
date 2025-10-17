@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:26 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/13 17:36:09 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 11:32:30 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ struct Location {
     std::vector<std::string> cgi_extension;
     std::vector<std::string> cgi_path; // pour CGI (ex: "/usr/bin/php-cgi")
     return_red return_r;      // pour REDIRECT (ex: "https://monsite.com/new")
-    size_t max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
+    long long max_upload_size;        // utile pour UPLOAD (limite taille en bytes)
     std::vector<std::string> limit_except;//fatimazahra zadtha
      //client_max_body_size 5M;  
     std::vector<std::string> methods ;

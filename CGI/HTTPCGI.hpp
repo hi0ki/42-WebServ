@@ -28,9 +28,9 @@ class HTTPCGI
         std::vector<char*> envr;
     public:
         HTTPCGI() {}
-        HTTPCGI(Httprequest &req, const Location &loc);
+        HTTPCGI(Httprequest &req);
         HTTPCGI &operator=(const HTTPCGI &obj);
-        void cgi_env(Httprequest &req, const Location &loc);
+        void cgi_env(Httprequest &req);
         //function to execute
         // bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg);
         int can_execute(config &conf, int index, Httprequest &req);

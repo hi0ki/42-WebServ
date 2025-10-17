@@ -33,17 +33,18 @@ Server::Server(config &config) : myconfig(config)
 		throw std::runtime_error("No server find\n");
 		return ;
 	}
-	std::cout << GREEN << "#####################################" << std::endl;
-	std::cout << "#                                   #" << std::endl;
-	std::cout << "#         Servers listening         #" << std::endl;
-	std::cout << "#                                   #" << std::endl;
-	std::cout << "#####################################" << RESET<< std::endl;
+	std::cout << "\n"; 
+	std::cout << "\t" << GREEN << "########################################" << std::endl;
+	std::cout << "\t" << "#                                      #" << std::endl;
+	std::cout << "\t" << "#            Servers listening         #" << std::endl;
+	std::cout << "\t" << "#                                      #" << std::endl;
+	std::cout << "\t" << "########################################" << RESET<< std::endl;
 	this->start_connection();
 }
 
 void Server::server_start()
 {
-	for (int i = 0; i < this->myconfig.get_servs().size(); i++)
+	for (size_t i = 0; i < this->myconfig.get_servs().size(); i++)
 	{
 		this->connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
 		if (this->connection == -1)
@@ -79,12 +80,12 @@ void Server::server_start()
 
 void Server::bind_socket(int srv_index)
 {
-	std::cout << "------------------------biiindiiiing----------------------\n";
-	std::cout << "server index : " << srv_index << std::endl;
-	std::cout << "ip : " << this->myconfig.get_servs()[srv_index].get_IP() << std::endl;
-	std::cout << "port : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
-	std::cout << "connection : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
-	std::cout << std::endl;
+	// std::cout << "------------------------biiindiiiing----------------------\n";
+	// std::cout << "server index : " << srv_index << std::endl;
+	// std::cout << "ip : " << this->myconfig.get_servs()[srv_index].get_IP() << std::endl;
+	// std::cout << "port : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
+	// std::cout << "connection : " << this->myconfig.get_servs()[srv_index].get_port() << std::endl;
+	// std::cout << std::endl;
 
 	if (this->myconfig.get_servs()[srv_index].get_port() < 1024 || this->myconfig.get_servs()[srv_index].get_port() > 65535)
 	{
@@ -111,7 +112,7 @@ void Server::listen_socket()
 
 bool Server::is_server(int fd)
 {
-	for (int i = 0; i < this->myconfig.get_servs().size(); i++)
+	for (size_t i = 0; i < this->myconfig.get_servs().size(); i++)
 	{
 		if (fd == this->fds[i].fd)
 			return true;
@@ -135,7 +136,6 @@ bool check_timeout(time_t last_activity)
 void Server::start_connection()
 {
 	int poll_var;
-	char  buffer[5000];
 
 	while (true)
 	{
@@ -145,7 +145,7 @@ void Server::start_connection()
 			// close all fds
 			throw std::runtime_error("poll err");
 		}
-		for (int i = 0; i < fds.size(); i++)
+		for (size_t i = 0; i < fds.size(); i++)
 		{
 			if (!is_server(fds[i].fd) && !check_timeout(this->clients[fds[i].fd].get_last_activity()))
 			{
@@ -208,7 +208,7 @@ void Server::accept_client(int i)
 
 void Server::pars_post_req(int index)
 {
-	size_t request_length;
+	int request_length;
 
 	if (!this->clients[index].get_ftime_pars())
 	{
@@ -223,12 +223,12 @@ void Server::pars_post_req(int index)
 
 		std::cout << GREEN << "------------------------" << RESET <<  std::endl;
 		std::cout << "size = " << request_length << std::endl;
-		for (int j = 0; j < this->clients[index].get_request().size() ; j++)
+		for (size_t j = 0; j < this->clients[index].get_request().size() ; j++)
 			std::cout << this->clients[index].get_request()[j];
 		std::cout << GREEN << "------------------------" << RESET <<  std::endl;
 
 	}
-	if (!this->clients[index].get_body_struct().key.empty() && this->clients[index].get_request().size() == this->clients[index].get_length())
+	if (!this->clients[index].get_body_struct().key.empty() && this->clients[index].get_request().size() == static_cast<size_t>(this->clients[index].get_length()))
 	{
 		std::cout << YELLOW << "---------------- Not first Time ----------------" << RESET << std::endl;
 		size_t key_pos = 0;
@@ -287,7 +287,7 @@ void Server::pars_post_req(int index)
 						fname_pos += 6;
 						for (; old_request[fname_pos] != '"'; fname_pos++)
 							map_key.push_back(old_request[fname_pos]);
-						int end = old_request.find("\r\n\r\n") + 4;
+						size_t end = old_request.find("\r\n\r\n") + 4;
 						for (;end < key_pos - 1; end++)
 							map_value.push_back(old_request[end]);
 						old_request.erase(old_request.begin(), old_request.begin() + end);
@@ -311,11 +311,8 @@ void Server::pars_post_req(int index)
 		this->clients[index].set_reqs_done(true);
 		this->clients[index].set_length(-1);
 		// post cgi case
-		// this->clients[index].
-		// cgi
 		if (this->clients[index].get_request_obj().getcgi_allowed())
 		{
-			// std::cout << "daaazt" << std::endl;
 			this->clients[index].get_request_obj().setBody_cgi(
 					this->clients[index].get_cgi().execute(
 						this->clients[index].get_request_obj().getAbsolutePath(), 

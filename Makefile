@@ -1,4 +1,4 @@
-C++ = c++ #-Wall -Wextra -Werror
+C++ = c++ -Wall -Wextra -Werror
 
 Src = main.cpp \
 	core_srv/source/Server.cpp core_srv/source/ClientData.cpp\
@@ -21,6 +21,9 @@ all: $(Name)
 
 $(Name) : $(Headers) $(Obj)
 	$(C++) $(Obj) -o $(Name)
+
+%.o: %.cpp $(HEADERS)
+	$(C++) -c $< -o $@
 
 clean:
 	$(Rm) $(Obj)

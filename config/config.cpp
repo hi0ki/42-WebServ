@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/13 17:30:23 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 11:38:40 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ config::config(std::string nameFile) : File(nameFile)
     this->parse_configFile();
     if(!servs.size())
         throw std::runtime_error("config file invalid");
-    this->print_servers();
+    // this->print_servers();
 }  
 
 int validnumber(std::string x)
@@ -191,29 +191,11 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         throw std::runtime_error("empty values");
     
     servs.push_back(serv);
-    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods.size() << std::endl;
-    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].type << std::endl;
-    
-    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[0] << std::endl;
-    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[1] << std::endl;
-    // std::cout << "-------------@@@@@@@@@" << servs[servs.size() - 1].get_location()[0].methods[2] << std::endl;
-    // const std::vector<Location>& locations = servs[servs.size() - 1].get_location();
-    // for(size_t i = 0; i < locations.size(); i++)
-    // {
-    //     if (locations[i].type == CGI)
-    //     {
-    //         std::cout << "Type: " << locations[i].type << std::endl;
-    //         std::cout << "Methods size: " << locations[i].methods.size() << std::endl;
-            
-    //         for(size_t j = 0; j < locations[i].methods.size(); j++) {
-    //             std::cout << "  Method: " << locations[i].methods[j] << std::endl;
-    //         }
-    //     }
-    // }
 }
+
 bool is_comment(std::string ligne)
 {
-    int i = 0;
+    size_t i = 0;
     while(i < ligne.size())
     {
         if(ligne[i] != ' ' && ligne[i] != '\t')
@@ -387,77 +369,77 @@ void config::parse_configFile()
 //     }
 // }
 
-void config::print_servers() // print server
-{
-    std::vector<server>::iterator it = servs.begin();
-    int idx = 1;
+// void config::print_servers() // print server
+// {
+//     std::vector<server>::iterator it = servs.begin();
+//     int idx = 1;
 
-    while (it != servs.end())
-    {
-        std::cout << "===== Server " << idx++ << " =====\n";
-        std::cout << "IP: " << it->get_IP() << "\n";
-        std::cout << "Port: " << it->get_port() << "\n";
-        std::cout << "Server Name: " << it->get_name() << "\n";
-        std::cout << "Root: " << it->get_root() << "\n";
-        std::cout << "Index: " << it->get_index() << "\n";
-        std::cout << "Autoindex: " << it->get_autoindex() << "\n";
+//     while (it != servs.end())
+//     {
+//         std::cout << "===== Server " << idx++ << " =====\n";
+//         std::cout << "IP: " << it->get_IP() << "\n";
+//         std::cout << "Port: " << it->get_port() << "\n";
+//         std::cout << "Server Name: " << it->get_name() << "\n";
+//         std::cout << "Root: " << it->get_root() << "\n";
+//         std::cout << "Index: " << it->get_index() << "\n";
+//         std::cout << "Autoindex: " << it->get_autoindex() << "\n";
 
-        // --- Server Methods ---
-        std::vector<std::string> srv_methods = it->get_methods();
-        if (!srv_methods.empty())
-        {
-            std::cout << "Methods: ";
-            for (std::vector<std::string>::iterator m_it = srv_methods.begin(); m_it != srv_methods.end(); ++m_it)
-            {
-                std::cout << *m_it;
-                if (m_it + 1 != srv_methods.end())
-                    std::cout << ", ";
-            }
-            std::cout << "\n";
-        }
+//         // --- Server Methods ---
+//         std::vector<std::string> srv_methods = it->get_methods();
+//         if (!srv_methods.empty())
+//         {
+//             std::cout << "Methods: ";
+//             for (std::vector<std::string>::iterator m_it = srv_methods.begin(); m_it != srv_methods.end(); ++m_it)
+//             {
+//                 std::cout << *m_it;
+//                 if (m_it + 1 != srv_methods.end())
+//                     std::cout << ", ";
+//             }
+//             std::cout << "\n";
+//         }
 
-        // --- Error Pages ---
-        std::vector<ErrPage> errpages = it->get_errpage();
-        std::vector<ErrPage>::iterator e_it = errpages.begin();
-        while (e_it != errpages.end())
-        {
-            std::cout << "Error Page [" << e_it->err << "] -> " << e_it->red_page << "\n";
-            ++e_it;
-        }
+//         // --- Error Pages ---
+//         std::vector<ErrPage> errpages = it->get_errpage();
+//         std::vector<ErrPage>::iterator e_it = errpages.begin();
+//         while (e_it != errpages.end())
+//         {
+//             std::cout << "Error Page [" << e_it->err << "] -> " << e_it->red_page << "\n";
+//             ++e_it;
+//         }
 
-        // --- Locations ---
-        std::vector<Location> locs = it->get_location();
-        std::vector<Location>::iterator l_it = locs.begin();
-        while (l_it != locs.end())
-        {
-            std::cout << "Location path: " << l_it->path << " | Type: ";
-            switch (l_it->type)
-            {
-                case STATIC:   std::cout << "STATIC"; break;
-                case CGI:      std::cout << "CGI"; break;
-                case REDIRECT: std::cout << "REDIRECT"; break;
-                case API:      std::cout << "API"; break;
-                case UPLOAD:   std::cout << "UPLOAD"; break;
-                case UNDEFINED: std::cout << "UNDEFINED"; break;
-            }
-            std::cout << "\n";
+//         // --- Locations ---
+//         std::vector<Location> locs = it->get_location();
+//         std::vector<Location>::iterator l_it = locs.begin();
+//         while (l_it != locs.end())
+//         {
+//             std::cout << "Location path: " << l_it->path << " | Type: ";
+//             switch (l_it->type)
+//             {
+//                 case STATIC:   std::cout << "STATIC"; break;
+//                 case CGI:      std::cout << "CGI"; break;
+//                 case REDIRECT: std::cout << "REDIRECT"; break;
+//                 case API:      std::cout << "API"; break;
+//                 case UPLOAD:   std::cout << "UPLOAD"; break;
+//                 case UNDEFINED: std::cout << "UNDEFINED"; break;
+//             }
+//             std::cout << "\n";
 
-            // --- Location Methods ---
-            if (!l_it->methods.empty())
-            {
-                std::cout << "  Methods: ";
-                for (std::vector<std::string>::iterator m_it = l_it->methods.begin(); m_it != l_it->methods.end(); ++m_it)
-                {
-                    std::cout << *m_it;
-                    if (m_it + 1 != l_it->methods.end())
-                        std::cout << ", ";
-                }
-                std::cout << "\n";
-            }
-            ++l_it;
-        }
+//             // --- Location Methods ---
+//             if (!l_it->methods.empty())
+//             {
+//                 std::cout << "  Methods: ";
+//                 for (std::vector<std::string>::iterator m_it = l_it->methods.begin(); m_it != l_it->methods.end(); ++m_it)
+//                 {
+//                     std::cout << *m_it;
+//                     if (m_it + 1 != l_it->methods.end())
+//                         std::cout << ", ";
+//                 }
+//                 std::cout << "\n";
+//             }
+//             ++l_it;
+//         }
 
-        std::cout << "========================\n";
-        ++it;
-    }
-}
+//         std::cout << "========================\n";
+//         ++it;
+//     }
+// }
