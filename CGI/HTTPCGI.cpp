@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/17 15:44:03 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 19:46:45 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,7 +237,6 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
         
         post_content += clean_key + "=" + clean_value;
     }
-    std::cout << "allll :::: " << post_content << std::endl; 
     
     // Step 2: Save to a file
     std::ofstream out(post_file.c_str());
