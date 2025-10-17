@@ -18,6 +18,7 @@
 #include <unistd.h>    // for fork, execve, pipe, etc. (if you use them)=
 #include <map>
 #include <fcntl.h>
+#include <signal.h>
 
 #include "../request/Request.hpp"
 // #include "../core_srv/include/ClientData.hpp"
@@ -34,6 +35,6 @@ class HTTPCGI
         //function to execute
         // bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg);
         int can_execute(config &conf, int index, Httprequest &req);
-        std::string execute(const std::string &script_path, std::map<std::string, std::string> post_data);
+        std::string execute(const std::string &script_path, std::map<std::string, std::string> post_data, Httprequest &req);
         void reset_cgi_obj();
 };

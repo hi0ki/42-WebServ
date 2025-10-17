@@ -281,9 +281,11 @@ bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
     HTTPCGI cgi(req);
     if (cgi.can_execute(config, req.get_index(), req)) 
        return false ;
-    std::string response = cgi.execute(req.getAbsolutePath(), client.get_body_map());
+    std::string response = cgi.execute(req.getAbsolutePath(), client.get_body_map(), req);
     if (response != "")
         req.setBody_cgi(response);
+    else
+        return false;
     return true;
     
 }
@@ -302,7 +304,6 @@ bool handelGET(Httprequest &req, config &config, ClientData &client)
     }
     if (access(req.getAbsolutePath().c_str(), R_OK) == -1)
     {
-        //req.setError(true);
         req.setStatus(403, "Forbidden");
         return false;
     }

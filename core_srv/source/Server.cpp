@@ -314,11 +314,15 @@ void Server::pars_post_req(int index)
 		if (this->clients[index].get_request_obj().getcgi_allowed())
 		{
 			this->clients[index].get_request_obj().setBody_cgi(
-					this->clients[index].get_cgi().execute(
-						this->clients[index].get_request_obj().getAbsolutePath(), 
-						this->clients[index].get_body_map()
-					)
+				this->clients[index].get_cgi().execute(
+					this->clients[index].get_request_obj().getAbsolutePath(), 
+					this->clients[index].get_body_map(),
+					this->clients[index].get_request_obj()
+				)
 			);
+			
+			if (this->clients[index].get_request_obj().getBody_cgi() == "")
+				check_Error_pages(this->clients[index].get_request_obj(), myconfig, this->clients[index]);	
 		}
 	}
 }
@@ -354,9 +358,8 @@ void Server::handle_request(int i)
 	}
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
 	{
-		std::cout << GREEN << "hhhehehehhehhe\n" << RESET;
 		pars_post_req(fds[i].fd);
-		// location_has_cgi(this->clients[fds[i].fd].get_request_obj(), myconfig, this->clients[fds[i].fd]);
+		std::cout << "daaaaz" << std::endl;
 	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{

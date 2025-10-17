@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/17 11:35:00 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 12:58:38 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,15 +64,6 @@ void HTTPCGI::cgi_env(Httprequest &req)
         envr.push_back(strdup(env[i].c_str())); // strdup car execve attend des pointeurs valides
     }
     envr.push_back(NULL); // fin du tableau
-
-    // 🔹 Print pour debug
-    // std::cout << "---- CGI ENV ----" << std::endl;
-    // for (size_t i = 0; i < env.size(); i++) {
-    //     std::cout << env[i] << std::endl;
-    // }
-    // std::cout << "-----------------" << std::endl;
-
-    // return envr;
 }
 
 int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
@@ -242,26 +233,11 @@ std::string clean_string(const std::string& str)
     return result;
 }
 
-std::string HTTPCGI::execute(const std::string &script_path, std::map<std::string, std::string> post_data)
+std::string HTTPCGI::execute(const std::string &script_path, std::map<std::string, std::string> post_data, Httprequest &req)
 {
-    // std::map<std::string, std::string> post_data = client.get_body_map();
     std::string post_file = "/tmp/cgi_post_data.txt";
-
-    // Step 1: Build the POST data string "key=value&key=value&..."
-
-    
-    // std::string post_content;
-    // for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
-    // {
-    //     std::cout << "key = " << it->first << " | value = " << it->second << std::endl;
-    //     if (!post_content.empty())
-    //         post_content += "&";
-    //     post_content += it->first + "=" + it->second;
-    //     std::cout << "allll :::: " << post_content << std::endl; 
-    // }
-
-
     std::string post_content;
+
     for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
     {
         if (!post_content.empty())
@@ -273,47 +249,6 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
         post_content += clean_key + "=" + clean_value;
     }
     std::cout << "allll :::: " << post_content << std::endl; 
-
-    
-    // for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
-    // {
-    //     std::cout << "Checking key: " << it->first << std::endl;
-    //     std::cout << "Checking value: " << it->second << std::endl;
-        
-    //     // Chercher des caractères \r ou \n
-    //     if (it->first.find('\r') != std::string::npos)
-    //         std::cout << "WARNING: KEY contains \\r !" << std::endl;
-    //     if (it->first.find('\n') != std::string::npos)
-    //         std::cout << "WARNING: KEY contains \\n !" << std::endl;
-    //     if (it->second.find('\r') != std::string::npos)
-    //         std::cout << "WARNING: VALUE contains \\r !" << std::endl;
-    //     if (it->second.find('\n') != std::string::npos)
-    //         std::cout << "WARNING: VALUE contains \\n !" << std::endl;
-    // }
-    // std::string post_content;
-
-    // for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
-    // {
-    //     std::cout << "=== ITERATION ===" << std::endl;
-    //     std::cout << "key = [" << it->first << "] (length: " << it->first.length() << ")" << std::endl;
-    //     std::cout << "value = [" << it->second << "] (length: " << it->second.length() << ")" << std::endl;
-    //     std::cout << "post_content AVANT = [" << post_content << "]" << std::endl;
-        
-    //     if (!post_content.empty())
-    //         post_content += "&";
-        
-    //     std::string temp = it->first + "=" + it->second;
-    //     std::cout << "temp = [" << temp << "]" << std::endl;
-        
-    //     post_content += temp;
-        
-    //     std::cout << "post_content APRES = [" << post_content << "]" << std::endl;
-    //     std::cout << "===================\n" << std::endl;
-    // }
-
-    // std::cout << "FINAL post_content = [" << post_content << "]" << std::endl;
-
-
     
     // Step 2: Save to a file
     std::ofstream out(post_file.c_str());
@@ -326,11 +261,17 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
     // Step 3: Create a pipe for CGI output
     int pipefd[2];
     if (pipe(pipefd) == -1)
-        return "500 Internal Server Error";
+    {
+        req.setStatus(500, "Internal Server Error");
+        return ("");
+    }
 
     pid_t pid = fork();
     if (pid < 0)
-        return "500 Internal Server Error";
+    {
+        req.setStatus(500, "Internal Server Error");
+        return ("");
+    }
         
     if (pid == 0)
     {
@@ -378,20 +319,39 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
         perror("execve"); // if execve fails
         _exit(1);
     }
-    std::cout << "after "<< std::endl;
     // --- PARENT PROCESS ---
     close(pipefd[1]);
     std::string output;
     char buffer[4096];
     ssize_t n;
-    while ((n = read(pipefd[0], buffer, sizeof(buffer))) > 0)
-        output.append(buffer, n);
-    close(pipefd[0]);
-
+    
+    // --- Timeout wait ---
+    time_t start_time = time(NULL);
     int status;
-    waitpid(pid, &status, 0);
-
-    return output;
+    fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
+    while (true)
+    {
+        while ((n = read(pipefd[0], buffer, sizeof(buffer))) > 0)
+            output.append(buffer, n);
+        pid_t result = waitpid(pid, &status, WNOHANG);
+        if (result == -1)
+            break;
+        else if (result > 0)
+            break;
+        std::cout << "timee = " << std::difftime(time(NULL), start_time) << std::endl;
+        if (std::difftime(time(NULL), start_time) > 3)
+        {
+            std::cout << "tiiiiimeouuuut" << std::endl;
+            kill(pid, SIGKILL);
+            waitpid(pid, &status, 0);
+            req.setStatus(504, "Gateway Timeout");
+            close(pipefd[0]);
+            return ("");
+        }
+        // usleep(100000);
+    }
+    close(pipefd[0]);
+    return (output);
 }
 
 void HTTPCGI::reset_cgi_obj()

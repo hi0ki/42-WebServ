@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>504 Gateway Timeout</title>
+  <style>
+    :root { --bg:#0f1724; --card:#0b1220; --accent:#ff6b6b; --muted:#9aa4b2; --glass: rgba(255,255,255,0.03);}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{display:flex;align-items:center;justify-content:center;background:
+      linear-gradient(180deg,#071021 0%,#0b1220 100%);color:#e6eef6}
+    .card{width:min(920px,92%);max-width:920px;padding:36px;border-radius:14px;
+         background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+         box-shadow: 0 8px 30px rgba(2,6,23,0.6);display:flex;gap:28px;align-items:center}
+    .left{flex:0 0 160px;text-align:center}
+    .badge{width:120px;height:120px;border-radius:12px;background:var(--glass);display:flex;
+           align-items:center;justify-content:center;font-weight:700;font-size:34px;color:var(--accent);
+           border:1px solid rgba(255,255,255,0.03)}
+    h1{margin:0 0 8px 0;font-size:28px}
+    p{margin:0;color:var(--muted)}
+    .actions{margin-top:18px;display:flex;gap:12px;align-items:center}
+    .btn{padding:10px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .btn--primary{background:var(--accent);color:#0b1220}
+    .btn--ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#cfe0f6}
+    .meta{margin-left:auto;color:var(--muted);font-size:13px}
+    pre{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;overflow:auto;color:#cfe0f6}
+    @media (max-width:720px){.card{flex-direction:column;align-items:stretch}.left{order:2;text-align:left}}
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <div class="left">
+      <div class="badge">504</div>
+      <p style="margin-top:10px;color:var(--muted);font-size:13px">Gateway Timeout</p>
+    </div>
+
+    <div class="content" style="flex:1">
+      <h1 id="title">504 — Gateway Timeout</h1>
+      <p>Our server took too long to respond. The upstream service may be down or too slow right now.</p>
+
+      <div class="actions">
+        <button class="btn btn--primary" onclick="location.reload()">Retry</button>
+        <button class="btn btn--ghost" onclick="report()">Report problem</button>
+        <div class="meta" id="server-time">Server time: —</div>
+      </div>
+
+      <section style="margin-top:16px">
+        <p style="color:var(--muted);margin-bottom:8px">Details (for admins):</p>
+        <pre id="details">Upstream: gateway service
+Request ID: —</pre>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // Fill server and request info if available
+    document.getElementById('server-time').textContent = 'Local time: ' + new Date().toLocaleString();
+    function report(){
+      // change URL to your issue-reporting endpoint if needed
+      alert('Report sent — include request details and timestamps.');
+    }
+    // Optionally inject server-supplied details if delivered via template or CGI
+    // Example: replace placeholders by server-side substitution before sending page
+  </script>
+</body>
+</html>

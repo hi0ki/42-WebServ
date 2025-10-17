@@ -131,6 +131,8 @@
     std::string uintToString(unsigned int value);
     std::string AutoindexPage(Httprequest &req);
     bool location_has_cgi(Httprequest &req, config &config, ClientData &client);
+    bool    handleMethod(Httprequest &req, config &config, ClientData &client);
+    bool check_Error_pages(Httprequest &req, config &config, ClientData &client);
 
    /*
     1/ is_location_have_redirection()
