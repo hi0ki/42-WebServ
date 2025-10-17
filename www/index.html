@@ -9,22 +9,19 @@
   <div class="container">
 
     <div class="header">
-      <img src="team_logo.jpg" alt="Team Logo">
+      <img src="team_logo.jpg" alt="Team Logo" class="team-logo" />
       <h1>Webserv Test Dashboard</h1>
       <p>Test your server routes and CGI easily</p>
     </div>
 
-    <div class="grid">
-
-      <!-- GET -->
+    <!-- TOP ROW -->
+    <div class="top-row">
       <section>
         <h2>GET Request</h2>
         <input id="getPath" type="text" placeholder="Enter path (e.g. /)">
         <button onclick="doGet()">Send GET</button>
-        <div class="response-box" id="getResponse"></div>
       </section>
 
-      <!-- POST Upload -->
       <section>
         <h2>POST Upload</h2>
         <form id="postForm" enctype="multipart/form-data">
@@ -34,38 +31,40 @@
           <input type="file" id="videoFile" accept="video/*"><br>
           <button type="button" onclick="doPost()">Send POST</button>
         </form>
-        <div class="response-box" id="postResponse"></div>
       </section>
 
-      <!-- Multipart -->
       <section>
         <h2>POST Multipart</h2>
         <input id="mpKey" type="text" placeholder="Key">
         <input id="mpValue" type="text" placeholder="Value">
         <button onclick="doMultipart()">Send Multipart</button>
-        <div class="response-box" id="mpResponse"></div>
       </section>
+    </div>
 
-      <!-- DELETE -->
+    <!-- BOTTOM ROW -->
+    <div class="bottom-row">
       <section>
-        <h2>DELETE File</h2>
-        <input id="deletePath" type="text" placeholder="Enter file path (e.g. /upload/test.png)">
-        <button onclick="doDelete()">Send DELETE</button>
-        <div class="response-box" id="deleteResponse"></div>
-      </section>
-
-      <!-- CGI -->
-      <section class="cgi-section">
         <h2>CGI Tester</h2>
         <input id="cgiPath" type="text" placeholder="Enter CGI path (e.g. /cgi-bin/script.py)">
         <div class="cgi-buttons">
           <button onclick="doCgiGet()">Run GET</button>
           <button onclick="doCgiPost()">Run POST</button>
         </div>
-        <div class="response-box" id="cgiResponse"></div>
       </section>
 
+      <section>
+        <h2>DELETE File</h2>
+        <input id="deletePath" type="text" placeholder="Enter file path (e.g. /upload/test.png)">
+        <button onclick="doDelete()">Send DELETE</button>
+      </section>
     </div>
+
+    <!-- Shared Response -->
+    <div class="response-container">
+      <h2>Response</h2>
+      <div class="response-box" id="sharedResponse"></div>
+    </div>
+
   </div>
   <script src="script.js"></script>
 </body>

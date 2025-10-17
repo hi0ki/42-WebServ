@@ -5,13 +5,6 @@
 #include <unistd.h>
 #include <sstream>
 
-
-/*
-	infos:
-		(pay attention to differences between HTTP versions)
-		the virtual host
-*/
-
 uint32_t ip_convert(std::string ip)
 {
 	unsigned int b1, b2, b3, b4;
@@ -46,7 +39,7 @@ void Server::server_start()
 {
 	for (size_t i = 0; i < this->myconfig.get_servs().size(); i++)
 	{
-		this->connection = socket(AF_INET, SOCK_STREAM, 0); //  the listening socket.
+		this->connection = socket(AF_INET, SOCK_STREAM, 0);
 		if (this->connection == -1)
 		{
 			std::cerr<< "connection socket err" << std::endl;
@@ -61,7 +54,7 @@ void Server::server_start()
 			fcntl(this->connection, F_SETFL, O_NONBLOCK);
 			pollfd pfd;
 			pfd.fd = this->connection;
-			pfd.events = POLLIN | POLLOUT; // give events both signs
+			pfd.events = POLLIN | POLLOUT;
 			pfd.revents = 0;
 			fds.push_back(pfd);
 			
@@ -87,7 +80,7 @@ void Server::bind_socket(int srv_index)
 	}
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[srv_index].get_IP())); // (host to network long).
+	addr.sin_addr.s_addr = htonl(ip_convert(this->myconfig.get_servs()[srv_index].get_IP()));
 	addr.sin_port = htons(this->myconfig.get_servs()[srv_index].get_port());
 	
 	int opt = 1;
@@ -134,10 +127,7 @@ void Server::start_connection()
 	{
 		poll_var = poll(fds.data(), fds.size(), 0);
 		if (poll_var == -1)
-		{
-			// close all fds
 			throw std::runtime_error("poll err");
-		}
 		for (size_t i = 0; i < fds.size(); i++)
 		{
 			if (!is_server(fds[i].fd) && !check_timeout(this->clients[fds[i].fd].get_last_activity()))
@@ -173,10 +163,10 @@ void Server::accept_client(int i)
 	ClientData new_client;
 
 	std::cout << GREEN << "\n--------------------server-------------------" << RESET << std::endl;
-	client_fd = accept(fds[i].fd, NULL, NULL); // socket in ESTABLISHED state for theat specific client
+	client_fd = accept(fds[i].fd, NULL, NULL);
 	if (client_fd == -1)
 	{
-		std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl; // replace fds.[i].fd with ip from my config
+		std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl;
 		return ;
 	}
 	//    INIT  POLLFD
@@ -363,14 +353,14 @@ void Server::handle_request(int i)
 
 void Server::handle_response(int i)
 {
-	// std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
+	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response;
 	this->clients[fds[i].fd].update_activity();
 	this->clients[fds[i].fd].setSession_data(get_session(clients[fds[i].fd].get_sessionID()));
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(
 		this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]
 	);
-	// std::cout << response << std::endl;
+	std::cout << response << std::endl;
 	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT); // handel < 0
 	if (this->clients[fds[i].fd].get_header_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{

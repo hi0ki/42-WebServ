@@ -338,15 +338,17 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
             break;
         else if (result > 0)
             break;
+        std::cout << "timee = " << std::difftime(time(NULL), start_time) << std::endl;
         if (std::difftime(time(NULL), start_time) > 3)
         {
+            std::cout << "tiiiiimeouuuut" << std::endl;
             kill(pid, SIGKILL);
             waitpid(pid, &status, 0);
             req.setStatus(504, "Gateway Timeout");
             close(pipefd[0]);
             return ("");
         }
-        usleep(100000);
+        // usleep(100000);
     }
     close(pipefd[0]);
     return (output);
