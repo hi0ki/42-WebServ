@@ -18,8 +18,18 @@ uint32_t ip_convert(std::string ip)
 	return (ipHostOrder);
 }
 
+std::string the_ip_port(config &config, int srv_index)
+{
+	std::string ip_port;
+
+	ip_port = "[" + config.get_servs()[srv_index].get_IP() + ":" +
+		std::to_string(config.get_servs()[srv_index].get_port()) + "]";
+	return ip_port;
+}
+
 Server::Server(config &config) : myconfig(config)
 {
+	std::cout << std::endl;
 	this->server_start();
 	if (this->myconfig.get_servs().size() == 0)
 	{
@@ -27,11 +37,11 @@ Server::Server(config &config) : myconfig(config)
 		return ;
 	}
 	std::cout << "\n"; 
-	std::cout << "\t" << GREEN << "########################################" << std::endl;
-	std::cout << "\t" << "#                                      #" << std::endl;
-	std::cout << "\t" << "#            Servers listening         #" << std::endl;
-	std::cout << "\t" << "#                                      #" << std::endl;
-	std::cout << "\t" << "########################################" << RESET<< std::endl;
+	std::cout << "\t" << GREEN << "##########################################" << std::endl;
+	std::cout << "\t" << "#                                        #" << std::endl;
+	std::cout << "\t" << "#            Servers listening           #" << std::endl;
+	std::cout << "\t" << "#                                        #" << std::endl;
+	std::cout << "\t" << "##########################################" << RESET<< std::endl;
 	this->start_connection();
 }
 
@@ -57,7 +67,9 @@ void Server::server_start()
 			pfd.events = POLLIN | POLLOUT;
 			pfd.revents = 0;
 			fds.push_back(pfd);
-			
+			std::cout << BLUE << "\t\t    [ " << this->myconfig.get_servs()[i].get_IP() << ":" << 
+				this->myconfig.get_servs()[i].get_port() << " ]" << " : " <<
+				"Listening..." << RESET << std::endl;
 		}
 		catch(const std::exception& e)
 		{
@@ -112,10 +124,7 @@ bool check_timeout(time_t last_activity)
 
 	double diff = difftime(now, last_activity);
 	if (diff >= TIME_OUT)
-	{
-		std::cout << "diff = " << diff << std::endl;
 		return false;
-	}
 	return true;
 }
 
@@ -132,7 +141,7 @@ void Server::start_connection()
 		{
 			if (!is_server(fds[i].fd) && !check_timeout(this->clients[fds[i].fd].get_last_activity()))
 			{
-				std::cerr << RED << "[" << fds[i].fd << "]" << " : Client TimeOut" << RESET << std::endl;
+				std::cerr << RED << "\t\tClient timed out : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
 				close(fds[i].fd);
 				this->clients.erase(fds[i].fd);
 				this->fds.erase(fds.begin() + i);
@@ -162,11 +171,10 @@ void Server::accept_client(int i)
 	pollfd client_pfd;
 	ClientData new_client;
 
-	std::cout << GREEN << "\n--------------------server-------------------" << RESET << std::endl;
 	client_fd = accept(fds[i].fd, NULL, NULL);
 	if (client_fd == -1)
 	{
-		std::cerr << "client from this server [" << fds[i].fd <<"] failed" << std::endl;
+		std::cerr << "client can't connect to [" << this->myconfig.get_servs()[i].get_IP() << "]" << std::endl;
 		return ;
 	}
 	//    INIT  POLLFD
@@ -176,119 +184,18 @@ void Server::accept_client(int i)
 	fds.push_back(client_pfd);
 
 	// INIT NEW CLIENT
-	std::cout << BLUE << "--------writing clinet-----------" << RESET << std::endl;
-	std::cout << "client fd = " << client_fd << std::endl;
-	std::cout << "server fd = " << fds[i].fd << std::endl;
-	std::cout << "server index = " << i << std::endl;
 	new_client.clean_client_data();
 	new_client.set_srv_index(i);
 	this->clients[client_fd] = new_client;
 	fcntl(client_fd, F_SETFL, O_NONBLOCK);
-	std::cout << "size = " << this->clients.size() << std::endl;
-	std::cout << BLUE << "----------writing end-------------" << RESET << std::endl;
-	std::cout << GREEN << "---------------------------------------------" << RESET << std::endl;
+	std::cout << GREEN << "\t\tNew client connected to : " << the_ip_port(myconfig, i) << RESET << std::endl;
 }
 
 void Server::pars_post_req(int index)
 {
 	int request_length;
-
-	if (!this->clients[index].get_ftime_pars())
-	{
-		std::vector<char>::iterator find_index;
-
-		std::cout << YELLOW << "------------------ first Time -----------------" << RESET << std::endl;
-		find_index = std::search(this->clients[index].get_request().begin(), this->clients[index].get_request().end(),
-			std::begin("\r\n\r\n"), std::end("\r\n\r\n") - 1);
-		this->clients[index].get_request().erase(this->clients[index].get_request().begin(), find_index + 4);
-		request_length = this->clients[index].get_request().size();
-		this->clients[index].set_ftime_pars(true);
-
-		std::cout << GREEN << "------------------------" << RESET <<  std::endl;
-		std::cout << "size = " << request_length << std::endl;
-		for (size_t j = 0; j < this->clients[index].get_request().size() ; j++)
-			std::cout << this->clients[index].get_request()[j];
-		std::cout << GREEN << "------------------------" << RESET <<  std::endl;
-
-	}
-	if (!this->clients[index].get_body_struct().key.empty() && this->clients[index].get_request().size() == static_cast<size_t>(this->clients[index].get_length()))
-	{
-		std::cout << YELLOW << "---------------- Not first Time ----------------" << RESET << std::endl;
-		size_t key_pos = 0;
-		size_t fname_pos = 0;
-		std::string boundry = this->clients[index].get_body_struct().key;
-		size_t boundry_size = boundry.size();
-		std::string old_request(
-			this->clients[index].get_request().begin(),
-			this->clients[index].get_request().end()
-		);
-
-		request_length = this->clients[index].get_request().size();
-		while (true)
-		{
-			key_pos = old_request.find(boundry);
-			if (key_pos != std::string::npos)
-			{
-				if (old_request[key_pos + boundry_size + 1] == '-')
-				{
-					old_request.erase(0, key_pos + boundry_size + 4);
-					this->clients[index].set_request(old_request);
-					break ;
-				}
-				old_request.erase(0, boundry_size + key_pos + 2);
-				key_pos = old_request.find(boundry) - 6;
-				fname_pos = old_request.find("filename=\"");
-				if (fname_pos != std::string::npos)
-				{
-					std::cout << GREEN << "--- Image part ---" << RESET << std::endl;
-					fname_pos += 10;
-					this->clients[index].get_body_struct().file_name.clear();
-					for (; old_request[fname_pos] != '"'; fname_pos++)
-						this->clients[index].get_body_struct().file_name.push_back(old_request[fname_pos]);
-					std::cout << "file name = \"" << this->clients[index].get_body_struct().file_name << "\"" << std::endl;
-					std::ofstream myfile(this->clients[index].get_request_obj().getAbsolutePath() + "/" + this->clients[index].get_body_struct().file_name.c_str());
-					if (myfile.is_open())
-					{
-						std::cout << "File opened" << std::endl;
-						int end = old_request.find("\r\n\r\n") + 4;
-						myfile.write(&old_request[end], key_pos - end);
-						old_request.erase(old_request.begin(), old_request.begin() + end);
-						myfile.close();
-					}
-					else
-						std::cout << RED << "File didn't open" << RESET << std::endl;
-				}
-				else
-				{
-					std::cout << GREEN << " --- Map body data ---" << RESET << std::endl;
-					fname_pos = old_request.find("name=\"");
-					std::string map_key;
-					std::string map_value;
-
-					if (fname_pos != std::string::npos)
-					{
-						fname_pos += 6;
-						for (; old_request[fname_pos] != '"'; fname_pos++)
-							map_key.push_back(old_request[fname_pos]);
-						size_t end = old_request.find("\r\n\r\n") + 4;
-						for (;end < key_pos - 1; end++)
-							map_value.push_back(old_request[end]);
-						old_request.erase(old_request.begin(), old_request.begin() + end);
-						this->clients[index].get_body_map()[map_key] = map_value;
-						
-						std::cout << "map key = \"" << map_key << "\"" << std::endl;
-						std::cout << "map value = " << this->clients[index].get_body_map()[map_key]<< std::endl;
-
-						map_key.clear();
-						map_value.clear();
-					}
-				}
-			}
-			else 
-				break;
-		}
-	}
-	if (request_length == this->clients[index].get_length()) // hadi khasra hit kaydkhl mn awl req katwsl  o howa khaso ikml req kamla 3ad idkhl liha
+	post_algo(this->clients[index], request_length);
+	if (request_length == this->clients[index].get_length())
 	{
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
@@ -313,7 +220,6 @@ void Server::pars_post_req(int index)
 
 void Server::handle_request(int i)
 {
-	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl; // khas itbdl
 	char buffer[4096];
 
 	this->clients[fds[i].fd].update_activity();
@@ -325,7 +231,7 @@ void Server::handle_request(int i)
 	}
 	else if (bytesRead == 0)
 	{
-		std::cerr << RED << "[" << fds[i].fd << "]" << " : Client disconnected: fd " << fds[i].fd << RESET << std::endl; // khas itbdl
+		std::cerr << RED << "Client closed the connection : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
 		close(fds[i].fd);
 		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
@@ -335,25 +241,17 @@ void Server::handle_request(int i)
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 	{
-		std::cout << "3awd dkhl\n";
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 		set_session_data(this->clients[fds[i].fd].get_sessionID(), this->clients[fds[i].fd].getSession_data());
 	}
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
-	{
 		pars_post_req(fds[i].fd);
-		std::cout << "daaaaz" << std::endl;
-	}
 	if (this->clients[fds[i].fd].get_reqs_done())
-	{
-		std::cout << BLUE << "Request is done" << RESET << std::endl;
 		this->fds[i].events = POLLOUT;
-	}
 }
 
 void Server::handle_response(int i)
 {
-	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
 	std::string response;
 	this->clients[fds[i].fd].update_activity();
 	this->clients[fds[i].fd].setSession_data(get_session(clients[fds[i].fd].get_sessionID()));
@@ -363,7 +261,7 @@ void Server::handle_response(int i)
 	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT);
 	if (this->clients[fds[i].fd].get_header_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
-		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
+		std::cout << RED << "Client closed the connection : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
 		close(fds[i].fd);
 		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
@@ -371,7 +269,6 @@ void Server::handle_response(int i)
 	}
 	else if (this->clients[fds[i].fd].get_header_length() == -1)
 	{
-		std::cout << YELLOW << ">>>>>>>> 'keep alive' <<<<<<<<" <<  RESET << std::endl;
 		this->clients[fds[i].fd].clean_client_data();
 		this->clients[fds[i].fd].get_request_obj().ft_clean();
 		this->fds[i].events = POLLIN;

@@ -12,7 +12,7 @@
     #include "../config/server.hpp"
     #include "../config/config.hpp"
 
-    #define BUFFER_SIZE 1024 
+    #define BUFFER_SIZE 2048 
 
     class ClientData;
 

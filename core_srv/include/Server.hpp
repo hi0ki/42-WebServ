@@ -62,11 +62,4 @@ class Server
 
 };
 
-// std::string generateSessionId()
-// {
-//     std::string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-//     std::string id;
-//     for (int i = 0; i < 16; ++i)
-//         id += chars[rand() % chars.size()];
-//     return id;
-// }
+void post_algo(ClientData client, int &request_length);
