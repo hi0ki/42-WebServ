@@ -285,9 +285,8 @@ bool location_has_cgi(Httprequest &req, config &config, ClientData &client)
     Location loc = findMatchingLocation(req, config);
     HTTPCGI cgi(req, loc);
     if (cgi.can_execute(config, req.get_index(), req)) 
-        return false ;
-    std::string body_str(req.getBody().begin(), req.getBody().end());
-    std::string response = cgi.execute(req.getAbsolutePath(), client);
+       return false ;
+    std::string response = cgi.execute(req.getAbsolutePath(), client.get_body_map());
     if (response != "")
         req.setBody_cgi(response);
     return true;
@@ -304,6 +303,12 @@ bool handelGET(Httprequest &req, config &config, ClientData &client)
     {
         req.setError(true);
         req.setStatus(404, "Not Found");
+        return false;
+    }
+    if (access(req.getAbsolutePath().c_str(), R_OK) == -1)
+    {
+        //req.setError(true);
+        req.setStatus(403, "Forbidden");
         return false;
     }
     if (c == 'D')
@@ -385,15 +390,21 @@ bool handelPOST(Httprequest &req, config &config, ClientData &client)
     }
     if ((pathExists(req.getAbsolutePath(), req, c)) && c == 'F' && loc.type == CGI)
     {
+        if (access(req.getAbsolutePath().c_str(), W_OK) == -1)
+        {
+            req.setStatus(403, "Forbidden");
+            return false;
+        }
         if (check_fileExtension(req.getPath(), req, config) && req.getError_page_found() == false)
         {
-            if (location_has_cgi(req, config, client))
-            {
-                req.setStatus(200, "OK");
-                return true;
-            }   
+            HTTPCGI cgi(req, loc);
+            client.set_cgi(cgi);
+            if (client.get_cgi().can_execute(config, req.get_index(), req)) 
+                return false;
+            req.setcgi_allowed(true);
+            req.setStatus(200, "OK");
+            return true;
         }
-        return false;
     }
     if ((pathExists(req.getAbsolutePath(), req, c) && c == 'F' && !req.getPath().find("/errors/")) || !pathExists(req.getAbsolutePath(), req, c))
     {
@@ -469,7 +480,6 @@ bool handelDELETE(Httprequest &req, config &config)
             req.setStatus(403, "Forbidden");
             return false;
         }
-         
     }
     return true;
 }
@@ -747,7 +757,7 @@ int Httprequest::request_pars(ClientData &client , config &config)
     if (is_location_have_redirect(*this, config))
         return 0;
     
-    // std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
+    std::cout << "absolute path  2 : " << this->getAbsolutePath() << std::endl;
     if (handleMethod(*this, config, client) == false)
         check_Error_pages(*this, config, client);
     return 0;

@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 10:38:22 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/13 17:42:55 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/15 21:43:16 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -284,6 +284,8 @@ void server::pars_location(std::vector<std::string>::iterator &it, std::vector<s
                 }
 
                 int code = std::stoi(spl[1]);
+                if(code != 301)
+                    throw std::runtime_error("content invalid");
                 if (code < 100 || code > 599)  // seulement codes HTTP valides
                     throw std::runtime_error("invalid return code: must be between 100 and 599");
 

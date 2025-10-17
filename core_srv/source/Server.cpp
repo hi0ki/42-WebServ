@@ -1,20 +1,12 @@
 #include "../include/Server.hpp"
 #include "../../config/server.hpp"
 
+
 #include <unistd.h>
 #include <sstream>
 
 
 /*
-	0 -try to work in map with i nothe fd : impossible
-	1 -move the fds vector to the class : ✅
-	2 -split the code : ✅
-	3 -handle multi servers : ✅
-	4 -read the request and store it in vector : ✅
-	6 -handle errs and the proccess keep working : ✅
-	7 - check if keep alive or u need to close the client : waiting for request and response
-	8 - problem = khsni nkhli client bla manms7hom o ib9a khdam server ✅
-	8 - init the clientdata class : ✅
 	infos:
 		(pay attention to differences between HTTP versions)
 		the virtual host
@@ -35,17 +27,17 @@ uint32_t ip_convert(std::string ip)
 
 Server::Server(config &config) : myconfig(config)
 {
-
-	
 	this->server_start();
 	if (this->myconfig.get_servs().size() == 0)
 	{
-		throw std::runtime_error("No server find\n" );
+		throw std::runtime_error("No server find\n");
 		return ;
 	}
-	std::cout << GREEN << "---------------------------------------" << std::endl;
-	std::cout << "-----------Servers listening-----------" << std::endl;
-	std::cout << "---------------------------------------\n" << RESET<< std::endl;
+	std::cout << GREEN << "#####################################" << std::endl;
+	std::cout << "#                                   #" << std::endl;
+	std::cout << "#         Servers listening         #" << std::endl;
+	std::cout << "#                                   #" << std::endl;
+	std::cout << "#####################################" << RESET<< std::endl;
 	this->start_connection();
 }
 
@@ -127,6 +119,19 @@ bool Server::is_server(int fd)
 	return false;
 }
 
+bool check_timeout(time_t last_activity)
+{
+	time_t now  = time(NULL);
+
+	double diff = difftime(now, last_activity);
+	if (diff >= TIME_OUT)
+	{
+		std::cout << "diff = " << diff << std::endl;
+		return false;
+	}
+	return true;
+}
+
 void Server::start_connection()
 {
 	int poll_var;
@@ -134,7 +139,7 @@ void Server::start_connection()
 
 	while (true)
 	{
-		poll_var = poll(fds.data(), fds.size(), -1);
+		poll_var = poll(fds.data(), fds.size(), 0);
 		if (poll_var == -1)
 		{
 			// close all fds
@@ -142,15 +147,27 @@ void Server::start_connection()
 		}
 		for (int i = 0; i < fds.size(); i++)
 		{
+			if (!is_server(fds[i].fd) && !check_timeout(this->clients[fds[i].fd].get_last_activity()))
+			{
+				std::cerr << RED << "[" << fds[i].fd << "]" << " : Client TimeOut" << RESET << std::endl;
+				close(fds[i].fd);
+				this->clients.erase(fds[i].fd);
+				this->fds.erase(fds.begin() + i);
+				i--;
+			}
 			if (fds[i].revents & POLLIN)
 			{
 				if (is_server(fds[i].fd) == true)
 					this->accept_client(i);
 				else
+				{
 					this->handle_request(i);
+				}
 			}
 			else if (fds[i].revents & POLLOUT)
+			{
 				this->handle_response(i);
+			}
 		}
 	}
 }
@@ -271,7 +288,7 @@ void Server::pars_post_req(int index)
 						for (; old_request[fname_pos] != '"'; fname_pos++)
 							map_key.push_back(old_request[fname_pos]);
 						int end = old_request.find("\r\n\r\n") + 4;
-						for (;end < key_pos; end++)
+						for (;end < key_pos - 1; end++)
 							map_value.push_back(old_request[end]);
 						old_request.erase(old_request.begin(), old_request.begin() + end);
 						this->clients[index].get_body_map()[map_key] = map_value;
@@ -293,20 +310,38 @@ void Server::pars_post_req(int index)
 		this->clients[index].set_post_boyd(true);
 		this->clients[index].set_reqs_done(true);
 		this->clients[index].set_length(-1);
+		// post cgi case
+		// this->clients[index].
+		// cgi
+		if (this->clients[index].get_request_obj().getcgi_allowed())
+		{
+			// std::cout << "daaazt" << std::endl;
+			this->clients[index].get_request_obj().setBody_cgi(
+					this->clients[index].get_cgi().execute(
+						this->clients[index].get_request_obj().getAbsolutePath(), 
+						this->clients[index].get_body_map()
+					)
+			);
+		}
 	}
 }
 
+
 void Server::handle_request(int i)
 {
-	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl;
+	std::cout << YELLOW << "\n[" << fds[i].fd << "]" << " : Client Request" <<  RESET << std::endl; // khas itbdl
 	char buffer[4096];
+
+	this->clients[fds[i].fd].update_activity();
 	int bytesRead = recv(fds[i].fd, buffer, sizeof(buffer), 0);
 	if (bytesRead > 0) {
-		this->clients[fds[i].fd].get_request().insert(this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead);
+		this->clients[fds[i].fd].get_request().insert(
+			this->clients[fds[i].fd].get_request().end(), buffer, buffer + bytesRead
+		);
 	}
 	else if (bytesRead == 0)
 	{
-		std::cerr << RED << "[" << fds[i].fd << "]" << " : Client disconnected: fd " << fds[i].fd << RESET << std::endl;
+		std::cerr << RED << "[" << fds[i].fd << "]" << " : Client disconnected: fd " << fds[i].fd << RESET << std::endl; // khas itbdl
 		close(fds[i].fd);
 		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
@@ -316,17 +351,16 @@ void Server::handle_request(int i)
 
 	if (this->clients[fds[i].fd].get_length() == -1)
 	{
+		std::cout << "3awd dkhl\n";
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
 		set_session_data(this->clients[fds[i].fd].get_sessionID(), this->clients[fds[i].fd].getSession_data());
-		// std::cout << GREEN;
-		// for(std::map<std::string, std::string>::const_iterator it = get_session("abc123").begin(); it != get_session("abc123").end(); it++)//print hader
-		// {
-		// 	std::cout << it->first << " : " << it->second << std::endl;
-		// }
-		// std::cout << RESET;
 	}
 	if (this->clients[fds[i].fd].get_length() >= 0 && !this->clients[fds[i].fd].get_post_boolen())
+	{
+		std::cout << GREEN << "hhhehehehhehhe\n" << RESET;
 		pars_post_req(fds[i].fd);
+		// location_has_cgi(this->clients[fds[i].fd].get_request_obj(), myconfig, this->clients[fds[i].fd]);
+	}
 	if (this->clients[fds[i].fd].get_reqs_done())
 	{
 		std::cout << BLUE << "Request is done" << RESET << std::endl;
@@ -337,13 +371,15 @@ void Server::handle_request(int i)
 void Server::handle_response(int i)
 {
 	std::cout << GREEN << "[" << fds[i].fd << "]" << " : Clinet Response" <<  RESET << std::endl;
-	std::string response = "";
+	std::string response;
+	this->clients[fds[i].fd].update_activity();
 	this->clients[fds[i].fd].setSession_data(get_session(clients[fds[i].fd].get_sessionID()));
 	response = this->clients[fds[i].fd].get_request_obj().buildHttpResponse(
 		this->clients[fds[i].fd].get_keep_alive(), this->clients[fds[i].fd]
 	);
-	send(fds[i].fd, response.c_str(), response.size(), 0);
-	if (this->clients[fds[i].fd].get_resp_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
+	std::cout << response << std::endl;
+	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT); // handel < 0
+	if (this->clients[fds[i].fd].get_header_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
 		std::cout << RED << ">>>>>>>> 'don't keep alive' <<<<<<<<" <<  RESET << std::endl;
 		close(fds[i].fd);
@@ -357,5 +393,6 @@ void Server::handle_response(int i)
 		this->clients[fds[i].fd].clean_client_data();
 		this->clients[fds[i].fd].get_request_obj().ft_clean();
 		this->fds[i].events = POLLIN;
-	}	
+	}
+	response.clear();
 }

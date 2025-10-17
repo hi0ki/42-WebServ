@@ -1,0 +1,10 @@
+curl -v \
+  -b "sessionId=abc1; Expires=T, 01 Jan 1970 00:00:00 GMT;theme=dark;username=mehdi" \                       
+  -H "Connection: keep-alive" \
+  http://localhost:8080/
+
+
+curl -X POST \
+  -F "username=Fatima" \
+  -F "file=@/test_/to/image.jpg" \
+  http://localhost/cgi-bin/test.php

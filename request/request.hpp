@@ -12,7 +12,7 @@
     #include "../config/server.hpp"
     #include "../config/config.hpp"
 
-    #define BUFFER_SIZE 4096 
+    #define BUFFER_SIZE 1024 
 
     class ClientData;
 
@@ -40,6 +40,7 @@
             bool is_deleted;
             bool file_opened;
             std::map<std::string, std::string> cookie;
+            bool cgi_allowed;
         public:
             Httprequest();
             int request_pars(ClientData &client , config &config);
@@ -112,17 +113,24 @@
             void setCookie(const std::map<std::string, std::string> &Cookie);
             std::map<std::string, std::string>& getCookie();
 
+            void setcgi_allowed(bool is_cgi_allowed)
+            {
+                this->cgi_allowed = is_cgi_allowed;
+            }
 
-            
+            bool getcgi_allowed()
+            {
+                return this->cgi_allowed;
+            }
 
 
     
     };
 
-
     Location findMatchingLocation(Httprequest &req, config &config);
     std::string uintToString(unsigned int value);
     std::string AutoindexPage(Httprequest &req);
+    bool location_has_cgi(Httprequest &req, config &config, ClientData &client);
 
    /*
     1/ is_location_have_redirection()

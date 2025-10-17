@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPCGI.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: felhafid <felhafid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/02 16:00:54 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/14 20:30:44 by felhafid         ###   ########.fr       */
+/*   Updated: 2025/10/16 16:14:09 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,12 @@
 HTTPCGI::HTTPCGI(Httprequest &req, const Location &loc)
 {
     cgi_env(req, loc);
+}
+
+HTTPCGI &HTTPCGI::operator=(const HTTPCGI &obj)
+{
+    this->envr = obj.envr;
+    return (*this);
 }
 
 void HTTPCGI::cgi_env(Httprequest &req, const Location &loc)
@@ -228,20 +234,87 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
     // return(1);
 }
 
-std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
+std::string clean_string(const std::string& str)
 {
-    std::map<std::string, std::string> post_data = client.get_body_map();
+    std::string result = str;
+    result.erase(std::remove(result.begin(), result.end(), '\r'), result.end());
+    result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+    return result;
+}
+
+std::string HTTPCGI::execute(const std::string &script_path, std::map<std::string, std::string> post_data)
+{
+    // std::map<std::string, std::string> post_data = client.get_body_map();
     std::string post_file = "/tmp/cgi_post_data.txt";
 
     // Step 1: Build the POST data string "key=value&key=value&..."
+
+    
+    // std::string post_content;
+    // for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
+    // {
+    //     std::cout << "key = " << it->first << " | value = " << it->second << std::endl;
+    //     if (!post_content.empty())
+    //         post_content += "&";
+    //     post_content += it->first + "=" + it->second;
+    //     std::cout << "allll :::: " << post_content << std::endl; 
+    // }
+
+
     std::string post_content;
     for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
     {
         if (!post_content.empty())
             post_content += "&";
-        post_content += it->first + "=" + it->second;
+        
+        std::string clean_key = clean_string(it->first);
+        std::string clean_value = clean_string(it->second);
+        
+        post_content += clean_key + "=" + clean_value;
     }
+    std::cout << "allll :::: " << post_content << std::endl; 
 
+    
+    // for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
+    // {
+    //     std::cout << "Checking key: " << it->first << std::endl;
+    //     std::cout << "Checking value: " << it->second << std::endl;
+        
+    //     // Chercher des caractères \r ou \n
+    //     if (it->first.find('\r') != std::string::npos)
+    //         std::cout << "WARNING: KEY contains \\r !" << std::endl;
+    //     if (it->first.find('\n') != std::string::npos)
+    //         std::cout << "WARNING: KEY contains \\n !" << std::endl;
+    //     if (it->second.find('\r') != std::string::npos)
+    //         std::cout << "WARNING: VALUE contains \\r !" << std::endl;
+    //     if (it->second.find('\n') != std::string::npos)
+    //         std::cout << "WARNING: VALUE contains \\n !" << std::endl;
+    // }
+    // std::string post_content;
+
+    // for (std::map<std::string, std::string>::iterator it = post_data.begin(); it != post_data.end(); ++it)
+    // {
+    //     std::cout << "=== ITERATION ===" << std::endl;
+    //     std::cout << "key = [" << it->first << "] (length: " << it->first.length() << ")" << std::endl;
+    //     std::cout << "value = [" << it->second << "] (length: " << it->second.length() << ")" << std::endl;
+    //     std::cout << "post_content AVANT = [" << post_content << "]" << std::endl;
+        
+    //     if (!post_content.empty())
+    //         post_content += "&";
+        
+    //     std::string temp = it->first + "=" + it->second;
+    //     std::cout << "temp = [" << temp << "]" << std::endl;
+        
+    //     post_content += temp;
+        
+    //     std::cout << "post_content APRES = [" << post_content << "]" << std::endl;
+    //     std::cout << "===================\n" << std::endl;
+    // }
+
+    // std::cout << "FINAL post_content = [" << post_content << "]" << std::endl;
+
+
+    
     // Step 2: Save to a file
     std::ofstream out(post_file.c_str());
     if (out.is_open())
@@ -258,7 +331,7 @@ std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
     pid_t pid = fork();
     if (pid < 0)
         return "500 Internal Server Error";
-
+        
     if (pid == 0)
     {
         // --- CHILD PROCESS ---
@@ -305,7 +378,7 @@ std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
         perror("execve"); // if execve fails
         _exit(1);
     }
-
+    std::cout << "after "<< std::endl;
     // --- PARENT PROCESS ---
     close(pipefd[1]);
     std::string output;
@@ -321,9 +394,8 @@ std::string HTTPCGI::execute(const std::string &script_path, ClientData &client)
     return output;
 }
 
+void HTTPCGI::reset_cgi_obj()
+{
+    this->envr.clear();
+}
 
-
-// bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg)
-// {
-    
-// }

@@ -21,6 +21,8 @@
 #define YELLOW  "\033[33m"
 #define BLUE    "\033[34m"
 
+#define TIME_OUT 60
+
 
 class Server
 {
@@ -56,6 +58,7 @@ class Server
             for (std::map<std::string, std::string>::const_iterator it = data.begin(); it != data.end(); ++it)
                 session[it->first] = it->second; // update or add
         }
+
 
 };
 
