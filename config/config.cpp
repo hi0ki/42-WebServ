@@ -6,7 +6,7 @@
 /*   By: hanebaro <hanebaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 16:37:55 by hanebaro          #+#    #+#             */
-/*   Updated: 2025/10/17 11:38:40 by hanebaro         ###   ########.fr       */
+/*   Updated: 2025/10/17 22:07:21 by hanebaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,10 @@ config::config(std::string nameFile) : File(nameFile)
         throw std::runtime_error("config file invalid");
     // this->print_servers();
 }  
+std::vector<server> &config::get_servs()
+{
+    return this->servs;
+}
 
 int validnumber(std::string x)
 {
@@ -68,16 +72,15 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
 {
     std::vector<std::string> tmp;
     server serv;
-    // check semi colon//verify if ligne end with ; && and if exist deleted it in every if 
     while(it != conf.end())
     {
         tmp = split(*it, ' ');
-        if(!tmp.empty() && tmp[0] == "listen")// verify if it already exists
+        if(!tmp.empty() && tmp[0] == "listen")
         {
             if(!serv.get_IP().empty())
                 throw std::runtime_error("listen already exist");
             if(tmp.size() != 2 || check_char_count(tmp[1], ':'))
-                throw std::runtime_error("----content invalid");
+                throw std::runtime_error("content invalid");
             check_semicolon(tmp[1]);
             std::vector<std::string> help;
             help = split(tmp[1], ':');// after that check if exist more than one :
@@ -180,7 +183,7 @@ void config::set_server(std::vector<std::string>::iterator &it, std::vector<std:
         {
             std::cout << tmp[0] << std::endl;
             tmp.clear();
-            throw std::runtime_error("11111invalid key");
+            throw std::runtime_error("invalid key");
         }
         tmp.clear();
         it++;
@@ -213,11 +216,8 @@ bool is_empty(const std::string &ligne)
 {
     size_t i = 0;
 
-    // Ignorer les espaces, tabulations et sauts de ligne
     while (i < ligne.size() && (ligne[i] == ' ' || ligne[i] == '\t' || ligne[i] == '\n'))
         i++;
-
-    // Si on atteint la fin ou si le premier non-espace est '#'
     if (i < ligne.size())
         return false;
 
@@ -245,21 +245,18 @@ void config::parse_configFile()
     while(getline(File, ligne))
     {
         if(is_empty(ligne) || is_comment(ligne))
-            continue;//je peut la suppr
+            continue;
         conf.push_back(ligne);
     }
-    // for(int i = 0; i < conf.size() ;i++)
-    //     std::cout << conf[i] << std::endl;
-    // exit(1);
     it = conf.begin();
     std::vector<std::string> tmp;
     
-    while(it != conf.end())// apres split verif lesligne vide
+    while(it != conf.end())
     {
         tmp = split(*it, ' ');
         try
         {
-            if(!tmp.empty() && tmp.size() == 2 && tmp[0] == "server" && tmp[1] == "{")//check server
+            if(!tmp.empty() && tmp.size() == 2 && tmp[0] == "server" && tmp[1] == "{")
             {
                     
                 if(tmp.size() >= 3)
@@ -271,32 +268,24 @@ void config::parse_configFile()
                     set_server(++it, conf);
                     if(it + 1 == conf.end())
                         break;
-                    // exit(1);
-                    
                     std::vector<std::string> tmp1;
                     tmp1 = split(*(it + 1), ' ');
-                    // std::cout << "#######################55" << *(it + 1)<<"/"<< tmp1.size() << std::endl;
+
                     if(!(*it == "}" && tmp1.size() == 2 && tmp1[0] == "server" && tmp1[1] == "{"))
                     {
                         std::cout << RED <<"content invalid" << RESET << std::endl;
                         if(!(tmp1.size() == 2 && tmp1[0] == "server" && tmp1[1] == "{"))
                         {
                             tmp1.clear();
-                            // std::cout << "  \nwwheree :     " << *it << std::endl; 
                             while(servs.size() != 0)
                                 servs.pop_back();
                             break;  
-                        }
-                    }
-                    // std::cout << "1#######################\n" << std::endl;
+                        }                    }
                     tmp1.clear();
-                    // if()    
                 }       
             }
-            else if(!tmp.empty() && !is_keyword(tmp[0]))// && !is_keyword(tmp[0])
+            else if(!tmp.empty() && !is_keyword(tmp[0]))
             {
-                // std::cout << "here" << std::endl;
-                // std::cout << tmp[0]; 
                 while(servs.size() != 0)
                     servs.pop_back();
                 break;
@@ -306,7 +295,6 @@ void config::parse_configFile()
                 it++;
                 continue;
             }
-                // throw std::runtime_error("yyyyyyyyycontent invalid");
         }
         catch (std::exception &e)
         {
@@ -318,128 +306,3 @@ void config::parse_configFile()
         tmp.clear();
     }
 }
-
-// void config::print_servers() // print server
-// {
-//     std::vector<server>::iterator it = servs.begin();
-//     int idx = 1;
-
-//     while (it != servs.end())
-//     {
-//         std::cout << "===== Server " << idx++ << " =====\n";
-//         std::cout << "IP: " << it->get_IP() << "\n";
-//         std::cout << "Port: " << it->get_port() << "\n";
-//         std::cout << "Server Name: " << it->get_name() << "\n";
-//         std::cout << "Root: " << it->get_root() << "\n";
-//         std::cout << "Index: " << it->get_index() << "\n";
-//         std::cout << "Autoindex: " << it->get_autoindex() << "\n";
-
-        
-//         // --- Error Pages ---
-//         std::vector<ErrPage> errpages = it->get_errpage();
-//         std::vector<ErrPage>::iterator e_it = errpages.begin();
-//         while (e_it != errpages.end())
-//         {
-//             std::cout << "Error Page [" << e_it->err << "] -> " << e_it->red_page << "\n";
-//             ++e_it;
-//         }
-
-//         // --- Locations ---
-//         std::vector<Location> locs = it->get_location(); // tu devras écrire get_location()
-//         std::vector<Location>::iterator l_it = locs.begin();
-//         while (l_it != locs.end())
-//         {
-//             std::cout << "Location path: " << l_it->path << " | Type: ";
-//             switch (l_it->type)
-//             {
-//                 case STATIC:   std::cout << "STATIC"; break;
-//                 case CGI:      std::cout << "CGI"; break;
-//                 case REDIRECT: std::cout << "REDIRECT"; break;
-//                 case API:      std::cout << "API"; break;
-//                 case UPLOAD:   std::cout << "UPLOAD"; break;
-//                 case UNDEFINED: std::cout << "UNDEFINED"; break;
-                
-//             }
-//             std::cout << "\n";
-//             ++l_it;
-//         }
-
-//         std::cout << "========================\n";
-//         ++it;
-//     }
-// }
-
-// void config::print_servers() // print server
-// {
-//     std::vector<server>::iterator it = servs.begin();
-//     int idx = 1;
-
-//     while (it != servs.end())
-//     {
-//         std::cout << "===== Server " << idx++ << " =====\n";
-//         std::cout << "IP: " << it->get_IP() << "\n";
-//         std::cout << "Port: " << it->get_port() << "\n";
-//         std::cout << "Server Name: " << it->get_name() << "\n";
-//         std::cout << "Root: " << it->get_root() << "\n";
-//         std::cout << "Index: " << it->get_index() << "\n";
-//         std::cout << "Autoindex: " << it->get_autoindex() << "\n";
-
-//         // --- Server Methods ---
-//         std::vector<std::string> srv_methods = it->get_methods();
-//         if (!srv_methods.empty())
-//         {
-//             std::cout << "Methods: ";
-//             for (std::vector<std::string>::iterator m_it = srv_methods.begin(); m_it != srv_methods.end(); ++m_it)
-//             {
-//                 std::cout << *m_it;
-//                 if (m_it + 1 != srv_methods.end())
-//                     std::cout << ", ";
-//             }
-//             std::cout << "\n";
-//         }
-
-//         // --- Error Pages ---
-//         std::vector<ErrPage> errpages = it->get_errpage();
-//         std::vector<ErrPage>::iterator e_it = errpages.begin();
-//         while (e_it != errpages.end())
-//         {
-//             std::cout << "Error Page [" << e_it->err << "] -> " << e_it->red_page << "\n";
-//             ++e_it;
-//         }
-
-//         // --- Locations ---
-//         std::vector<Location> locs = it->get_location();
-//         std::vector<Location>::iterator l_it = locs.begin();
-//         while (l_it != locs.end())
-//         {
-//             std::cout << "Location path: " << l_it->path << " | Type: ";
-//             switch (l_it->type)
-//             {
-//                 case STATIC:   std::cout << "STATIC"; break;
-//                 case CGI:      std::cout << "CGI"; break;
-//                 case REDIRECT: std::cout << "REDIRECT"; break;
-//                 case API:      std::cout << "API"; break;
-//                 case UPLOAD:   std::cout << "UPLOAD"; break;
-//                 case UNDEFINED: std::cout << "UNDEFINED"; break;
-//             }
-//             std::cout << "\n";
-
-//             // --- Location Methods ---
-//             if (!l_it->methods.empty())
-//             {
-//                 std::cout << "  Methods: ";
-//                 for (std::vector<std::string>::iterator m_it = l_it->methods.begin(); m_it != l_it->methods.end(); ++m_it)
-//                 {
-//                     std::cout << *m_it;
-//                     if (m_it + 1 != l_it->methods.end())
-//                         std::cout << ", ";
-//                 }
-//                 std::cout << "\n";
-//             }
-//             ++l_it;
-//         }
-
-//         std::cout << "========================\n";
-//         ++it;
-//     }
-// }

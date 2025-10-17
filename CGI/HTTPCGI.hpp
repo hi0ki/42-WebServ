@@ -21,7 +21,6 @@
 #include <signal.h>
 
 #include "../request/Request.hpp"
-// #include "../core_srv/include/ClientData.hpp"
 
 class HTTPCGI
 {
@@ -32,8 +31,6 @@ class HTTPCGI
         HTTPCGI(Httprequest &req);
         HTTPCGI &operator=(const HTTPCGI &obj);
         void cgi_env(Httprequest &req);
-        //function to execute
-        // bool canExecuteCGI(Httprequest &req, const Location &loc, std::string& errorMsg);
         int can_execute(config &conf, int index, Httprequest &req);
         std::string execute(const std::string &script_path, std::map<std::string, std::string> post_data, Httprequest &req);
         void reset_cgi_obj();
