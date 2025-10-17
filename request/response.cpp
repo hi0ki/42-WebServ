@@ -87,10 +87,12 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
     {
         if (!this->file_opened)
         {
-            client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
+            client.getFile().open(this->getAbsolutePath().c_str());
+            // client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
             if (!client.getFile().is_open()) {
-                statusLine = "HTTP/1.1 404 Not Found\r\n";
-                body = "<html><body><h1>404 Not Found</h1></body></html>";
+                response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 70\r\n\r\n \
+                <html><body><h1>404 Not Found</h1><p>The requested file could not be found on this server.</p></body></html>";
+                return response;
             }
             this->file_opened = true;
             if (client.get_resp_length() == 0)
@@ -98,7 +100,8 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
                 client.getFile().seekg(0, std::ios::end);
                 std::ifstream::pos_type size = client.getFile().tellg();
                 client.getFile().close();
-                client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
+                client.getFile().open(this->getAbsolutePath().c_str());
+                // client.getFile().open(this->getAbsolutePath().c_str(), std::ios::binary);
                 body_size = static_cast<long long>(size);
                 client.set_header_length(body_size);
             }
