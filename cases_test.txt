@@ -8,3 +8,19 @@ curl -X POST \
   -F "username=Fatima" \
   -F "file=@/test_/to/image.jpg" \
   http://localhost/cgi-bin/test.php
+
+  curl -v -X POST \
+  -H "Connection: keep-alive" \
+  -F "username=Fatima" \
+  http://localhost:8080/upload
+
+
+
+curl -v -X POST \
+  -H "Connection: keep-alive" \
+  -F "username=mehdi" \
+  http://localhost:8080/upload --next \
+  -X POST \
+  -H "Connection: keep-alive" \
+  -d "" \
+  http://localhost:8080/cgi/script_data.php

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CGI Test Panel</title>
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1f1c2c, #928dab);
+  color: #fff;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px;
+}
+h1 { margin-bottom: 10px; }
+.container {
+  background: rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 30px;
+  width: 90%;
+  max-width: 700px;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+input, textarea, select, button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 15px;
+}
+input, textarea {
+  width: 100%;
+}
+button {
+  cursor: pointer;
+  background: #fff;
+  color: #333;
+  font-weight: bold;
+  transition: 0.3s;
+}
+button:hover {
+  background: #ddd;
+}
+hr {
+  border: 1px solid rgba(255,255,255,0.2);
+  margin: 25px 0;
+}
+.output {
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+}
+</style>
+</head>
+<body>
+
+<h1>🔧 CGI Testing Dashboard</h1>
+<p>Test your CGI scripts with GET, POST (data/files), and DELETE.</p>
+
+<div class="container">
+  <!-- CGI PATH INPUT -->
+  <label><b>CGI Script Path</b></label>
+  <input type="text" id="cgiPath" placeholder="/cgi-bin/test.cgi">
+
+  <hr>
+
+  <!-- GET FORM -->
+  <h3>GET Request</h3>
+  <form id="getForm">
+    <input type="text" id="getParams" placeholder="Example: ?name=hafssa&age=22">
+    <button type="submit">Send GET</button>
+  </form>
+
+  <hr>
+
+  <!-- POST FORM -->
+  <h3>POST Request (Form or File Upload)</h3>
+  <form id="postForm" enctype="multipart/form-data">
+    <label>Text Field (optional):</label>
+    <input type="text" name="text" placeholder="Some text data">
+    
+    <label>Upload Image/Video:</label>
+    <input type="file" name="file">
+    
+    <button type="submit">Send POST</button>
+  </form>
+
+  <hr>
+
+  <!-- DELETE FORM -->
+  <h3>DELETE Request</h3>
+  <form id="deleteForm">
+    <input type="text" id="deletePath" placeholder="/path/to/file/to/delete">
+    <button type="submit">Send DELETE</button>
+  </form>
+
+  <div class="output" id="output">Response will appear here...</div>
+</div>
+
+<script>
+async function handleRequest(method, url, body, isFormData = false) {
+  const output = document.getElementById('output');
+  output.textContent = '⏳ Sending request...';
+
+  try {
+    const options = { method };
+    if (body) {
+      if (isFormData) options.body = body;
+      else options.body = JSON.stringify(body);
+    }
+
+    const res = await fetch(url, options);
+    const text = await res.text();
+    output.textContent = `✅ Status: ${res.status}\n\n${text}`;
+  } catch (err) {
+    output.textContent = `❌ Error: ${err}`;
+  }
+}
+
+// GET
+document.getElementById('getForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const cgi = document.getElementById('cgiPath').value.trim();
+  const params = document.getElementById('getParams').value.trim();
+  if (!cgi) return alert("Enter CGI path!");
+  handleRequest('GET', cgi + params, null);
+});
+
+// POST
+document.getElementById('postForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const cgi = document.getElementById('cgiPath').value.trim();
+  if (!cgi) return alert("Enter CGI path!");
+  const formData = new FormData(e.target);
+  handleRequest('POST', cgi, formData, true);
+});
+
+// DELETE
+document.getElementById('deleteForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const path = document.getElementById('deletePath').value.trim();
+  const cgi = document.getElementById('cgiPath').value.trim();
+  if (!cgi || !path) return alert("Enter CGI and delete path!");
+  handleRequest('DELETE', cgi + '?target=' + encodeURIComponent(path));
+});
+</script>
+
+</body>
+</html>
