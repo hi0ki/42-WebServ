@@ -514,6 +514,7 @@ bool checkAndApplyErrorPage(config &config, Httprequest &req, ClientData &client
 
 bool check_Error_pages(Httprequest &req, config &config, ClientData &client)
 {
+    client.set_reqs_done(true);
     req.setMethod("GET");
     for(size_t i = 0; i < config.get_servs()[req.get_index()].get_errpage().size(); i++)
     {

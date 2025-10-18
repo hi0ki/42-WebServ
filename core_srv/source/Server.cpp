@@ -236,6 +236,7 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
+	std::cout << "reeeequessst" << std::endl;
 	if (this->clients[fds[i].fd].get_length() == -1)
 	{
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
