@@ -72,7 +72,7 @@ void Server::server_start()
 		}
 		catch(const std::exception& e)
 		{
-			std::cerr << RED << the_ip_port(myconfig, i) << " : " <<
+			std::cerr << RED << "\t" << the_ip_port(myconfig, i) << " : " <<
 				e.what() << RESET << std::endl;
 			this->myconfig.get_servs().erase(this->myconfig.get_servs().begin() + i);
 			i--;
