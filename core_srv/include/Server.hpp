@@ -47,19 +47,8 @@ class Server
         //          Utils
         void pars_post_req(int index);
         //          getter
-        std::map<std::string, std::string> &get_session(const std::string &id)
-        {
-            return sessions[id];
-        }
-        void set_session_data(const std::string &id, const std::map<std::string, std::string> &data)
-        {
-            std::map<std::string, std::string> &session = sessions[id];
-
-            for (std::map<std::string, std::string>::const_iterator it = data.begin(); it != data.end(); ++it)
-            {
-                session[it->first] = it->second;
-            }
-        }
+        std::map<std::string, std::string> &get_session(const std::string &id);
+        void set_session_data(const std::string &id, const std::map<std::string, std::string> &data);
 
 
 };

@@ -2,9 +2,6 @@
 #include "../../config/server.hpp"
 
 
-#include <unistd.h>
-#include <sstream>
-//khsni checki 3lach 3 dyal clinet ongad output
 uint32_t ip_convert(std::string ip)
 {
 	unsigned int b1, b2, b3, b4;
@@ -25,6 +22,21 @@ std::string the_ip_port(config &config, int srv_index)
 	ip_port = "[" + config.get_servs()[srv_index].get_IP() + ":" +
 		std::to_string(config.get_servs()[srv_index].get_port()) + "]";
 	return ip_port;
+}
+
+std::map<std::string, std::string> &Server::get_session(const std::string &id)
+{
+	return sessions[id];
+}
+
+void Server::set_session_data(const std::string &id, const std::map<std::string, std::string> &data)
+{
+	std::map<std::string, std::string> &session = sessions[id];
+
+	for (std::map<std::string, std::string>::const_iterator it = data.begin(); it != data.end(); ++it)
+	{
+		session[it->first] = it->second;
+	}
 }
 
 Server::Server(config &config) : myconfig(config) , sessions()
@@ -236,7 +248,6 @@ void Server::handle_request(int i)
 		i--;
 		return ;
 	}
-	std::cout << "reeeequessst" << std::endl;
 	if (this->clients[fds[i].fd].get_length() == -1)
 	{
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
