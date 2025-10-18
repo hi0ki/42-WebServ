@@ -53,13 +53,15 @@ class Server
         }
         void set_session_data(const std::string &id, const std::map<std::string, std::string> &data)
         {
-            std::map<std::string, std::string> &session = sessions[id]; // get existing or create new
+            std::map<std::string, std::string> &session = sessions[id];
 
             for (std::map<std::string, std::string>::const_iterator it = data.begin(); it != data.end(); ++it)
-                session[it->first] = it->second; // update or add
+            {
+                session[it->first] = it->second;
+            }
         }
 
 
 };
 
-void post_algo(ClientData client, int &request_length);
+void post_algo(ClientData &client, int &request_length);

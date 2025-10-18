@@ -3,7 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <title>Webserv Test Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+body {
+  font-family: 'Poppins', sans-serif;
+  background: url("team_bg.jpg") no-repeat center center/cover;
+  color: #fff;
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  width: 90%;
+  max-width: 1400px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 15px;
+  padding: 25px 30px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.header img {
+  width: 400px;
+  border-radius: 20%;
+  margin-bottom: 10px;
+  box-shadow: 0 0 30px rgba(255,255,255,0.25);
+}
+.header h1 {
+  font-size: 28px;
+  margin: 0;
+}
+.header p {
+  color: #b0d8ff;
+  margin-bottom: 15px;
+}
+
+/* ROWS */
+.top-row, .bottom-row {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 20px;
+}
+.middle-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.cookie-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Section Style */
+section {
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 15px 20px;
+  width: 500px;
+  text-align: left;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: transform 0.2s, background 0.3s;
+}
+section:hover {
+  transform: translateY(-3px);
+  background: rgba(255,255,255,0.2);
+}
+
+h2 {
+  color: #89d1ff;
+  margin-top: 0;
+  font-size: 18px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+}
+
+input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #0078ff, #00bfff);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+button:hover {
+  transform: scale(1.05);
+}
+
+.cgi-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Response box */
+.response-container {
+  background: rgba(0,0,0,0.55);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+}
+
+.response-box {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 8px;
+  font-family: monospace;
+  height: 130px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.cookie-info {
+  background: rgba(255,255,255,0.1);
+  padding: 8px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+@media (max-width: 1000px) {
+  .top-row, .bottom-row {
+    flex-wrap: wrap;
+  }
+}
+  </style>
 </head>
 <body>
   <div class="container">
@@ -11,7 +163,7 @@
     <div class="header">
       <img src="team_logo.jpg" alt="Team Logo" class="team-logo" />
       <h1>Webserv Test Dashboard</h1>
-      <p>Test your server routes and CGI easily</p>
+      <p>Test your server routes, cookies, and CGI easily</p>
     </div>
 
     <!-- TOP ROW -->
@@ -41,6 +193,25 @@
       </section>
     </div>
 
+    <!-- MIDDLE ROW - Cookie & Session Test -->
+    <div class="middle-row">
+      <section>
+        <h2>🍪 Cookies & Sessions Test</h2>
+        
+        <div class="cookie-info" id="browserCookies">No cookies set</div>
+        
+        <input id="sessionId" type="text" placeholder="Session ID (e.g., abc123)">
+        <input id="cookieName" type="text" placeholder="Cookie Name (e.g., username)">
+        <input id="cookieValue" type="text" placeholder="Cookie Value (e.g., john)">
+        
+        <div class="cookie-buttons">
+          <button onclick="setCookieLocal()">Set Cookie</button>
+          <button onclick="testSession()">Test Session</button>
+          <button onclick="clearAllCookies()">🗑️ Clear All</button>
+        </div>
+      </section>
+    </div>
+
     <!-- BOTTOM ROW -->
     <div class="bottom-row">
       <section>
@@ -66,6 +237,161 @@
     </div>
 
   </div>
-  <script src="script.js"></script>
+  
+  <script>
+// Show server response
+function showResponse(text) {
+  document.getElementById('sharedResponse').textContent = text;
+}
+
+// Update browser cookie display
+function updateCookieDisplay() {
+  const cookies = document.cookie;
+  const display = document.getElementById('browserCookies');
+  
+  if (!cookies) {
+    display.textContent = 'No cookies set';
+  } else {
+    const cookieArray = cookies.split('; ');
+    display.textContent = '🍪 ' + cookieArray.join(' | ');
+  }
+}
+
+// ---------------- GET ----------------
+function doGet() {
+  const path = document.getElementById('getPath').value.trim();
+  if (!path) return showResponse('Please enter a GET path.');
+  window.location.href = path;
+}
+
+// ---------------- POST UPLOAD ----------------
+async function doPost() {
+  const formData = new FormData();
+  const img = document.getElementById('imageFile').files[0];
+  const vid = document.getElementById('videoFile').files[0];
+  if (img) formData.append('image', img);
+  if (vid) formData.append('video', vid);
+  if (!img && !vid) return showResponse('Please select at least one file.');
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    showResponse(await res.text());
+  } catch (err) { showResponse('Error: ' + err); }
+}
+
+// ---------------- MULTIPART ----------------
+async function doMultipart() {
+  const key = document.getElementById('mpKey').value.trim();
+  const value = document.getElementById('mpValue').value.trim();
+  if (!key || !value) return showResponse('Please fill both key and value.');
+  const formData = new FormData();
+  formData.append(key, value);
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    showResponse(await res.text());
+  } catch (err) { showResponse('Error: ' + err); }
+}
+
+// ---------------- DELETE ----------------
+async function doDelete() {
+  const path = document.getElementById('deletePath').value.trim();
+  if (!path) return showResponse('Please enter a DELETE path.');
+  try {
+    const res = await fetch(path, { method: 'DELETE' });
+    showResponse(await res.text());
+  } catch (err) { showResponse('Error: ' + err); }
+}
+
+// ---------------- CGI ----------------
+async function doCgiGet() {
+  const path = document.getElementById('cgiPath').value.trim();
+  if (!path) return showResponse('Please enter CGI path.');
+  try {
+    const res = await fetch(path);
+    showResponse(await res.text());
+  } catch (err) { showResponse('Error: ' + err); }
+}
+
+async function doCgiPost() {
+  const path = document.getElementById('cgiPath').value.trim();
+  if (!path) return showResponse('Please enter CGI path.');
+  try {
+    const res = await fetch(path, { method: 'POST' });
+    showResponse(await res.text());
+  } catch (err) { showResponse('Error: ' + err); }
+}
+
+// ---------------- COOKIE & SESSION ----------------
+
+// Set Cookie Locally
+function setCookieLocal() {
+  const name = document.getElementById('cookieName').value.trim();
+  const value = document.getElementById('cookieValue').value.trim();
+  
+  if (!name || !value) {
+    return showResponse('⚠️ Please enter both cookie name and value');
+  }
+  
+  document.cookie = `${name}=${value}; path=/; max-age=3600`;
+  updateCookieDisplay();
+  showResponse(`✅ Cookie set: ${name}=${value}\nExpires in 1 hour`);
+}
+
+// Test Session with Server
+async function testSession() {
+  const sessionId = document.getElementById('sessionId').value.trim();
+  
+  if (!sessionId) {
+    return showResponse('⚠️ Please enter a session ID');
+  }
+  
+  // Set new session cookie
+  document.cookie = `sessionID=${sessionId}; path=/`;
+  updateCookieDisplay();
+  
+  try {
+    // Test request to /test endpoint with cookies
+    const res = await fetch('/test', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
+    const text = await res.text();
+    const currentCookies = document.cookie;
+    
+    let response = '📤 Cookies Sent:\n' + (currentCookies || 'None') + '\n\n';
+    response += '📥 Server Response:\n' + text;
+    
+    // Check if server sent Set-Cookie header
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      response += '\n\n🍪 Server Set-Cookie:\n' + setCookie;
+    }
+    
+    showResponse(response);
+    
+    // Update display after potential new cookies
+    setTimeout(updateCookieDisplay, 100);
+    
+  } catch (err) {
+    showResponse('❌ Error: ' + err.message);
+  }
+}
+
+// Clear All Cookies
+function clearAllCookies() {
+  const cookies = document.cookie.split('; ');
+  
+  cookies.forEach(cookie => {
+    const name = cookie.split('=')[0];
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  });
+  
+  updateCookieDisplay();
+  showResponse('✅ All cookies cleared from browser');
+}
+
+// Initialize cookie display on load
+updateCookieDisplay();
+  </script>
 </body>
 </html>

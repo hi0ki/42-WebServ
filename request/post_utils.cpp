@@ -1,6 +1,6 @@
 #include "../core_srv/include/Server.hpp"
 
-void post_algo(ClientData client, int &request_length)
+void post_algo(ClientData &client, int &request_length)
 {
     if (!client.get_ftime_pars())
 	{

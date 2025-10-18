@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 #include <sstream>
-
+//khsni checki 3lach 3 dyal clinet ongad output
 uint32_t ip_convert(std::string ip)
 {
 	unsigned int b1, b2, b3, b4;
@@ -27,7 +27,7 @@ std::string the_ip_port(config &config, int srv_index)
 	return ip_port;
 }
 
-Server::Server(config &config) : myconfig(config)
+Server::Server(config &config) : myconfig(config) , sessions()
 {
 	std::cout << std::endl;
 	this->server_start();
@@ -36,7 +36,6 @@ Server::Server(config &config) : myconfig(config)
 		throw std::runtime_error("No server find\n");
 		return ;
 	}
-	std::cout << "\n"; 
 	std::cout << "\t" << GREEN << "##########################################" << std::endl;
 	std::cout << "\t" << "#                                        #" << std::endl;
 	std::cout << "\t" << "#            Servers listening           #" << std::endl;
@@ -67,14 +66,13 @@ void Server::server_start()
 			pfd.events = POLLIN | POLLOUT;
 			pfd.revents = 0;
 			fds.push_back(pfd);
-			std::cout << BLUE << "\t\t    [ " << this->myconfig.get_servs()[i].get_IP() << ":" << 
+			std::cout << BLUE << "\t    [ " << this->myconfig.get_servs()[i].get_IP() << ":" << 
 				this->myconfig.get_servs()[i].get_port() << " ]" << " : " <<
 				"Listening..." << RESET << std::endl;
 		}
 		catch(const std::exception& e)
 		{
-			std::cerr << RED << "[ " << this->myconfig.get_servs()[i].get_IP() << ":" << 
-				this->myconfig.get_servs()[i].get_port() << " ]" << " : " <<
+			std::cerr << RED << the_ip_port(myconfig, i) << " : " <<
 				e.what() << RESET << std::endl;
 			this->myconfig.get_servs().erase(this->myconfig.get_servs().begin() + i);
 			i--;
@@ -99,13 +97,13 @@ void Server::bind_socket(int srv_index)
 	setsockopt(this->connection, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	if (bind(this->connection, (struct sockaddr *)&addr, sizeof(addr)) == -1)
-		throw std::runtime_error("bind err");
+		throw std::runtime_error("Client Can't bind to socket");
 }
 
 void Server::listen_socket()
 {
 	if (listen(this->connection, SOMAXCONN) == -1)
-		throw std::runtime_error("listen err");
+		throw std::runtime_error("Client Can't listen to socket");
 }
 
 bool Server::is_server(int fd)
@@ -136,12 +134,12 @@ void Server::start_connection()
 	{
 		poll_var = poll(fds.data(), fds.size(), 0);
 		if (poll_var == -1)
-			throw std::runtime_error("poll err");
+			throw std::runtime_error("Poll Error");
 		for (size_t i = 0; i < fds.size(); i++)
 		{
 			if (!is_server(fds[i].fd) && !check_timeout(this->clients[fds[i].fd].get_last_activity()))
 			{
-				std::cerr << RED << "\t\tClient timed out : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
+				std::cerr << RED << "\t   Client timed out : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
 				close(fds[i].fd);
 				this->clients.erase(fds[i].fd);
 				this->fds.erase(fds.begin() + i);
@@ -174,7 +172,7 @@ void Server::accept_client(int i)
 	client_fd = accept(fds[i].fd, NULL, NULL);
 	if (client_fd == -1)
 	{
-		std::cerr << "client can't connect to [" << this->myconfig.get_servs()[i].get_IP() << "]" << std::endl;
+		std::cerr << "\tclient can't connect to [" << this->myconfig.get_servs()[i].get_IP() << "]" << std::endl;
 		return ;
 	}
 	//    INIT  POLLFD
@@ -188,7 +186,7 @@ void Server::accept_client(int i)
 	new_client.set_srv_index(i);
 	this->clients[client_fd] = new_client;
 	fcntl(client_fd, F_SETFL, O_NONBLOCK);
-	std::cout << GREEN << "\t\tNew client connected to : " << the_ip_port(myconfig, i) << RESET << std::endl;
+	std::cout << YELLOW << "\tNew client connected to : " << the_ip_port(myconfig, i) << RESET << std::endl;
 }
 
 void Server::pars_post_req(int index)
@@ -231,14 +229,13 @@ void Server::handle_request(int i)
 	}
 	else if (bytesRead == 0)
 	{
-		std::cerr << RED << "Client closed the connection : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
+		std::cerr << RED << "\tClient closed the connection : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
 		close(fds[i].fd);
 		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);
 		i--;
 		return ;
 	}
-
 	if (this->clients[fds[i].fd].get_length() == -1)
 	{
 		this->clients[fds[i].fd].get_request_obj().request_pars(this->clients[fds[i].fd], this->myconfig);
@@ -261,7 +258,7 @@ void Server::handle_response(int i)
 	send(fds[i].fd, response.c_str(), response.size(), MSG_DONTWAIT);
 	if (this->clients[fds[i].fd].get_header_length() == -1 && !this->clients[fds[i].fd].get_keep_alive())
 	{
-		std::cout << RED << "Client closed the connection : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
+		std::cout << RED << "\tClient closed the connection : " << the_ip_port(myconfig, this->clients[fds[i].fd].get_srv_index()) << RESET << std::endl;
 		close(fds[i].fd);
 		this->clients.erase(fds[i].fd);
 		this->fds.erase(fds.begin() + i);

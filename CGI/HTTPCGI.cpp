@@ -65,13 +65,14 @@ void HTTPCGI::cgi_env(Httprequest &req)
 
 int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
 {
+    std::cout << GREEN << "\t\t      --- CGI ---" << RESET << std::endl;
     const std::vector<Location>& locations = conf.get_servs()[index].get_location();
 
     for(size_t i = 0; i < locations.size(); i++)
     {
         if(locations[i].type == CGI)
         {
-            std::cout << RED << "CGI Location found!" << RESET << std::endl;
+            std::cout << GREEN << "CGI Location found!" << RESET << std::endl;
             
             // 1. Check if CGI is enabled
             if(locations[i].cgi_enabled == false)
@@ -86,10 +87,7 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
             std::vector<std::string> methods_to_check;
 
             if (!locations[i].methods.empty())
-            {
-                std::cout << "in location" << std::endl;
                 methods_to_check = locations[i].methods;
-            }
             else if (!conf.get_servs()[index].get_methods().empty())
             {
                 std::cout << "in global serv" << std::endl;
@@ -164,7 +162,6 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
             for (size_t j = 0; j < locations[i].cgi_path.size(); ++j)
             {
                 const std::string &path = locations[i].cgi_path[j];
-                std::cout << "Checking interpreter: " << path << std::endl;
 
                 struct stat st;
                 if (stat(path.c_str(), &st) != 0)
@@ -208,7 +205,7 @@ int HTTPCGI::can_execute(config &conf, int index, Httprequest &req)
                 return (1);
             }
             
-            std::cout << GREEN << "All CGI checks passed!" << RESET << std::endl;
+            std::cout << GREEN << "All CGI checks passed!\n" << RESET << std::endl;
             return (0);
         }
     }
@@ -240,7 +237,6 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
         
         post_content += clean_key + "=" + clean_value;
     }
-    
     // Step 2: Save to a file
     std::ofstream out(post_file.c_str());
     if (out.is_open())
@@ -334,7 +330,7 @@ std::string HTTPCGI::execute(const std::string &script_path, std::map<std::strin
             close(pipefd[0]);
             return ("");
         }
-        usleep(100000);
+        // usleep(100000);
     }
     close(pipefd[0]);
     return (output);
