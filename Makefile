@@ -28,7 +28,7 @@ $(NAME): $(OBJ)
 	@$(CXX) $(OBJ) -o $(NAME)
 	@echo "$(GREEN)[✔] Build Complete!$(RESET)"
 	@echo "$(YELLOW)Run the server with :$(RESET)"
-	@echo "$(darkGREY)  ./$(NAME) conf.conf$(RESET)"
+	@echo "$(darkGREY)  ./$(NAME) config_file.conf$(RESET)"
 	@echo "$(darkGREY)  ./$(NAME) yourfileconfig.conf$(RESET)"
 
 %.o: %.cpp $(HEADERS)
