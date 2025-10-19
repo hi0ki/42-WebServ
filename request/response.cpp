@@ -87,7 +87,7 @@ std::string Httprequest::buildHttpResponse(bool keep_alive, ClientData &client)
         if (!this->file_opened)
         {
             client.getFile().open(this->getAbsolutePath().c_str());
-            if (!client.getFile().is_open()) {
+            if (!client.getFile().is_open() && this->getStatus_code() != 301){
                 response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 70\r\n\r\n \
                 <html><body><h1>404 Not Found</h1><p>The requested file could not be found on this server.</p></body></html>";
                 return response;

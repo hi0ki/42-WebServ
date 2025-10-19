@@ -282,8 +282,8 @@ bool handelGET(Httprequest &req, config &config, ClientData &client)
     }
     if (c == 'D')
     {
-        // if (!isUriEndsWithSlash(req.getPath(), req))
-        //     return false;
+        if (!isUriEndsWithSlash(req.getPath(), req))
+            return false;
         if (resolve_index(req, config) == false)
             t_f = findIndexFile(req);
         if (t_f == false)
