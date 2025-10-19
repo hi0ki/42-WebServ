@@ -59,7 +59,7 @@ server {
     location /cgi {
         root /;
         cgi_enabled on;
-        cgi_extension .py .php .html;
+        cgi_extension .py .php;
         cgi_path /usr/bin/python3 /usr/bin/php;
         methods POST GET DELETE;
     }
@@ -89,3 +89,4 @@ server {
 - `cgi_path` - Path to CGI interpreters
 - `max_upload_size` - Upload size limit (MB)
 - `return` - HTTP redirection
+
